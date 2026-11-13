@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Electron Bank — Companion Simulator Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#0b1626; --navy:#122036; --navy-panel:#16263f; --navy-line:#243a5c;
+  --copper:#c9824a; --copper-bright:#e8a56a; --copper-dim:#8a5a35;
+  --ink:#e8e2d6; --ink-dim:#9aa5b5; --ink-faint:#5d6b80;
+  --green:#7fb58a; --red:#c96a5e; --gold:#d9b36a; --blue:#6a9ec9;
+  --mono:'JetBrains Mono',monospace; --serif:'Fraunces',serif; --sans:'Geist',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--navy-deep);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px 80px}
+
+header{padding:56px 0 34px;border-bottom:1px solid var(--navy-line)}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--copper);margin-bottom:14px}
+h1{font-family:var(--serif);font-weight:600;font-size:44px;line-height:1.08;letter-spacing:-.01em}
+h1 em{font-style:italic;color:var(--copper-bright)}
+.dek{margin-top:16px;max-width:820px;font-size:16.5px;color:var(--ink-dim)}
+.dek strong{color:var(--ink);font-weight:500}
+
+.panel{margin-top:44px;background:var(--navy);border:1px solid var(--navy-line);border-radius:6px;overflow:hidden}
+.panel-head{display:flex;align-items:baseline;gap:14px;padding:18px 24px;border-bottom:1px solid var(--navy-line)}
+.panel-num{font-family:var(--mono);font-size:11px;color:var(--copper);letter-spacing:.18em}
+.panel-title{font-family:var(--serif);font-size:20px;font-weight:600}
+.panel-sub{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:.08em}
+.panel-body{padding:24px}
+
+.controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px 28px}
+.ctl label{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:8px}
+.ctl label output{color:var(--copper-bright);font-weight:500}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;background:var(--navy-line);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--copper);cursor:pointer;border:2px solid var(--navy-deep)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--copper);cursor:pointer;border:2px solid var(--navy-deep)}
+.ctl .hint{margin-top:7px;font-size:11.5px;color:var(--ink-faint)}
+
+.regime-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.regime-btn{flex:1;min-width:180px;text-align:left;background:var(--navy-panel);border:1px solid var(--navy-line);border-radius:5px;padding:12px 14px;cursor:pointer;color:var(--ink-dim);font-family:var(--sans);transition:border-color .15s,color .15s}
+.regime-btn .rb-name{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:5px}
+.regime-btn .rb-order{font-size:12.5px;line-height:1.4}
+.regime-btn.active{border-color:var(--copper);color:var(--ink)}
+.regime-btn.active .rb-name{color:var(--copper-bright)}
+.toggle-row{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);cursor:pointer;user-select:none}
+.toggle-row .sw{width:36px;height:18px;border-radius:10px;background:var(--navy-line);position:relative;transition:background .15s}
+.toggle-row .sw::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ink-dim);transition:left .15s,background .15s}
+.toggle-row.on .sw{background:var(--copper-dim)}
+.toggle-row.on .sw::after{left:20px;background:var(--copper-bright)}
+
+.ledger{width:100%;border-collapse:collapse;font-size:13px}
+.ledger th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);text-align:left;padding:0 14px 10px;border-bottom:1px solid var(--navy-line)}
+.ledger th.num,.ledger td.num{text-align:right;font-family:var(--mono)}
+.ledger td{padding:11px 14px;border-bottom:1px solid rgba(36,58,92,.45);vertical-align:top}
+.ledger tr:last-child td{border-bottom:none}
+.acct{font-weight:500;color:var(--ink)}
+.acct-desc{font-size:11.5px;color:var(--ink-faint);margin-top:2px;max-width:340px}
+.claim-tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:2px 7px;border-radius:3px;border:1px solid var(--navy-line);color:var(--ink-dim)}
+.claim-tag.senior{border-color:var(--copper);color:var(--copper-bright)}
+
+figure.chart{margin:0}
+figure.chart svg{display:block;width:100%;height:auto}
+.chart-note{font-size:12px;color:var(--ink-faint);margin-top:10px;max-width:860px}
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-dim)}
+.legend span{display:flex;align-items:center;gap:7px}
+.legend i{width:14px;height:3px;display:inline-block;border-radius:2px}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1px;background:var(--navy-line)}
+.metric{background:var(--navy);padding:18px 20px}
+.metric .m-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.metric .m-val{font-family:var(--mono);font-size:24px;font-weight:500;color:var(--ink);margin-top:8px}
+.metric .m-val.copper{color:var(--copper-bright)}
+.metric .m-val.red{color:var(--red)}
+.metric .m-val.green{color:var(--green)}
+.metric .m-sub{font-size:11px;color:var(--ink-faint);margin-top:5px}
+
+.wf-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:880px){.wf-grid{grid-template-columns:1fr}}
+.wf-card{background:var(--navy-panel);border:1px solid var(--navy-line);border-radius:5px;padding:16px}
+.wf-card.active{border-color:var(--copper)}
+.wf-card h4{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:12px}
+.wf-card.active h4{color:var(--copper-bright)}
+.wf-row{margin-bottom:12px}
+.wf-row:last-child{margin-bottom:0}
+.wf-name{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);margin-bottom:4px}
+.wf-name b{font-family:var(--mono);font-weight:500;color:var(--ink)}
+.wf-bar{height:9px;background:rgba(36,58,92,.6);border-radius:2px;overflow:hidden;position:relative}
+.wf-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px}
+.wf-short{font-family:var(--mono);font-size:10px;margin-top:3px;color:var(--red)}
+.wf-short.ok{color:var(--green)}
+.wf-verdict{margin-top:14px;padding-top:12px;border-top:1px solid var(--navy-line);font-size:12px;color:var(--ink-dim);line-height:1.5}
+
+.argument{margin-top:44px;padding:28px;border:1px solid var(--copper-dim);border-radius:6px;background:linear-gradient(180deg,rgba(201,130,74,.06),rgba(201,130,74,0))}
+.argument h3{font-family:var(--serif);font-size:22px;font-weight:600;margin-bottom:12px}
+.argument p{max-width:900px;color:var(--ink-dim);font-size:15px;margin-bottom:12px}
+.argument p:last-child{margin-bottom:0}
+.argument strong{color:var(--ink);font-weight:500}
+.argument em{color:var(--copper-bright);font-style:italic}
+
+.prov{margin-top:44px;border-top:1px solid var(--navy-line);padding-top:22px}
+.prov h4{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px}
+.prov ul{list-style:none}
+.prov li{display:flex;gap:12px;font-size:12.5px;color:var(--ink-dim);padding:6px 0;max-width:960px}
+.ptag{flex-shrink:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;padding:2px 8px;border-radius:3px;height:fit-content;margin-top:2px}
+.ptag.verified{background:rgba(127,181,138,.12);color:var(--green);border:1px solid rgba(127,181,138,.35)}
+.ptag.structural{background:rgba(217,179,106,.1);color:var(--gold);border:1px solid rgba(217,179,106,.35)}
+.ptag.pending{background:rgba(201,106,94,.1);color:var(--red);border:1px solid rgba(201,106,94,.35)}
+.masthead{padding:34px 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--copper)}
+.tabs{display:flex;gap:10px;margin-top:18px;border-bottom:1px solid var(--navy-line);padding-bottom:0}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;padding:10px 4px 12px;margin-right:18px;cursor:pointer;font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);transition:color .15s,border-color .15s}
+.tab-btn.active{color:var(--copper-bright);border-bottom-color:var(--copper)}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.hub-bars .wf-name b{font-size:11px}
+footer{margin-top:50px;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);letter-spacing:.06em;line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="masthead">The Docket &middot; Electron Bank Companion Simulators</div>
+<div class="tabs">
+  <button class="tab-btn active" id="tab-btn-vault" data-pane="pane-vault">No. 1 &middot; The Vault</button>
+  <button class="tab-btn" id="tab-btn-branch" data-pane="pane-branch">No. 2 &middot; The Branch Network</button>
+</div>
+
+<div class="tabpane active" id="pane-vault">
+
+<header>
+  <div class="kicker">The Docket · Companion Exhibit · Electron Bank Series No. 1</div>
+  <h1>The Vault<br><em>One state of charge, three creditors</em></h1>
+  <p class="dek">A long-duration storage asset holds a single physical inventory — its state of charge. An "electron bank" pledges that inventory three ways at once: as <strong>resource adequacy</strong> to a load-serving entity, as <strong>warehouse receipts</strong> to traders, and as <strong>borrowing-base collateral</strong> to a lender. In fair weather the claims coexist. In a dunkelflaute they collide. The priority regime — who stands senior on the same megawatt-hours — determines which financing architecture is possible at all.</p>
+</header>
+
+<!-- ══════════ PANEL A · CONTROLS ══════════ -->
+<section class="panel" id="panel-a">
+  <div class="panel-head"><span class="panel-num">A</span><span class="panel-title">The Term Sheet</span><span class="panel-sub">SYNTHETIC PARAMETERS · DAILY RESOLUTION · 365 D</span></div>
+  <div class="panel-body">
+    <div class="controls">
+      <div class="ctl">
+        <label>Reservoir <output id="out-emax">4,000 MWh</output></label>
+        <input type="range" id="in-emax" min="500" max="12000" step="250" value="4000">
+        <div class="hint">Energy capacity of the cavern / reservoir</div>
+      </div>
+      <div class="ctl">
+        <label>Duration <output id="out-dur">100 h</output></label>
+        <input type="range" id="in-dur" min="24" max="200" step="4" value="100">
+        <div class="hint">E/P ratio; sets power rating</div>
+      </div>
+      <div class="ctl">
+        <label>RA contracted <output id="out-ra">40%</output></label>
+        <input type="range" id="in-ra" min="0" max="80" step="5" value="40">
+        <div class="hint">Share of reservoir committed to slice-of-day RA</div>
+      </div>
+      <div class="ctl">
+        <label>Advance rate <output id="out-adv">60%</output></label>
+        <input type="range" id="in-adv" min="0" max="90" step="5" value="60">
+        <div class="hint">Lender advance against free inventory value</div>
+      </div>
+      <div class="ctl">
+        <label>Receipt float <output id="out-rcpt">40%</output></label>
+        <input type="range" id="in-rcpt" min="0" max="80" step="5" value="40">
+        <div class="hint">Free inventory sold as warehouse receipts</div>
+      </div>
+      <div class="ctl" style="display:flex;flex-direction:column;justify-content:center">
+        <div class="toggle-row on" id="tg-stress"><span class="sw"></span> Dunkelflaute · Days 337–347</div>
+        <div class="hint" style="margin-top:10px">Eleven-day renewable drought, WECC-wide</div>
+      </div>
+    </div>
+    <div style="margin-top:26px">
+      <label style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);display:block;margin-bottom:10px">Priority of claims on state of charge</label>
+      <div class="regime-row">
+        <button class="regime-btn active" data-regime="reliability" id="rg-reliability"><span class="rb-name">I · Reliability first</span><span class="rb-order">RA call → Receipts → Lender floor</span></button>
+        <button class="regime-btn" data-regime="receipt" id="rg-receipt"><span class="rb-name">II · Receipt first</span><span class="rb-order">Receipts → RA call → Lender floor</span></button>
+        <button class="regime-btn" data-regime="lender" id="rg-lender"><span class="rb-name">III · Lender first</span><span class="rb-order">Lender floor → RA call → Receipts</span></button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ PANEL B · LEDGER ══════════ -->
+<section class="panel" id="panel-b">
+  <div class="panel-head"><span class="panel-num">B</span><span class="panel-title">The Ledger</span><span class="panel-sub">CLAIMS AT STRESS ONSET · DAY 337</span></div>
+  <div class="panel-body" style="overflow-x:auto">
+    <table class="ledger" id="ledger-table">
+      <thead><tr><th>Account</th><th>Instrument</th><th class="num">Claim (MWh)</th><th class="num">Value ($k)</th><th>Seniority</th></tr></thead>
+      <tbody id="ledger-body"></tbody>
+    </table>
+    <p class="chart-note" id="ledger-note"></p>
+  </div>
+</section>
+
+<!-- ══════════ PANEL C · THE YEAR ══════════ -->
+<section class="panel" id="panel-c">
+  <div class="panel-head"><span class="panel-num">C</span><span class="panel-title">The Year</span><span class="panel-sub">SYNTHETIC PRICE PATH · SEEDED RNG · NOT CAISO DATA</span></div>
+  <div class="panel-body">
+    <div class="legend">
+      <span><i style="background:var(--blue)"></i> DAY-WEIGHTED PRICE $/MWH</span>
+      <span><i style="background:var(--copper)"></i> STATE OF CHARGE MWH</span>
+      <span><i style="background:var(--gold)"></i> BORROWING BASE $K</span>
+      <span><i style="background:var(--red)"></i> REVOLVER DRAWN $K</span>
+      <span><i style="background:var(--ink-faint);height:1px"></i> RA RESERVED FLOOR</span>
+    </div>
+    <figure class="chart" id="chart-year"></figure>
+    <p class="chart-note">Top ribbon: the synthetic price year — winter scarcity, spring solar trough, summer peak, and (toggled) an eleven-day dunkelflaute. Middle: state of charge against the RA-reserved floor; the asset injects through spring and carries inventory into winter. Bottom: the inventory revolver. The borrowing base is advance rate × free inventory × forward marker; every day the base falls below the amount drawn is a <span style="color:var(--red)">margin call in megawatt-hours</span> — the failure mode gas storage lenders already know how to price.</p>
+  </div>
+</section>
+
+<!-- ══════════ PANEL D · THE COLLISION ══════════ -->
+<section class="panel" id="panel-d">
+  <div class="panel-head"><span class="panel-num">D</span><span class="panel-title">The Collision</span><span class="panel-sub">SAME PHYSICS · THREE ORDERINGS</span></div>
+  <div class="panel-body">
+    <div class="wf-grid" id="wf-grid"></div>
+    <p class="chart-note" style="margin-top:18px">Deliverable energy over the stress window is fixed by physics: state of charge at onset, capped by the power rating. The three cards allocate that same energy under the three priority regimes. Bars show <span style="color:var(--copper-bright)">delivered</span> against demanded. The shortfall never disappears — the regime only chooses who eats it, and therefore which counterparty refuses to sign in the first place.</p>
+  </div>
+</section>
+
+<!-- ══════════ PANEL E · METRICS ══════════ -->
+<section class="panel" id="panel-e">
+  <div class="panel-head"><span class="panel-num">E</span><span class="panel-title">The Underwriting</span><span class="panel-sub">STRUCTURAL COST ASSUMPTIONS · SEE PROVENANCE</span></div>
+  <div class="metrics" id="metrics-grid"></div>
+</section>
+
+<!-- ══════════ THE ARGUMENT ══════════ -->
+<div class="argument">
+  <h3>Why the ordering is the whole design</h3>
+  <p><strong>Regime I (reliability first)</strong> is what the CPUC and a slice-of-day ELCC study implicitly assume: encumbered or not, the electrons answer the RA call. Receipts become interruptible, so traders discount them; the lender's collateral evaporates precisely when prices peak, so the advance rate collapses toward zero. You get accreditation but no inventory finance — the merchant-plus-RA world every grim utility LDES study already modeled.</p>
+  <p><strong>Regime III (lender first)</strong> is what a borrowing-base revolver actually requires — a perfected security interest that survives stress. But then the RA study cannot count the encumbered floor, the slice-of-day multiplier shrinks, and the contracted revenue that anchors the term debt disappears. You get cheap working capital and no capacity revenue.</p>
+  <p><strong>Regime II (receipts first)</strong> is the gas-storage answer: firm storage service with clear title on injected volumes, RA sold only against the uncommitted remainder, lender advancing only against receipted inventory with the receipt holders' consent — the LME warrant structure, not the CDO structure. It is the only ordering under which all three counterparties can rationally sign, and it is the ordering no electricity market currently has legal machinery to enforce. <em>That machinery — title, seniority, and settlement on state of charge — is the electron bank. Everything else in the brainstorm is decoration.</em></p>
+</div>
+
+<div class="argument" style="margin-top:20px">
+  <h3>The number the gas analogy hides</h3>
+  <p>Working gas in a storage field can be a double-digit percentage of facility value, which is why inventory revolvers matter there. Here the full reservoir at the forward marker is worth a fraction of one percent of capex — stored electricity is nearly worthless <strong>as commodity</strong>. What carries value is the option it embeds: firm deliverability into a $1,000+/MWh scarcity window. The lendable object is therefore not the inventory but the <em>seniority of a claim on state of charge during stress</em> — which is exactly the instrument no power market can currently perfect, and exactly what an electron bank would exist to issue. The brainstorm's inventory-financing leg survives only after this substitution: warehouse receipts on electrons are scarcity options with physical settlement, not commodity warrants. That reframing is publishable; the unmodified gas analogy is not.</p>
+</div>
+
+<!-- ══════════ PROVENANCE ══════════ -->
+<div class="prov">
+  <h4>Provenance Ledger</h4>
+  <ul>
+    <li><span class="ptag verified">VERIFIED</span><span>Gas storage bankability rests on firm/interruptible service tiers and inventory-backed credit facilities; borrowing-base lending against stored hydrocarbons and LME warehouse warrants are established practice.</span></li>
+    <li><span class="ptag verified">VERIFIED</span><span>CPUC has adopted slice-of-day RA accounting; ELCC-style accreditation does not currently recognize lender encumbrance of state of charge as a derating factor.</span></li>
+    <li><span class="ptag structural">STRUCTURAL</span><span>Price path is synthetic (seeded RNG, seasonal harmonics, stylized dunkelflaute) and is not CAISO or WECC data. Capex $800/kW power island + $15/kWh reservoir (geologic-class placeholder), RA at $7.50/kW-mo, 62% round-trip efficiency, 6.5% × 20-yr debt are placeholder magnitudes for a geologic/mechanical asset class, not quotes.</span></li>
+    <li><span class="ptag structural">STRUCTURAL</span><span>Waterfall allocation is a stylized three-claimant priority stack; real documentation would involve intercreditor agreements, RA penalty structures, and receipt-holder cure rights not modeled here.</span></li>
+    <li><span class="ptag pending">PENDING</span><span>Legal basis for warehouse-receipt title on state of charge (UCC Art. 7 analogue for stored energy); FERC/CFTC jurisdictional line for physically-settled receipts; whether any WECC LSE would accept interruptible-behind-receipts RA.</span></li>
+  </ul>
+</div>
+
+
+</div><!-- /pane-vault -->
+
+<div class="tabpane" id="pane-branch">
+
+<header>
+  <div class="kicker">The Docket &middot; Companion Exhibit &middot; Electron Bank Series No. 2</div>
+  <h1>The Branch Network<br><em>Five vaults, one balance sheet</em></h1>
+  <p class="dek">The Gas Bank was never the storage &mdash; it was the portfolio. An electron bank’s asset side is a geographically distributed LDES fleet managed as <strong>one inventory</strong>: SP15, NP15, Palo Verde, Mid-C, a Utah cavern. The ATM analogy says the portfolio never runs dry because branches cover each other. That is true under exactly two conditions: scarcity must be <strong>imperfectly correlated</strong> across hubs, and transmission must be <strong>deliverable when it binds</strong>. This exhibit sells firm blocks against the fleet, then sweeps the correlation of drought &mdash; and watches the diversification claim hold, thin, and fail.</p>
+</header>
+
+<!-- PANEL F CONTROLS -->
+<section class="panel" id="panel-f">
+  <div class="panel-head"><span class="panel-num">F</span><span class="panel-title">The Portfolio Term Sheet</span><span class="panel-sub">SYNTHETIC FLEET &middot; STAR TOPOLOGY &middot; 365 D</span></div>
+  <div class="panel-body">
+    <div class="controls">
+      <div class="ctl">
+        <label>Drought correlation <output id="out-rho">80%</output></label>
+        <input type="range" id="in-rho" min="0" max="100" step="10" value="80">
+        <div class="hint">0% = staggered local droughts &middot; 100% = one WECC-wide dunkelflaute</div>
+      </div>
+      <div class="ctl">
+        <label>Transmission <output id="out-tx">50%</output></label>
+        <input type="range" id="in-tx" min="0" max="150" step="25" value="50">
+        <div class="hint">Scaling on every hub’s interface rating</div>
+      </div>
+      <div class="ctl">
+        <label>Firm blocks sold <output id="out-firm">50%</output></label>
+        <input type="range" id="in-firm" min="10" max="100" step="5" value="50">
+        <div class="hint">Bank’s firm commitment as share of fleet power, load-weighted by hub</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANEL G FLEET -->
+<section class="panel" id="panel-g">
+  <div class="panel-head"><span class="panel-num">G</span><span class="panel-title">The Fleet</span><span class="panel-sub">ANNUAL TROUGH STATE OF CHARGE PER HUB</span></div>
+  <div class="panel-body">
+    <figure class="chart" id="chart-fleet"></figure>
+    <p class="chart-note">The live inventory map: five storage branches wired to a common bus, each gauge showing that hub’s worst state of charge of the year and the day it lands, link width showing interface rating at the current transmission setting. At low correlation the troughs land on scattered days — each branch drains during its own local drought while the others sit full. As correlation rises the trough days converge toward the common window: the whole fleet bottoms out together, which is the failure mode a portfolio-level firmness claim must survive. Note the designed mismatch: firm load is sold where load lives (SP15, NP15) but energy lives where geology allows (Mid-C, Utah). The bank’s entire business is moving inventory across that mismatch &mdash; which is why the interfaces, not the reservoirs, are usually the balance sheet’s weakest line.</p>
+  </div>
+</section>
+
+<!-- PANEL H STRESS LEDGER -->
+<section class="panel" id="panel-h">
+  <div class="panel-head"><span class="panel-num">H</span><span class="panel-title">The Stress Ledger</span><span class="panel-sub">ANNUAL FIRM OBLIGATIONS BY HUB</span></div>
+  <div class="panel-body">
+    <div class="legend">
+      <span><i style="background:var(--copper)"></i> SERVED LOCALLY</span>
+      <span><i style="background:var(--blue)"></i> IMPORTED (5% WHEELING LOSS)</span>
+      <span><i style="background:var(--red)"></i> UNSERVED FIRM</span>
+    </div>
+    <div class="hub-bars" id="hub-bars"></div>
+    <p class="chart-note" id="hub-bars-note"></p>
+  </div>
+</section>
+
+<!-- PANEL I FIRMNESS CURVE -->
+<section class="panel" id="panel-i">
+  <div class="panel-head"><span class="panel-num">I</span><span class="panel-title">The Firmness Curve</span><span class="panel-sub">DELIVERED FIRM % vs DROUGHT CORRELATION</span></div>
+  <div class="panel-body">
+    <div class="legend">
+      <span><i style="background:var(--ink-faint)"></i> TX 0% (STANDALONE)</span>
+      <span><i style="background:var(--gold)"></i> TX 50%</span>
+      <span><i style="background:var(--copper)"></i> TX 100%</span>
+      <span><i style="background:var(--green)"></i> TX 150%</span>
+      <span><i style="background:var(--ink);height:8px;width:8px;border-radius:50%"></i> CURRENT SETTINGS</span>
+    </div>
+    <figure class="chart" id="chart-curve"></figure>
+    <p class="chart-note">The exhibit’s thesis in one chart. At low correlation the portfolio is a bank: idle branches cover the stressed one and firmness rides near 100% whenever wires exist. As correlation rises, every branch is stressed in the same hour, exporters vanish, and the curves converge toward the standalone line &mdash; five small vaults failing simultaneously. Transmission shifts the curve but cannot repeal it: no interface rating rescues a portfolio whose droughts are one drought. Diversification that evaporates under correlation is the banking analogy’s dark twin; banks fail in correlated runs too.</p>
+  </div>
+</section>
+
+<!-- PANEL J METRICS -->
+<section class="panel" id="panel-j">
+  <div class="panel-head"><span class="panel-num">J</span><span class="panel-title">The Portfolio Underwriting</span><span class="panel-sub">CURRENT SETTINGS vs STANDALONE</span></div>
+  <div class="metrics" id="metrics-branch"></div>
+</section>
+
+<div class="argument">
+  <h3>The ATM analogy, audited</h3>
+  <p>Cash is fungible across branches because moving it is nearly free. Inventory at Mid-C is not fungible with a firm obligation at SP15 &mdash; it is separated by an interface that congests precisely when scarcity prices it highest. So the honest claim is conditional: <strong>a distributed LDES fleet behaves like banked inventory if and only if scarcity is imperfectly correlated across hubs and transfer capability survives the stress hour.</strong> A dunkelflaute is, by construction, a wide-area correlated weather event &mdash; it attacks the first condition; congestion attacks the second. The firmness curve above is the audit.</p>
+  <p>This is also where the hub-siting critique lands with full weight: the value of every branch depends on the correlation structure of WECC scarcity and the topology it sits behind. Siting the bank’s branches is not a real-estate decision, it is a <em>correlation trade</em> &mdash; and the residual firm risk the portfolio cannot diversify away is exactly the tail the Vault’s priority-of-claims machinery on the liability side exists to allocate. The two exhibits are one balance sheet: Series No. 2 is the asset book, Series No. 1 is who eats the shortfall the asset book cannot cover.</p>
+  <p>One more audit note: the &ldquo;satellite-linked&rdquo; layer is not novel telemetry &mdash; SCADA and ICCP already stream state data. What is novel is a <strong>commercial</strong> entity seeing state of charge across ownerships. That visibility is the bank’s informational moat and, simultaneously, a market-power question a regulator will ask before any trader does. Say it first.</p>
+</div>
+
+<div class="prov">
+  <h4>Provenance Ledger &middot; Series No. 2</h4>
+  <ul>
+    <li><span class="ptag verified">VERIFIED</span><span>Enron’s Gas Bank was a commercial intermediary &mdash; the portfolio, not the storage, was the bank. Portfolio intermediation in power already exists (Mercuria, Vitol, Shell Energy, BP, EDF Trading, NextEra Marketing et al.); the unbuilt element is the inventory-rich LDES fleet managed as one book.</span></li>
+    <li><span class="ptag structural">STRUCTURAL</span><span>Fleet sizes, hub load weights, interface ratings, 5% wheeling loss, star topology (no AC power flow, no intra-path loop constraints), deterministic drought windows, and the linear correlation blend are all stylized. Real WECC analysis requires nodal topology and a weather-driven scarcity copula.</span></li>
+    <li><span class="ptag structural">STRUCTURAL</span><span>Recharge between droughts assumes surplus renewable energy is available on all non-scarce days at 40% of power rating &mdash; a placeholder for charging-cost and charging-availability modeling.</span></li>
+    <li><span class="ptag pending">PENDING</span><span>Actual WECC interface ratings and historical stress-hour utilization (Path 15, Path 26, COI, PDCI); empirical correlation structure of multi-day WECC-wide low-renewable events; FERC treatment of a commercial entity holding cross-ownership state-of-charge visibility.</span></li>
+  </ul>
+</div>
+
+</div><!-- /pane-branch -->
+
+<footer>THE VAULT &amp; THE BRANCH NETWORK · ELECTRON BANK SERIES NOS. 1–2 · SELF-CONTAINED EXHIBIT SUITE · SYNTHETIC DATA · M. DAVIS / THE DOCKET · 2026</footer>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ── deterministic RNG ─────────────────────────────── */
+function mulberry32(seed){
+  return function(){
+    seed|=0; seed=(seed+0x6D2B79F5)|0;
+    let t=Math.imul(seed^(seed>>>15),1|seed);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+
+/* ── synthetic price path, $/MWh, daily, 365 d ─────── */
+function pricePath(opts){
+  opts=opts||{};
+  const seed=opts.seed!==undefined?opts.seed:7;
+  const stress=opts.stress!==undefined?opts.stress:true;
+  const rng=mulberry32(seed);
+  const p=[];
+  for(let d=0;d<365;d++){
+    let v=42
+      + 16*Math.cos(2*Math.PI*(d-10)/365)                 /* winter scarcity   */
+      + 11*Math.exp(-Math.pow((d-205)/22,2))              /* summer peak       */
+      - 14*Math.exp(-Math.pow((d-105)/28,2))              /* spring solar glut */
+      + (rng()-0.5)*11;
+    if(stress && d>=337 && d<=347) v=v*2.2+140;           /* dunkelflaute      */
+    p.push(v);
+  }
+  return p;
+}
+
+/* ── core simulation ───────────────────────────────── */
+const STRESS_START=337, STRESS_END=347;
+
+function simulate(params){
+  const Emax=params.Emax, dur=params.dur;
+  const raFrac=params.raFrac, adv=params.adv, rcptFrac=params.rcptFrac;
+  const stress=params.stress, seed=params.seed!==undefined?params.seed:7;
+
+  const Pmax=Emax/dur;                       /* MW */
+  const dailyCap=Pmax*24;                    /* MWh/day throughput */
+  const etaC=0.79, etaD=0.79;                /* ~62% round trip */
+  const prices=pricePath({seed:seed,stress:stress});
+
+  /* thresholds from the non-stress portion so the strategy isn't clairvoyant about the drought */
+  const calm=prices.slice(0,STRESS_START);
+  const sorted=calm.slice().sort((a,b)=>a-b);
+  const q=(f)=>sorted[Math.min(sorted.length-1,Math.floor(f*sorted.length))];
+  const buyBelow=q(0.30), sellAbove=q(0.72);
+  const fwd=calm.reduce((s,x)=>s+x,0)/calm.length;   /* forward marker $/MWh */
+
+  const reserved=raFrac*Emax;                        /* RA floor MWh */
+  const receiptMWh=rcptFrac*(Emax-reserved);         /* title-held: cannot be merchant-sold */
+  const floorTotal=reserved+receiptMWh;              /* merchant may only trade above this */
+  let soc=Math.min(Emax,Math.max(floorTotal,0.70*Emax));
+
+  const socSeries=[], baseSeries=[], drawnSeries=[];
+  let merchantRev=0, chargeCost=0, marginCalls=0;
+  let drawn=0, peakLocked=false;
+  let socAtStressOnset=null;
+
+  for(let d=0;d<365;d++){
+    const p=prices[d];
+    const inStress=stress && d>=STRESS_START && d<=STRESS_END;
+
+    if(d===STRESS_START) socAtStressOnset=soc;
+
+    if(inStress){
+      /* RA call: contracted power must flow */
+      const raCall=Math.min(dailyCap*raFrac, Math.max(0,soc));
+      soc-=raCall;
+      /* RA energy settles inside the capacity contract, not merchant */
+      /* merchant discharge of remaining free inventory above zero */
+      const free=Math.max(0,soc);
+      const md=Math.min(dailyCap*(1-raFrac), free);
+      soc-=md;
+      merchantRev+=md*etaD*p;
+    } else if(p<buyBelow && soc<Emax){
+      const inj=Math.min(dailyCap, (Emax-soc)/etaC);
+      soc+=inj*etaC;
+      chargeCost+=inj*p;
+    } else if(p>sellAbove && soc>floorTotal){
+      const dis=Math.min(dailyCap, soc-floorTotal);   /* receipted MWh are not the vault's to sell */
+      soc-=dis;
+      merchantRev+=dis*etaD*p;
+    }
+    soc=Math.max(0,Math.min(Emax,soc));
+    socSeries.push(soc);
+
+    /* inventory revolver */
+    const free=Math.max(0,soc-reserved);
+    const base=free*fwd*adv/1000;            /* $k */
+    baseSeries.push(base);
+
+    if(!peakLocked && d>=240){
+      /* lock the draw at end of injection season: 85% of season-max base */
+      const seasonMax=Math.max.apply(null,baseSeries.slice(0,241));
+      drawn=0.85*seasonMax;
+      peakLocked=true;
+    }
+    if(peakLocked && base<drawn){
+      if(inStress) marginCalls++;              /* uncompensated collateral drain = call    */
+      drawn=base;                              /* calm-season decline = scheduled amort    */
+    }
+    drawnSeries.push(peakLocked?drawn:0);
+  }
+
+  if(socAtStressOnset===null) socAtStressOnset=socSeries[STRESS_START]!==undefined?socSeries[STRESS_START]:soc;
+
+  /* claims at stress onset */
+  const stressDays=STRESS_END-STRESS_START+1;
+  const deliverable=Math.min(socAtStressOnset, dailyCap*stressDays);
+  const freeAtOnset=Math.max(0,socAtStressOnset-reserved);
+  const drawnAtOnset=drawnSeries[STRESS_START-1]||0;   /* close of last calm day */
+  const claims={
+    ra:      raFrac*dailyCap*stressDays,                          /* MWh demanded by RA call        */
+    receipt: receiptMWh,                                          /* title-held inventory recall    */
+    lender:  adv>0 ? Math.min(freeAtOnset, drawnAtOnset*1000/(fwd*adv)) : 0  /* collateral floor MWh */
+  };
+
+  /* underwriting (structural placeholders) */
+  const raRev=raFrac*Pmax*1000*7.5*12/1000;         /* $k/yr @ $7.50/kW-mo */
+  const merch=(merchantRev-chargeCost)/1000;         /* $k/yr */
+  const capex=Pmax*800+Emax*15;                      /* $k: $800/kW power island + $15/kWh reservoir */
+  const invValue=Emax*fwd/1000;                      /* $k: full reservoir at the forward marker */
+  const debt=0.60*capex, r=0.065, n=20;
+  const ds=debt*r/(1-Math.pow(1+r,-n));              /* $k/yr annuity */
+  const dscr=ds>0?(raRev+0.5*Math.max(0,merch))/ds:0;
+
+  return {
+    prices:prices, soc:socSeries, base:baseSeries, drawn:drawnSeries,
+    Pmax:Pmax, dailyCap:dailyCap, reserved:reserved, receiptMWh:receiptMWh, floorTotal:floorTotal, fwd:fwd,
+    buyBelow:buyBelow, sellAbove:sellAbove,
+    merchantNet:merch, raRev:raRev, marginCalls:marginCalls,
+    peakDraw:Math.max.apply(null,drawnSeries.concat([0])),
+    capex:capex, invValue:invValue, debtService:ds, dscr:dscr,
+    socAtStressOnset:socAtStressOnset, deliverable:deliverable,
+    freeAtOnset:freeAtOnset, claims:claims, stressDays:stressDays
+  };
+}
+
+/* ── priority waterfall ────────────────────────────── */
+const REGIMES={
+  reliability:{ order:['ra','receipt','lender'], name:'I · Reliability first' },
+  receipt:    { order:['receipt','ra','lender'], name:'II · Receipt first' },
+  lender:     { order:['lender','ra','receipt'], name:'III · Lender first' }
+};
+
+function waterfall(deliverable, claims, order){
+  let avail=deliverable;
+  const alloc={};
+  order.forEach(function(k){
+    const got=Math.min(avail, claims[k]);
+    alloc[k]={demanded:claims[k], delivered:got, shortfall:claims[k]-got};
+    avail-=got;
+  });
+  return alloc;
+}
+
+/* export for jsdom validation */
+window.Vault={mulberry32:mulberry32,pricePath:pricePath,simulate:simulate,waterfall:waterfall,REGIMES:REGIMES,STRESS_START:STRESS_START,STRESS_END:STRESS_END};
+
+/* ══════════ UI ══════════ */
+const $=function(id){return document.getElementById(id);};
+const state={Emax:4000,dur:100,raFrac:0.40,adv:0.60,rcptFrac:0.40,stress:true,regime:'reliability'};
+
+const fmt=function(x,d){return x.toLocaleString('en-US',{maximumFractionDigits:d===undefined?0:d,minimumFractionDigits:0});};
+
+function bind(id,out,key,fmtFn,scale){
+  $(id).addEventListener('input',function(e){
+    const v=+e.target.value;
+    state[key]=scale?v/100:v;
+    $(out).textContent=fmtFn(v);
+    render();
+  });
+}
+bind('in-emax','out-emax','Emax',function(v){return fmt(v)+' MWh';});
+bind('in-dur','out-dur','dur',function(v){return v+' h';});
+bind('in-ra','out-ra','raFrac',function(v){return v+'%';},true);
+bind('in-adv','out-adv','adv',function(v){return v+'%';},true);
+bind('in-rcpt','out-rcpt','rcptFrac',function(v){return v+'%';},true);
+
+$('tg-stress').addEventListener('click',function(){
+  state.stress=!state.stress;
+  $('tg-stress').classList.toggle('on',state.stress);
+  render();
+});
+document.querySelectorAll('.regime-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    state.regime=b.dataset.regime;
+    document.querySelectorAll('.regime-btn').forEach(function(x){x.classList.toggle('active',x===b);});
+    render();
+  });
+});
+
+/* ── SVG helpers ───────────────────────────────────── */
+function linePath(data,x0,x1,y0,y1,vmin,vmax){
+  const n=data.length;
+  let s='';
+  for(let i=0;i<n;i++){
+    const x=x0+(x1-x0)*i/(n-1);
+    const y=y1-(y1-y0)*Math.max(0,Math.min(1,(data[i]-vmin)/(vmax-vmin)));
+    s+=(i===0?'M':'L')+x.toFixed(1)+' '+y.toFixed(1);
+  }
+  return s;
+}
+
+function renderYearChart(sim){
+  const W=1080,H=520;
+  const bands=[ {y0:30,y1:170},{y0:200,y1:340},{y0:370,y1:500} ];
+  const x0=60,x1=W-20;
+  const pMin=Math.min.apply(null,sim.prices), pMax=Math.max.apply(null,sim.prices);
+  const bMax=Math.max(Math.max.apply(null,sim.base),Math.max.apply(null,sim.drawn),1);
+  const monthDays=[0,31,59,90,120,151,181,212,243,273,304,334];
+  const months=['J','F','M','A','M','J','J','A','S','O','N','D'];
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One simulated year: price, state of charge, and inventory revolver">';
+
+  /* stress shading */
+  if(state.stress){
+    const sx=x0+(x1-x0)*STRESS_START/364, ex=x0+(x1-x0)*STRESS_END/364;
+    svg+='<rect x="'+sx.toFixed(1)+'" y="20" width="'+(ex-sx).toFixed(1)+'" height="'+(H-30)+'" fill="rgba(201,106,94,0.10)"/>';
+    svg+='<text x="'+((sx+ex)/2).toFixed(1)+'" y="16" fill="#c96a5e" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing="1">DUNKELFLAUTE</text>';
+  }
+  /* month grid */
+  monthDays.forEach(function(md,i){
+    const x=x0+(x1-x0)*md/364;
+    svg+='<line x1="'+x.toFixed(1)+'" y1="30" x2="'+x.toFixed(1)+'" y2="'+(H-14)+'" stroke="#243a5c" stroke-width="0.5" opacity="0.5"/>';
+    svg+='<text x="'+x.toFixed(1)+'" y="'+(H-2)+'" fill="#5d6b80" font-family="JetBrains Mono" font-size="9">'+months[i]+'</text>';
+  });
+
+  /* band 1: price */
+  svg+='<text x="'+x0+'" y="'+(bands[0].y0-6)+'" fill="#6a9ec9" font-family="JetBrains Mono" font-size="9" letter-spacing="1">PRICE $/MWH · '+fmt(pMin,0)+'–'+fmt(pMax,0)+'</text>';
+  svg+='<path d="'+linePath(sim.prices,x0,x1,bands[0].y0,bands[0].y1,pMin,pMax)+'" fill="none" stroke="#6a9ec9" stroke-width="1.4"/>';
+
+  /* band 2: SoC area + reserved floor */
+  svg+='<text x="'+x0+'" y="'+(bands[1].y0-6)+'" fill="#c9824a" font-family="JetBrains Mono" font-size="9" letter-spacing="1">STATE OF CHARGE MWH · CAP '+fmt(state.Emax)+'</text>';
+  const socP=linePath(sim.soc,x0,x1,bands[1].y0,bands[1].y1,0,state.Emax);
+  svg+='<path d="'+socP+' L'+x1+' '+bands[1].y1+' L'+x0+' '+bands[1].y1+' Z" fill="rgba(201,130,74,0.18)"/>';
+  svg+='<path d="'+socP+'" fill="none" stroke="#c9824a" stroke-width="1.6"/>';
+  const ry=bands[1].y1-(bands[1].y1-bands[1].y0)*(sim.reserved/state.Emax);
+  svg+='<line x1="'+x0+'" y1="'+ry.toFixed(1)+'" x2="'+x1+'" y2="'+ry.toFixed(1)+'" stroke="#9aa5b5" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>';
+  svg+='<text x="'+(x1-4)+'" y="'+(ry-5).toFixed(1)+'" fill="#9aa5b5" font-family="JetBrains Mono" font-size="8.5" text-anchor="end">RA FLOOR '+fmt(sim.reserved)+'</text>';
+
+  /* band 3: revolver */
+  svg+='<text x="'+x0+'" y="'+(bands[2].y0-6)+'" fill="#d9b36a" font-family="JetBrains Mono" font-size="9" letter-spacing="1">INVENTORY REVOLVER $K · MARGIN CALLS '+sim.marginCalls+'</text>';
+  svg+='<path d="'+linePath(sim.base,x0,x1,bands[2].y0,bands[2].y1,0,bMax)+'" fill="none" stroke="#d9b36a" stroke-width="1.4"/>';
+  svg+='<path d="'+linePath(sim.drawn,x0,x1,bands[2].y0,bands[2].y1,0,bMax)+'" fill="none" stroke="#c96a5e" stroke-width="1.4" stroke-dasharray="5 3"/>';
+
+  svg+='</svg>';
+  $('chart-year').innerHTML=svg;
+}
+
+function renderLedger(sim){
+  const wf=waterfall(sim.deliverable,sim.claims,REGIMES[state.regime].order);
+  const seniorKey=REGIMES[state.regime].order[0];
+  const rows=[
+    {key:'ra',name:'Pacific Coast LSE',desc:'Slice-of-day RA contract on '+fmt(state.raFrac*sim.Pmax,0)+' MW; call obligation over the stress window.',inst:'RA capacity contract',mwh:sim.claims.ra,val:sim.raRev},
+    {key:'receipt',name:'Merchant desk syndicate',desc:'Warehouse receipts on '+Math.round(state.rcptFrac*100)+'% of non-RA capacity ('+fmt(sim.receiptMWh)+' MWh title-held); the vault carries but cannot sell it.',inst:'Storage receipts / warrants',mwh:sim.claims.receipt,val:sim.claims.receipt*sim.fwd/1000},
+    {key:'lender',name:'Inventory lender',desc:'Borrowing-base revolver at '+Math.round(state.adv*100)+'% advance against free inventory, marked to the forward.',inst:'Secured revolver',mwh:sim.claims.lender,val:sim.drawn[STRESS_START]||0},
+    {key:'asset',name:'The Vault (asset SPV)',desc:'Residual merchant book; owns the physics, owes everyone.',inst:'Equity residual',mwh:Math.max(0,sim.socAtStressOnset-sim.claims.ra-sim.claims.receipt-sim.claims.lender),val:sim.merchantNet}
+  ];
+  $('ledger-body').innerHTML=rows.map(function(r){
+    const tag=r.key===seniorKey?'<span class="claim-tag senior">SENIOR</span>':(r.key==='asset'?'<span class="claim-tag">RESIDUAL</span>':'<span class="claim-tag">'+(REGIMES[state.regime].order.indexOf(r.key)===1?'SECOND':'THIRD')+'</span>');
+    return '<tr><td><div class="acct">'+r.name+'</div><div class="acct-desc">'+r.desc+'</div></td><td style="color:var(--ink-dim);font-size:12.5px">'+r.inst+'</td><td class="num">'+fmt(Math.max(0,r.mwh))+'</td><td class="num">'+fmt(Math.max(0,r.val))+'</td><td>'+tag+'</td></tr>';
+  }).join('');
+  const totalClaim=sim.claims.ra+sim.claims.receipt+sim.claims.lender;
+  $('ledger-note').textContent='Deliverable energy over the window: '+fmt(sim.deliverable)+' MWh (state of charge '+fmt(sim.socAtStressOnset)+' MWh at onset, power-capped at '+fmt(sim.dailyCap)+' MWh/day). Total claims: '+fmt(totalClaim)+' MWh. '+(totalClaim>sim.deliverable?'The ledger is over-pledged by '+fmt(totalClaim-sim.deliverable)+' MWh — the same electrons are promised more than once.':'Claims are covered at these settings — tighten the term sheet or lengthen the drought to find the break.');
+}
+
+const CLAIM_META={ra:{label:'RA call',color:'#6a9ec9'},receipt:{label:'Receipt recall',color:'#c9824a'},lender:{label:'Lender floor',color:'#d9b36a'}};
+
+function renderWaterfalls(sim){
+  const maxDem=Math.max(sim.claims.ra,sim.claims.receipt,sim.claims.lender,1);
+  $('wf-grid').innerHTML=Object.keys(REGIMES).map(function(rk){
+    const R=REGIMES[rk];
+    const wf=waterfall(sim.deliverable,sim.claims,R.order);
+    const rows=R.order.map(function(k){
+      const a=wf[k], m=CLAIM_META[k];
+      const wDem=100*a.demanded/maxDem, wGot=100*a.delivered/maxDem;
+      const shortTxt=a.shortfall>0.5?'−'+fmt(a.shortfall)+' MWh SHORT':'MADE WHOLE';
+      return '<div class="wf-row"><div class="wf-name"><span>'+m.label+'</span><b>'+fmt(a.delivered)+' / '+fmt(a.demanded)+'</b></div>'+
+        '<div class="wf-bar"><i style="width:'+wDem.toFixed(1)+'%;background:rgba(93,107,128,0.35)"></i><i style="width:'+wGot.toFixed(1)+'%;background:'+m.color+'"></i></div>'+
+        '<div class="wf-short'+(a.shortfall>0.5?'':' ok')+'">'+shortTxt+'</div></div>';
+    }).join('');
+    const junior=R.order[2], jShort=wf[junior].shortfall>0.5;
+    const verdicts={
+      reliability:jShort||wf.receipt.shortfall>0.5?'Receipts are interruptible; the lender is unsecured in the tail. Traders discount the paper, the advance rate goes to zero.':'Covered here — but the trader and lender price the tail, not the base case.',
+      receipt:'The gas-storage ordering: firm title on receipted volumes, RA sold only against the remainder. The one stack all three counterparties can sign.',
+      lender:jShort||wf.ra.shortfall>0.5?'Collateral is perfected but the RA call fails; accreditation cannot count an encumbered floor. Capacity revenue disappears.':'Covered here — but the ELCC study still cannot count the encumbered floor.'
+    };
+    return '<div class="wf-card'+(rk===state.regime?' active':'')+'" id="wf-'+rk+'"><h4>'+R.name+'</h4>'+rows+'<div class="wf-verdict">'+verdicts[rk]+'</div></div>';
+  }).join('');
+}
+
+function renderMetrics(sim){
+  const totalClaim=sim.claims.ra+sim.claims.receipt+sim.claims.lender;
+  const overPledge=totalClaim>0?totalClaim/Math.max(1,sim.deliverable):0;
+  const items=[
+    {l:'RA revenue',v:'$'+fmt(sim.raRev)+'k',s:'$7.50/kW-mo structural',c:''},
+    {l:'Merchant net',v:'$'+fmt(sim.merchantNet)+'k',s:'seasonal carry, 62% RTE',c:sim.merchantNet>=0?'':'red'},
+    {l:'Peak revolver',v:'$'+fmt(sim.peakDraw)+'k',s:'85% of season-max base',c:'copper'},
+    {l:'Margin calls',v:''+sim.marginCalls,s:'days base < drawn',c:sim.marginCalls>0?'red':'green'},
+    {l:'DSCR',v:sim.dscr.toFixed(2)+'×',s:'RA + ½·merchant / debt service',c:sim.dscr>=1.3?'green':(sim.dscr>=1?'':'red')},
+    {l:'Pledge ratio',v:overPledge.toFixed(2)+'×',s:'claims / deliverable at stress',c:overPledge>1?'red':'green'},
+    {l:'Inventory / capex',v:(100*sim.invValue/sim.capex).toFixed(2)+'%',s:'full reservoir value vs machine cost',c:'red'}
+  ];
+  $('metrics-grid').innerHTML=items.map(function(m){
+    return '<div class="metric"><div class="m-label">'+m.l+'</div><div class="m-val '+m.c+'">'+m.v+'</div><div class="m-sub">'+m.s+'</div></div>';
+  }).join('');
+}
+
+function render(){
+  const sim=simulate({Emax:state.Emax,dur:state.dur,raFrac:state.raFrac,adv:state.adv,rcptFrac:state.rcptFrac,stress:state.stress});
+  renderYearChart(sim);
+  renderLedger(sim);
+  renderWaterfalls(sim);
+  renderMetrics(sim);
+}
+render();
+})();
+</script>
+
+<script>
+(function(){
+'use strict';
+
+/* ── the fleet ─────────────────────────────────────── */
+var HUBS=[
+  {id:'sp15', name:'SP15',       E:6000,  P:60,  loadW:0.35, tx:80, idio:20,  x:170, y:330},
+  {id:'np15', name:'NP15',       E:4000,  P:50,  loadW:0.25, tx:60, idio:75,  x:170, y:95},
+  {id:'utah', name:'Utah CAES',  E:10000, P:60,  loadW:0.10, tx:60, idio:240, x:540, y:62},
+  {id:'midc', name:'Mid-C',      E:12000, P:100, loadW:0.15, tx:70, idio:185, x:910, y:95},
+  {id:'pv',   name:'Palo Verde', E:8000,  P:80,  loadW:0.15, tx:90, idio:130, x:910, y:330}
+];
+var COMMON_START=337, COMMON_END=347, IDIO_LEN=8, WHEEL=0.95;
+var FLEET_P=HUBS.reduce(function(s,h){return s+h.P;},0);
+
+function scarcity(h,d,rho){
+  var common=(d>=COMMON_START&&d<=COMMON_END)?1:0;
+  var idio=(d>=h.idio&&d<h.idio+IDIO_LEN)?1:0;
+  return rho*common+(1-rho)*idio;
+}
+
+/* ── portfolio simulation ──────────────────────────── */
+function simulateFleet(params){
+  var rho=params.rho, txScale=params.txScale, firmFrac=params.firmFrac;
+  var n=HUBS.length;
+  var socs=HUBS.map(function(h){return 0.85*h.E;});
+  var perHub=HUBS.map(function(){return {demand:0,local:0,imports:0,exports:0,unserved:0};});
+  var socSeries=HUBS.map(function(){return [];});
+  var demandTot=0, unservedTot=0, importTot=0, exportTot=0, maxExportRatio=0;
+  var socAtOnset=null;
+  var socTrough=HUBS.map(function(h){return {soc:0.85*h.E, day:0};});
+
+  for(var d=0;d<365;d++){
+    if(d===COMMON_START) socAtOnset=socs.slice();
+    var s=HUBS.map(function(h){return scarcity(h,d,rho);});
+    var D=HUBS.map(function(h,i){return s[i]*firmFrac*FLEET_P*h.loadW*24;});
+    /* serve locally first */
+    var L=HUBS.map(function(h,i){return Math.min(D[i], h.P*24, socs[i]);});
+    var R=D.map(function(x,i){return x-L[i];});
+    /* export capability after local service */
+    var X=HUBS.map(function(h,i){
+      return Math.max(0, Math.min(h.P*24-L[i], socs[i]-L[i], h.tx*txScale*24));
+    });
+    var pool=X.reduce(function(a,b){return a+b;},0);
+    /* import requests, pool-side energy, capped by importer interface */
+    var req=HUBS.map(function(h,i){
+      if(R[i]<=1e-9||pool<=1e-9) return 0;
+      return Math.min(R[i]/WHEEL, h.tx*txScale*24);
+    });
+    var reqSum=req.reduce(function(a,b){return a+b;},0);
+    var scl=reqSum>1e-9?Math.min(1,pool/reqSum):0;
+    var imp=req.map(function(x){return x*scl;});          /* pool-side */
+    var impSum=imp.reduce(function(a,b){return a+b;},0);
+    var eScl=pool>1e-9?impSum/pool:0;
+    var exp=X.map(function(x){return x*eScl;});           /* pro-rata exports */
+
+    for(var i=0;i<n;i++){
+      var delivered=imp[i]*WHEEL;
+      var un=Math.max(0, D[i]-L[i]-delivered);
+      socs[i]-=(L[i]+exp[i]);
+      if(s[i]<0.01 && D[i]<1e-9) socs[i]=Math.min(HUBS[i].E, socs[i]+0.4*HUBS[i].P*24);
+      socs[i]=Math.max(0, Math.min(HUBS[i].E, socs[i]));
+      if(socs[i]<socTrough[i].soc){socTrough[i].soc=socs[i];socTrough[i].day=d;}
+      socSeries[i].push(socs[i]);
+      var cap=HUBS[i].tx*txScale*24;
+      if(cap>1e-9) maxExportRatio=Math.max(maxExportRatio, exp[i]/cap);
+      perHub[i].demand+=D[i]; perHub[i].local+=L[i]; perHub[i].imports+=delivered;
+      perHub[i].exports+=exp[i]; perHub[i].unserved+=un;
+      demandTot+=D[i]; unservedTot+=un; importTot+=delivered; exportTot+=exp[i];
+    }
+  }
+  var firmness=demandTot>1e-9?1-unservedTot/demandTot:1;
+  return {firmness:firmness, perHub:perHub, socSeries:socSeries, socAtOnset:socAtOnset, socTrough:socTrough,
+          demandTot:demandTot, unservedTot:unservedTot, importTot:importTot,
+          exportTot:exportTot, maxExportRatio:maxExportRatio};
+}
+
+/* ── firmness curve: rho sweep × tx levels ─────────── */
+var TX_LEVELS=[0,0.5,1,1.5];
+function firmnessCurve(firmFrac){
+  return TX_LEVELS.map(function(tx){
+    var pts=[];
+    for(var r=0;r<=10;r++) pts.push(simulateFleet({rho:r/10,txScale:tx,firmFrac:firmFrac}).firmness);
+    return {tx:tx, pts:pts};
+  });
+}
+
+window.Branch={HUBS:HUBS, simulateFleet:simulateFleet, firmnessCurve:firmnessCurve,
+               scarcity:scarcity, TX_LEVELS:TX_LEVELS, WHEEL:WHEEL,
+               COMMON_START:COMMON_START, COMMON_END:COMMON_END};
+
+/* ══════════ UI ══════════ */
+function $(id){return document.getElementById(id);}
+var bst={rho:0.8, txScale:0.5, firmFrac:0.5};
+var fmt=function(x,d){return x.toLocaleString('en-US',{maximumFractionDigits:d===undefined?0:d});};
+
+/* tabs */
+document.querySelectorAll('.tab-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.toggle('active',x===b);});
+    document.querySelectorAll('.tabpane').forEach(function(p){p.classList.toggle('active',p.id===b.dataset.pane);});
+  });
+});
+
+function bbind(id,out,key,scale,suffix){
+  $(id).addEventListener('input',function(e){
+    var v=+e.target.value;
+    bst[key]=v/scale;
+    $(out).textContent=v+suffix;
+    renderBranch();
+  });
+}
+bbind('in-rho','out-rho','rho',100,'%');
+bbind('in-tx','out-tx','txScale',100,'%');
+bbind('in-firm','out-firm','firmFrac',100,'%');
+
+var HUB_COLORS={local:'#c9824a',imports:'#6a9ec9',unserved:'#c96a5e'};
+
+function renderFleet(sim){
+  var W=1080,H=430,cx=540,cy=215;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fleet inventory map: five hubs on a common bus">';
+  /* bus */
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="26" fill="none" stroke="#c9824a" stroke-width="1.5"/>';
+  svg+='<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#c9824a"/>';
+  svg+='<text x="'+cx+'" y="'+(cy+44)+'" fill="#9aa5b5" font-family="JetBrains Mono" font-size="9.5" text-anchor="middle" letter-spacing="1">COMMON BUS</text>';
+  HUBS.forEach(function(h,i){
+    var soc=sim.socTrough[i].soc, pct=100*soc/h.E, tday=sim.socTrough[i].day;
+    var gw=74,gh=88, gx=h.x-gw/2, gy=h.y-gh/2;
+    /* link */
+    var lw=bst.txScale>0?Math.max(1,(h.tx*bst.txScale)/22):0.6;
+    var dash=bst.txScale>0?'':' stroke-dasharray="3 5"';
+    svg+='<line x1="'+h.x+'" y1="'+h.y+'" x2="'+cx+'" y2="'+cy+'" stroke="#243a5c" stroke-width="'+lw.toFixed(1)+'"'+dash+'/>';
+    var mx=(h.x+cx)/2, my=(h.y+cy)/2;
+    svg+='<text x="'+mx+'" y="'+(my-7)+'" fill="#5d6b80" font-family="JetBrains Mono" font-size="9" text-anchor="middle">'+Math.round(h.tx*bst.txScale)+' MW</text>';
+    /* gauge */
+    svg+='<g class="hub-gauge">';
+    svg+='<rect x="'+gx+'" y="'+gy+'" width="'+gw+'" height="'+gh+'" rx="4" fill="#16263f" stroke="#243a5c"/>';
+    var fh=(gh-8)*Math.max(0,Math.min(1,pct/100));
+    svg+='<rect x="'+(gx+4)+'" y="'+(gy+gh-4-fh).toFixed(1)+'" width="'+(gw-8)+'" height="'+fh.toFixed(1)+'" rx="2" fill="rgba(201,130,74,0.55)"/>';
+    svg+='<text x="'+h.x+'" y="'+(h.y+4)+'" fill="#e8e2d6" font-family="JetBrains Mono" font-size="15" font-weight="500" text-anchor="middle">'+Math.round(pct)+'%</text>';
+    svg+='<text x="'+h.x+'" y="'+(gy-10)+'" fill="#e8e2d6" font-family="Geist" font-size="12.5" font-weight="500" text-anchor="middle">'+h.name+'</text>';
+    svg+='<text x="'+h.x+'" y="'+(gy+gh+16)+'" fill="#5d6b80" font-family="JetBrains Mono" font-size="9" text-anchor="middle">'+fmt(h.E)+' MWH / '+h.P+' MW &middot; TROUGH D'+tday+'</text>';
+    svg+='</g>';
+  });
+  svg+='</svg>';
+  $('chart-fleet').innerHTML=svg;
+}
+
+function renderHubBars(sim){
+  var maxD=Math.max.apply(null,sim.perHub.map(function(p){return p.demand;}).concat([1]));
+  $('hub-bars').innerHTML=HUBS.map(function(h,i){
+    var p=sim.perHub[i];
+    var wl=100*p.local/maxD, wi=100*p.imports/maxD, wu=100*p.unserved/maxD;
+    return '<div class="wf-row"><div class="wf-name"><span>'+h.name+' &middot; firm demand '+fmt(p.demand)+' MWh</span><b>'+
+      (p.unserved>0.5?'&minus;'+fmt(p.unserved)+' UNSERVED':'FIRM')+'</b></div>'+
+      '<div class="wf-bar" style="height:11px"><i style="left:0;width:'+wl.toFixed(1)+'%;background:'+HUB_COLORS.local+'"></i>'+
+      '<i style="left:'+wl.toFixed(1)+'%;width:'+wi.toFixed(1)+'%;background:'+HUB_COLORS.imports+'"></i>'+
+      '<i style="left:'+(wl+wi).toFixed(1)+'%;width:'+wu.toFixed(1)+'%;background:'+HUB_COLORS.unserved+'"></i></div></div>';
+  }).join('');
+  $('hub-bars-note').textContent='Portfolio firm demand '+fmt(sim.demandTot)+' MWh; served locally '+
+    fmt(sim.demandTot-sim.importTot-sim.unservedTot)+', by import '+fmt(sim.importTot)+' (after 5% wheeling), unserved '+
+    fmt(sim.unservedTot)+'. '+(sim.unservedTot>0.5?'The bank is short its own firm paper at these settings.':'Every firm block delivered at these settings.');
+}
+
+var TX_COLORS=['#5d6b80','#d9b36a','#c9824a','#7fb58a'];
+
+function renderCurve(){
+  var curve=firmnessCurve(bst.firmFrac);
+  var W=1080,H=340,x0=64,x1=W-24,y0=34,y1=H-40;
+  var svg='<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Delivered firm percentage versus drought correlation">';
+  [0,25,50,75,100].forEach(function(g){
+    var y=y1-(y1-y0)*g/100;
+    svg+='<line x1="'+x0+'" y1="'+y.toFixed(1)+'" x2="'+x1+'" y2="'+y.toFixed(1)+'" stroke="#243a5c" stroke-width="0.5" opacity="0.5"/>';
+    svg+='<text x="'+(x0-8)+'" y="'+(y+3).toFixed(1)+'" fill="#5d6b80" font-family="JetBrains Mono" font-size="9" text-anchor="end">'+g+'%</text>';
+  });
+  for(var r=0;r<=10;r+=2){
+    var x=x0+(x1-x0)*r/10;
+    svg+='<text x="'+x.toFixed(1)+'" y="'+(H-16)+'" fill="#5d6b80" font-family="JetBrains Mono" font-size="9" text-anchor="middle">&rho;='+(r/10).toFixed(1)+'</text>';
+  }
+  curve.forEach(function(c,ci){
+    var pth='';
+    c.pts.forEach(function(f,r){
+      var x=x0+(x1-x0)*r/10, y=y1-(y1-y0)*f;
+      pth+=(r===0?'M':'L')+x.toFixed(1)+' '+y.toFixed(1);
+    });
+    svg+='<path d="'+pth+'" fill="none" stroke="'+TX_COLORS[ci]+'" stroke-width="1.8"/>';
+  });
+  /* current dot */
+  var cur=simulateFleet(bst);
+  var dx=x0+(x1-x0)*bst.rho, dy=y1-(y1-y0)*cur.firmness;
+  svg+='<circle cx="'+dx.toFixed(1)+'" cy="'+dy.toFixed(1)+'" r="5" fill="#e8e2d6" stroke="#0b1626" stroke-width="1.5"/>';
+  svg+='<text x="'+dx.toFixed(1)+'" y="'+(dy-11).toFixed(1)+'" fill="#e8e2d6" font-family="JetBrains Mono" font-size="9.5" text-anchor="middle">'+(100*cur.firmness).toFixed(1)+'%</text>';
+  svg+='</svg>';
+  $('chart-curve').innerHTML=svg;
+}
+
+function renderBranchMetrics(sim){
+  var standalone=simulateFleet({rho:bst.rho,txScale:0,firmFrac:bst.firmFrac});
+  var wide=simulateFleet({rho:bst.rho,txScale:Math.max(4,bst.txScale*4),firmFrac:bst.firmFrac});
+  var benefit=100*(sim.firmness-standalone.firmness);
+  var binding=(100*(wide.firmness-sim.firmness)<1)?'ENERGY':'TRANSMISSION';
+  var worst=0; sim.perHub.forEach(function(p,i){if(p.unserved>sim.perHub[worst].unserved)worst=i;});
+  var impShare=sim.demandTot-sim.unservedTot>1e-9?100*sim.importTot/(sim.demandTot-sim.unservedTot):0;
+  var items=[
+    {l:'Portfolio firmness',v:(100*sim.firmness).toFixed(1)+'%',s:'delivered / committed firm energy',c:sim.firmness>0.99?'green':(sim.firmness>0.9?'':'red')},
+    {l:'Standalone firmness',v:(100*standalone.firmness).toFixed(1)+'%',s:'same fleet, wires cut (tx = 0)',c:''},
+    {l:'Diversification benefit',v:benefit.toFixed(1)+' pp',s:'the ATM analogy, quantified',c:benefit>5?'copper':''},
+    {l:'Unserved firm',v:fmt(sim.unservedTot)+' MWh',s:'the shortfall the Vault must allocate',c:sim.unservedTot>0.5?'red':'green'},
+    {l:'Binding constraint',v:binding,s:'tested by quadrupling every interface',c:binding==='ENERGY'?'red':'copper'},
+    {l:'Weakest branch',v:HUBS[worst].name,s:fmt(sim.perHub[worst].unserved)+' MWh unserved',c:''},
+    {l:'Import share of served',v:impShare.toFixed(0)+'%',s:'how much of the book rides the wires',c:''}
+  ];
+  $('metrics-branch').innerHTML=items.map(function(m){
+    return '<div class="metric"><div class="m-label">'+m.l+'</div><div class="m-val '+(m.c||'')+'">'+m.v+'</div><div class="m-sub">'+m.s+'</div></div>';
+  }).join('');
+}
+
+function renderBranch(){
+  var sim=simulateFleet(bst);
+  renderFleet(sim);
+  renderHubBars(sim);
+  renderCurve();
+  renderBranchMetrics(sim);
+}
+renderBranch();
+})();
+</script>
+</body>
+</html>

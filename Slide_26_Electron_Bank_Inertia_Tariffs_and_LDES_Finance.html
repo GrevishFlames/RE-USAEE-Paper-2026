@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide 42: Utility Storage Tariffs, The Electron Bank, Modular Inertia & LDES Infra-PE Finance</title>
+<style>
+  :root {
+    --bg-dark: #050912;
+    --card-bg: #0b1426;
+    --card-border: #1e355e;
+    --tulsa-gold: #c59b27;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --cyan: #38bdf8;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --crimson: #f43f5e;
+    --purple: #a855f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  header {
+    background: linear-gradient(90deg, #081121 0%, #13254a 55%, #081121 100%);
+    border-bottom: 2px solid var(--tulsa-gold);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.6);
+  }
+  .title-block h1 { font-size: 1.28rem; font-weight: 700; color: #fff; }
+  .title-block p { font-size: 0.81rem; color: #cbd5e1; margin-top: 2px; }
+
+  .controls-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn {
+    background: #152746;
+    color: #e2e8f0;
+    border: 1px solid #2b4978;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #213c69; }
+  .btn.active { background: var(--tulsa-gold); color: #050912; border-color: #eab308; }
+  .btn.purple-btn.active { background: #9333ea; color: #fff; border-color: #c084fc; box-shadow: 0 0 12px rgba(168,85,247,0.45); }
+
+  main {
+    flex: 1;
+    padding: 16px 24px 28px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+    max-width: 1920px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .quad-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .quad-card.q1 { border-top: 4px solid var(--cyan); }
+  .quad-card.q2 { border-top: 4px solid var(--purple); }
+  .quad-card.q3 { border-top: 4px solid var(--emerald); }
+  .quad-card.q4 { border-top: 4px solid var(--amber); }
+
+  .quad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #1b3158;
+    padding-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .quad-title { font-size: 0.94rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+  .quad-tag {
+    font-size: 0.69rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #070e1b;
+    border: 1px solid #284678;
+    color: #cbd5e1;
+  }
+
+  .canvas-box {
+    background: #050a14;
+    border: 1px solid #192d52;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    height: 215px;
+  }
+  .canvas-box canvas { width: 100%; height: 100%; display: block; }
+
+  .toggle-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .mini-btn {
+    background: #0d1a30;
+    color: #cbd5e1;
+    border: 1px solid #243e69;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 1;
+    text-align: center;
+  }
+  .mini-btn.active {
+    background: #1e3a68;
+    color: #fde047;
+    border-color: var(--tulsa-gold);
+  }
+
+  .slider-strip {
+    background: #070e1b;
+    border: 1px solid #162644;
+    border-radius: 6px;
+    padding: 7px 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .sl-item { display: flex; flex-direction: column; gap: 2px; }
+  .sl-top { display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #e2e8f0; }
+  input[type=range] { width: 100%; height: 4px; accent-color: var(--tulsa-gold); cursor: pointer; }
+
+  .insight-box {
+    background: #070e1b;
+    border: 1px solid #172847;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.73rem;
+    color: #94a3b8;
+    line-height: 1.38;
+  }
+
+  footer {
+    background: #081120;
+    border-top: 1px solid var(--card-border);
+    padding: 10px 24px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    color: #94a3b8;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 1350px) {
+    main { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>Slide 42: Commercial &amp; Engineering Frontiers — Non-Core Utility Tariffs, The Electron Bank, Modular Inertia &amp; LDES Finance</h1>
+    <p>Interactive Synthesis of Part III Innovations: Post-Order 636 LDC Tariffs · Enron's Gas Bank → Electron Bank · Starlink-Synced Modular Inertia · Infra-PE LDES Capital</p>
+  </div>
+  <div class="controls-bar">
+    <button class="btn active" id="btnAllNormal" onclick="setGlobalMode('legacy')">1. Legacy Grid (Cost-Center / Paper-Only / Li-ion Trap)</button>
+    <button class="btn purple-btn" id="btnAllModern" onclick="setGlobalMode('modern')">2. Paper Thesis: Storage-Backed Electron Bank &amp; LDES Tariffs</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===================================================================== -->
+  <!-- QUADRANT 1: UTILITY NON-CORE STORAGE TARIFFS (ORDER 636 LDC ANALOG)   -->
+  <!-- ===================================================================== -->
+  <section class="quad-card q3">
+    <div class="quad-header">
+      <span class="quad-title" style="color:var(--emerald);">1. Utility Transformation: Non-Core Storage Tariffs (Instrument E9)</span>
+      <span class="quad-tag">SoCalGas Park-and-Loan (Order 636) Analog</span>
+    </div>
+
+    <div class="slider-strip">
+      <div class="sl-item">
+        <div class="sl-top"><span>CCA &amp; BTM Load Defection:</span><span id="vDef" style="color:var(--crimson); font-family:monospace;">38% Defected</span></div>
+        <input type="range" id="sDef" min="5" max="65" value="38" oninput="updateQ1()">
+      </div>
+      <div class="sl-item">
+        <div class="sl-top"><span>Utility Hub Storage Built:</span><span id="vHubGW" style="color:var(--emerald); font-family:monospace;">3.0 GW Hub</span></div>
+        <input type="range" id="sHubGW" min="0.5" max="8.0" step="0.5" value="3.0" oninput="updateQ1()">
+      </div>
+    </div>
+
+    <div class="canvas-box">
+      <canvas id="q1Canvas"></canvas>
+    </div>
+
+    <div class="insight-box">
+      <strong style="color:#6ee7b7;">From CapEx Cost Center to Midstream Toll Engine:</strong> Electric utilities losing generation load to CCAs &amp; BTM solar replicate the post-Order 636 gas LDC playbook—filing FERC/PUC open-access <strong>Storage Access &amp; SoC Leasing Tariffs (`E9`)</strong>. CCAs, LSEs, and trading desks pay regulated injection/withdrawal &amp; SoC transfer fees (<strong id="q1RevTxt" style="color:#fff;">$22.5M/yr</strong>), offsetting native ratepayer transmission rates without merchant self-cannibalization.
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- QUADRANT 2: ENRON'S GAS BANK -> THE PHYSICAL "ELECTRON BANK"          -->
+  <!-- ===================================================================== -->
+  <section class="quad-card q1">
+    <div class="quad-header">
+      <span class="quad-title" style="color:var(--cyan);">2. Enron's 1990s "Gas Bank" vs. The Physical "Electron Bank"</span>
+      <span class="quad-tag">Why 2001 Collapsed (-90% Vol) vs. Why 2026+ Works</span>
+    </div>
+
+    <div class="toggle-row">
+      <button class="mini-btn" id="eb1" onclick="setEBMode(1)">A. 1992 Enron "Gas Bank" (4,600 Bcf Caverns)</button>
+      <button class="mini-btn" id="eb2" onclick="setEBMode(2)">B. 2001 Enron Power Book (0 MWh Buffer → -90% Collapse)</button>
+      <button class="mini-btn active" id="eb3" onclick="setEBMode(3)">C. 2026+ "Electron Bank" (SDES+LDES Hub Warrants)</button>
+    </div>
+
+    <div class="canvas-box">
+      <canvas id="q2Canvas"></canvas>
+    </div>
+
+    <div class="insight-box" id="ebDescBox">
+      <strong style="color:#7dd3fc;">Why the "Electron Bank" Finally Works:</strong> Enron's 1990s Gas Bank succeeded because underground gas storage buffered the mismatch between producer supply and utility off-take. When Enron tried the same model in power in 2001 with <strong>zero physical storage</strong>, credit stress caused a 90% liquidity collapse. With hub-scale BESS &amp; LDES warrants, merchants (Vitol, Mercuria, Tenaska) can warehouse cheap solar/wind and write firm multi-day/seasonal physical blocks to AI data centers and LSEs.
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- QUADRANT 3: MODULAR INERTIA (NO TORQUE SHEAR) & STARLINK VIRTUAL HUB  -->
+  <!-- ===================================================================== -->
+  <section class="quad-card q2">
+    <div class="quad-header">
+      <span class="quad-title" style="color:var(--purple);">3. Modular Inertia (Anti-Torque Shear) &amp; Starlink-Synced Virtual Hubs</span>
+      <span class="quad-tag">Solving the Spain Blackout &amp; Remote Hub Siting</span>
+    </div>
+
+    <div class="slider-strip">
+      <div class="sl-item">
+        <div class="sl-top"><span>Grid Fault / Load Inertia Loss:</span><span id="vFault" style="color:var(--crimson); font-family:monospace;">2,200 MW Step</span></div>
+        <input type="range" id="sFault" min="500" max="4000" step="100" value="2200" oninput="updateQ3()">
+      </div>
+      <div class="sl-item">
+        <div class="sl-top"><span>Architecture Mode:</span><span id="vArch" style="color:#d8b4fe; font-family:monospace;">Modular + Starlink</span></div>
+        <div class="toggle-row" style="margin-top:2px;">
+          <button class="mini-btn" id="inMono" onclick="setInertiaMode(false)">Single Giant Flywheel</button>
+          <button class="mini-btn active" id="inMod" onclick="setInertiaMode(true)">Modular + Starlink BESS</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-box">
+      <canvas id="q3Canvas"></canvas>
+    </div>
+
+    <div class="insight-box">
+      <strong style="color:#d8b4fe;">Two Engineering Breakthroughs:</strong> (1) During a severe phase jump ($\Delta\theta$), a single massive flywheel/condenser faces catastrophic <strong>electromagnetic air-gap torque shear ($\tau_{\text{em}} \propto \sin\Delta\theta$)</strong>; distributing inertia across <strong>modular flywheels &amp; Grid-Forming (GFM) BESS</strong> eliminates shaft shear and $N-1$ failure. (2) <strong>Starlink LEO + GPS/PMU timing (~25 ms)</strong> aggregates dispersed rural batteries into a single virtual hub to deliver synchronized Fast Frequency Response (`A1`/`A2`).
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- QUADRANT 4: 18-MO LI-ION DEGRADATION TRAP VS. 50-YR LDES INFRA-PE     -->
+  <!-- ===================================================================== -->
+  <section class="quad-card q4">
+    <div class="quad-header">
+      <span class="quad-title" style="color:var(--amber);">4. The 18-Mo Li-ion Trap vs. 50–100 Yr LDES Infrastructure-PE Thesis</span>
+      <span class="quad-tag">Why LDES Requires Different Capital + Derivatives</span>
+    </div>
+
+    <div class="slider-strip">
+      <div class="sl-item">
+        <div class="sl-top"><span>BESS Daily Cycling &amp; HVAC Load:</span><span id="vCyc" style="color:var(--crimson); font-family:monospace;">2.0 Cycles/d (High)</span></div>
+        <input type="range" id="sCyc" min="0.5" max="2.5" step="0.5" value="2.0" oninput="updateQ4()">
+      </div>
+      <div class="sl-item">
+        <div class="sl-top"><span>LDES Derivative Hedge (`E4`/`C3`):</span><span id="vHedgeLDES" style="color:var(--emerald); font-family:monospace;">Contracted Strip</span></div>
+        <div class="toggle-row" style="margin-top:2px;">
+          <button class="mini-btn" id="ldSpot" onclick="setLDESMode(false)">Merchant Spot Only</button>
+          <button class="mini-btn active" id="ldHedge" onclick="setLDESMode(true)">E4 + C3 Strip Hedged</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="canvas-box">
+      <canvas id="q4Canvas"></canvas>
+    </div>
+
+    <div class="insight-box">
+      <strong style="color:#fde68a;">Why LDES Needs Infra-PE + Long-Tenor Derivatives:</strong> Chemical Li-ion BESS suffers severe cell degradation &amp; HVAC parasitic loads in hot climates, forcing cell augmentation CapEx every 4–6 years. Mechanical/geological LDES (Salt-Cavern CAES, Great Lakes Iron-Mine PSH, GeoTES) offers <strong>50–100 yr asset life with zero chemical degradation</strong>—unlocking low-cost <strong>Infrastructure Private Equity</strong> once `E4` Seasonal Spreads and `C3` Multi-Year Capacity Strips lock in midstream-style cash flows.
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div><strong>Corresponding Deck Slide:</strong> Slide 42 (Part III — Utility Transformation, Starlink-Synced BESS, Electron Bank, Modular Inertia &amp; Infra-PE LDES Financing).</div>
+  <div>Mat Davis | University of Tulsa | RE+ &amp; USAEE 2026</div>
+</footer>
+
+<script>
+  let ebMode = 3; // 1 = Gas Bank, 2 = 2001 Enron Collapse, 3 = Modern Electron Bank
+  let modularInertia = true;
+  let ldesHedged = true;
+
+  const q1Canvas = document.getElementById('q1Canvas');
+  const q2Canvas = document.getElementById('q2Canvas');
+  const q3Canvas = document.getElementById('q3Canvas');
+  const q4Canvas = document.getElementById('q4Canvas');
+
+  function resizeAll() {
+    [q1Canvas, q2Canvas, q3Canvas, q4Canvas].forEach(c => {
+      const r = c.parentElement.getBoundingClientRect();
+      c.width = r.width * window.devicePixelRatio;
+      c.height = r.height * window.devicePixelRatio;
+    });
+  }
+  window.addEventListener('resize', resizeAll);
+  resizeAll();
+
+  function setGlobalMode(mode) {
+    document.getElementById('btnAllNormal').classList.toggle('active', mode === 'legacy');
+    document.getElementById('btnAllModern').classList.toggle('active', mode === 'modern');
+    if (mode === 'legacy') {
+      document.getElementById('sHubGW').value = 0.5;
+      setEBMode(2);
+      setInertiaMode(false);
+      setLDESMode(false);
+    } else {
+      document.getElementById('sHubGW').value = 4.0;
+      setEBMode(3);
+      setInertiaMode(true);
+      setLDESMode(true);
+    }
+    updateQ1();
+    updateQ3();
+    updateQ4();
+  }
+
+  function updateQ1() {
+    const def = parseFloat(document.getElementById('sDef').value);
+    const gw  = parseFloat(document.getElementById('sHubGW').value);
+    document.getElementById('vDef').textContent = `${def}% Defected`;
+    document.getElementById('vHubGW').textContent = `${gw.toFixed(1)} GW Hub`;
+    const rev = gw * 7.5; // $7.5M/yr per GW midpoint of $5-10M/yr
+    document.getElementById('q1RevTxt').textContent = `$${rev.toFixed(1)}M/yr`;
+  }
+
+  function setEBMode(m) {
+    ebMode = m;
+    ['eb1','eb2','eb3'].forEach((id, idx) => document.getElementById(id).classList.toggle('active', idx + 1 === m));
+  }
+
+  function setInertiaMode(isMod) {
+    modularInertia = isMod;
+    document.getElementById('inMono').classList.toggle('active', !isMod);
+    document.getElementById('inMod').classList.toggle('active', isMod);
+    document.getElementById('vArch').textContent = isMod ? 'Modular + Starlink' : 'Single Giant Rotor';
+    document.getElementById('vArch').style.color = isMod ? '#10b981' : '#f43f5e';
+  }
+
+  function updateQ3() {
+    const flt = parseFloat(document.getElementById('sFault').value);
+    document.getElementById('vFault').textContent = `${flt} MW Step`;
+  }
+
+  function setLDESMode(isHedged) {
+    ldesHedged = isHedged;
+    document.getElementById('ldSpot').classList.toggle('active', !isHedged);
+    document.getElementById('ldHedge').classList.toggle('active', isHedged);
+    document.getElementById('vHedgeLDES').textContent = isHedged ? 'Contracted Strip' : 'Unhedged Spot';
+    document.getElementById('vHedgeLDES').style.color = isHedged ? '#10b981' : '#f43f5e';
+  }
+
+  function updateQ4() {
+    const cyc = parseFloat(document.getElementById('sCyc').value);
+    document.getElementById('vCyc').textContent = `${cyc.toFixed(1)} Cycles/d`;
+  }
+
+  function animate(now) {
+    const tSec = now / 1000;
+
+    // =========================================================================
+    // DRAW QUADRANT 1: UTILITY NON-CORE STORAGE TARIFF ENGINE
+    // =========================================================================
+    {
+      const ctx = q1Canvas.getContext('2d');
+      const w = q1Canvas.width, h = q1Canvas.height, s = window.devicePixelRatio;
+      ctx.clearRect(0, 0, w, h);
+
+      const def = parseFloat(document.getElementById('sDef').value);
+      const gw  = parseFloat(document.getElementById('sHubGW').value);
+
+      const baseY = h * 0.80;
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5 * s;
+      ctx.beginPath(); ctx.moveTo(w * 0.08, baseY); ctx.lineTo(w * 0.92, baseY); ctx.stroke();
+
+      // Calculate revenue bars ($M/yr)
+      const lostGenMargin = def * 1.4; // $M lost to CCA load defection
+      const parkLoanRev   = gw * 4.5;  // E9 Right-to-Hold & Park-and-Loan lease tariff
+      const socTransRev   = gw * 3.0;  // SoC/SoI transfer & delivery fees ($0.50-$1/MWh)
+      const ratepayerSave = (parkLoanRev + socTransRev) * 0.85;
+
+      const bars = [
+        { name: 'Lost Utility Gen Margin', val: lostGenMargin, col: '#f43f5e', sub: `-${def}% CCA Defection` },
+        { name: 'E9 Park & Loan Tariff',  val: parkLoanRev,   col: '#10b981', sub: 'Non-Core SoC Lease' },
+        { name: 'Hub SoC Transfer Fees',  val: socTransRev,   col: '#38bdf8', sub: '$0.50–$1.00/MWh' },
+        { name: 'Native Ratepayer Offset',val: ratepayerSave, col: '#c084fc', sub: 'Lowers T&D Bills' }
+      ];
+
+      const maxV = 100;
+      const colW = (w * 0.80) / bars.length;
+      bars.forEach((b, i) => {
+        const bx = w * 0.11 + i * colW;
+        const bw = colW * 0.56;
+        const bh = Math.min(h * 0.62, (b.val / maxV) * (h * 0.62));
+
+        ctx.fillStyle = b.col + 'cc';
+        ctx.strokeStyle = b.col;
+        ctx.lineWidth = 1.6 * s;
+        ctx.fillRect(bx, baseY - bh, bw, bh);
+        ctx.strokeRect(bx, baseY - bh, bw, bh);
+
+        ctx.fillStyle = '#fff';
+        ctx.font = `bold ${9.5*s}px Courier New`;
+        ctx.fillText(`$${b.val.toFixed(1)}M`, bx + 2*s, baseY - bh - 6*s);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = `bold ${8.2*s}px Segoe UI`;
+        ctx.fillText(b.name, bx - 4*s, baseY + 14*s);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = `${7.5*s}px Segoe UI`;
+        ctx.fillText(b.sub, bx - 4*s, baseY + 25*s);
+      });
+    }
+
+    // =========================================================================
+    // DRAW QUADRANT 2: ENRON GAS BANK vs. PHYSICAL ELECTRON BANK ARCHITECTURE
+    // =========================================================================
+    {
+      const ctx = q2Canvas.getContext('2d');
+      const w = q2Canvas.width, h = q2Canvas.height, s = window.devicePixelRatio;
+      ctx.clearRect(0, 0, w, h);
+
+      const leftX = w * 0.17, midX = w * 0.50, rightX = w * 0.83, midY = h * 0.52;
+
+      // Connecting pipes/wires
+      const isBroken = (ebMode === 2);
+      const pipeCol = ebMode === 1 ? '#10b981' : (ebMode === 2 ? '#f43f5e' : '#a855f7');
+
+      ctx.strokeStyle = pipeCol;
+      ctx.lineWidth = 2.6 * s;
+      ctx.beginPath();
+      ctx.moveTo(leftX + 55*s, midY);
+      ctx.lineTo(midX - 65*s, midY);
+      ctx.moveTo(midX + 65*s, midY);
+      ctx.lineTo(rightX - 55*s, midY);
+      ctx.stroke();
+
+      // Animated particles along flow
+      for (let i = 0; i < 4; i++) {
+        const p = ((tSec * 0.45) + i / 4) % 1.0;
+        const x1 = (leftX + 55*s) + p * ((midX - 65*s) - (leftX + 55*s));
+        const x2 = (midX + 65*s) + p * ((rightX - 55*s) - (midX + 65*s));
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(x1, midY, 3*s, 0, Math.PI*2); ctx.fill();
+        if (!isBroken) {
+          ctx.beginPath(); ctx.arc(x2, midY, 3*s, 0, Math.PI*2); ctx.fill();
+        }
+      }
+
+      // Left Box: Upstream Intermittent Supply
+      ctx.fillStyle = '#091529'; ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.6*s;
+      ctx.beginPath(); ctx.roundRect(leftX - 55*s, midY - 36*s, 110*s, 72*s, 6*s); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#bae6fd'; ctx.font = `bold ${9*s}px Segoe UI`;
+      ctx.fillText(ebMode === 1 ? 'Gas Producers' : 'Solar / Wind IPPs', leftX - 42*s, midY - 12*s);
+      ctx.fillStyle = '#94a3b8'; ctx.font = `${8*s}px Segoe UI`;
+      ctx.fillText('Intermittent /', leftX - 36*s, midY + 4*s);
+      ctx.fillText('Short-Term Flow', leftX - 36*s, midY + 16*s);
+
+      // Center Box: The Bank (Physical Storage Anchor vs Paper Only)
+      ctx.fillStyle = isBroken ? 'rgba(136,19,55,0.35)' : 'rgba(16,185,129,0.16)';
+      ctx.strokeStyle = pipeCol; ctx.lineWidth = 2.2*s;
+      ctx.beginPath(); ctx.roundRect(midX - 68*s, midY - 46*s, 136*s, 92*s, 8*s); ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#fff'; ctx.font = `bold ${9.8*s}px Segoe UI`;
+      const bankTitle = ebMode === 1 ? 'ENRON GAS BANK' : (ebMode === 2 ? '2001 PAPER BOOK' : 'ELECTRON BANK');
+      ctx.fillText(bankTitle, midX - 52*s, midY - 22*s);
+
+      ctx.fillStyle = isBroken ? '#fda4af' : '#fde047';
+      ctx.font = `bold ${8.5*s}px Courier New`;
+      const invTxt = ebMode === 1 ? '4,600 Bcf Caverns' : (ebMode === 2 ? '0 MWh Inventory!' : 'SDES+LDES Warrants');
+      ctx.fillText(invTxt, midX - 52*s, midY - 4*s);
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = `${8*s}px Segoe UI`;
+      const subTxt = ebMode === 1 ? 'Survived 2001 Crash' : (ebMode === 2 ? '✖ -90% Vol Collapse' : '✓ Physical Carry Book');
+      ctx.fillText(subTxt, midX - 48*s, midY + 18*s);
+
+      // Right Box: Downstream Firm Load (AI Data Centers / LSEs)
+      ctx.fillStyle = '#091529'; ctx.strokeStyle = isBroken ? '#f43f5e' : '#10b981'; ctx.lineWidth = 1.6*s;
+      ctx.beginPath(); ctx.roundRect(rightX - 55*s, midY - 36*s, 110*s, 72*s, 6*s); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#a7f3d0'; ctx.font = `bold ${9*s}px Segoe UI`;
+      ctx.fillText(ebMode === 1 ? 'LDCs / Utilities' : 'AI Data Centers', rightX - 42*s, midY - 12*s);
+      ctx.fillStyle = '#94a3b8'; ctx.font = `${8*s}px Segoe UI`;
+      ctx.fillText(isBroken ? 'Exposed to Defaults' : '24/7 Firm Shaped', rightX - 42*s, midY + 4*s);
+      ctx.fillText(isBroken ? '(Uri / 2001 Crisis)' : 'Physical Blocks', rightX - 42*s, midY + 16*s);
+    }
+
+    // =========================================================================
+    // DRAW QUADRANT 3: MODULAR INERTIA (ANTI-TORQUE SHEAR) & STARLINK SYNC
+    // =========================================================================
+    {
+      const ctx = q3Canvas.getContext('2d');
+      const w = q3Canvas.width, h = q3Canvas.height, s = window.devicePixelRatio;
+      ctx.clearRect(0, 0, w, h);
+
+      const faultMW = parseFloat(document.getElementById('sFault').value);
+      const stressRatio = faultMW / 4000;
+
+      // Left Half: Mechanical Torque / Modular Array Visual
+      const cx = w * 0.27, cy = h * 0.54;
+      if (!modularInertia) {
+        // Single Giant Flywheel / Synchronous Rotor under severe electromagnetic torque shear!
+        const r = 42 * s;
+        const wobble = Math.sin(tSec * 28) * (stressRatio * 6 * s);
+        ctx.save();
+        ctx.translate(cx + wobble, cy);
+        ctx.rotate(tSec * 4);
+        ctx.strokeStyle = stressRatio > 0.5 ? '#f43f5e' : '#f59e0b';
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.22)';
+        ctx.lineWidth = 3 * s;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-r, 0); ctx.lineTo(r, 0); ctx.moveTo(0, -r); ctx.lineTo(0, r); ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#f43f5e'; ctx.font = `bold ${9*s}px Segoe UI`;
+        ctx.fillText(`⚠ SHAFT TORQUE SHEAR: ${(stressRatio*145).toFixed(0)}% of Limit!`, w * 0.06, h * 0.16);
+        ctx.fillStyle = '#94a3b8'; ctx.font = `${8*s}px Segoe UI`;
+        ctx.fillText('Single Giant Rotor = N-1 Failure & Torsional Stress', w * 0.06, h * 0.90);
+      } else {
+        // Modular Flywheel + GFM BESS Array synced by Starlink LEO Satellite!
+        const satX = w * 0.27, satY = h * 0.18;
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(satX - 14*s, satY - 4*s, 28*s, 8*s);
+        ctx.fillStyle = '#bae6fd'; ctx.font = `bold ${8.5*s}px Segoe UI`;
+        ctx.fillText('🛰 Starlink LEO Sync (~25 ms PMU)', satX - 68*s, satY - 8*s);
+
+        // 6 Modular Distributed Units sharing torque load smoothly
+        const modPositions = [
+          [w*0.12, h*0.52], [w*0.27, h*0.52], [w*0.42, h*0.52],
+          [w*0.12, h*0.76], [w*0.27, h*0.76], [w*0.42, h*0.76]
+        ];
+        modPositions.forEach((mp, idx) => {
+          // Satellite beam
+          ctx.save();
+          ctx.setLineDash([3*s, 3*s]);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+          ctx.beginPath(); ctx.moveTo(satX, satY + 5*s); ctx.lineTo(mp[0], mp[1] - 12*s); ctx.stroke();
+          ctx.restore();
+
+          // Small modular rotor/GFM pod
+          ctx.save();
+          ctx.translate(mp[0], mp[1]);
+          ctx.rotate(tSec * 6 + idx);
+          ctx.fillStyle = 'rgba(168, 85, 247, 0.28)';
+          ctx.strokeStyle = '#c084fc';
+          ctx.lineWidth = 1.8 * s;
+          ctx.beginPath(); ctx.arc(0, 0, 11 * s, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-11*s, 0); ctx.lineTo(11*s, 0); ctx.stroke();
+          ctx.restore();
+        });
+
+        ctx.fillStyle = '#10b981'; ctx.font = `bold ${8.2*s}px Segoe UI`;
+        ctx.fillText(`✓ Torque Divided Across N Modules (${(stressRatio*24).toFixed(0)}% Stress)`, w * 0.05, h * 0.94);
+      }
+
+      // Right Half: RoCoF Frequency Nadir Arrest Curve (Spain Blackout Comparison)
+      const rx0 = w * 0.54, rx1 = w * 0.95, ryTop = h * 0.16, ryBot = h * 0.84;
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.4*s;
+      ctx.beginPath(); ctx.moveTo(rx0, ryTop); ctx.lineTo(rx0, ryBot); ctx.lineTo(rx1, ryBot); ctx.stroke();
+
+      // UFLS Blackout threshold line
+      const yUfls = ryBot - 0.18 * (ryBot - ryTop);
+      ctx.save();
+      ctx.setLineDash([4*s, 4*s]);
+      ctx.strokeStyle = '#f43f5e';
+      ctx.beginPath(); ctx.moveTo(rx0, yUfls); ctx.lineTo(rx1, yUfls); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = '#f43f5e'; ctx.font = `${7.8*s}px Segoe UI`;
+      ctx.fillText('59.5 Hz Blackout / Relay Trip', rx0 + 6*s, yUfls - 4*s);
+
+      // Frequency curve after fault
+      ctx.beginPath();
+      for (let i = 0; i <= 60; i++) {
+        const u = i / 60;
+        const x = rx0 + u * (rx1 - rx0);
+        let fNorm = 0.85;
+        if (u > 0.15) {
+          const t = u - 0.15;
+          const dropDepth = modularInertia ? (stressRatio * 0.25) : (stressRatio * 0.82);
+          fNorm = 0.85 - dropDepth * Math.sin(Math.min(Math.PI, t * 4.2)) * Math.exp(-t * (modularInertia ? 2.5 : 0.6));
+        }
+        const y = ryBot - Math.max(0.05, fNorm) * (ryBot - ryTop);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = modularInertia ? '#10b981' : '#f43f5e';
+      ctx.lineWidth = 2.5 * s;
+      ctx.stroke();
+
+      ctx.fillStyle = '#cbd5e1'; ctx.font = `bold ${8.5*s}px Segoe UI`;
+      ctx.fillText('60 Hz Frequency Response (RoCoF)', rx0 + 6*s, ryTop + 10*s);
+    }
+
+    // =========================================================================
+    // DRAW QUADRANT 4: 25-YEAR ASSET CAPACITY & INFRA-PE CASH FLOW CURVE
+    // =========================================================================
+    {
+      const ctx = q4Canvas.getContext('2d');
+      const w = q4Canvas.width, h = q4Canvas.height, s = window.devicePixelRatio;
+      ctx.clearRect(0, 0, w, h);
+
+      const cyc = parseFloat(document.getElementById('sCyc').value);
+      const x0 = w * 0.08, x1 = w * 0.94, y0 = h * 0.82, yTop = h * 0.16;
+      const pw = x1 - x0, ph = y0 - yTop;
+
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.4*s;
+      ctx.beginPath(); ctx.moveTo(x0, yTop); ctx.lineTo(x0, y0); ctx.lineTo(x1, y0); ctx.stroke();
+
+      // Curve 1: Chemical Li-ion BESS Usable Capacity / Net Cash Flow (Degrades with cycling + HVAC load, requires augmentation cliffs)
+      ctx.strokeStyle = '#f43f5e';
+      ctx.lineWidth = 2.2 * s;
+      ctx.beginPath();
+      for (let yr = 0; yr <= 25; yr += 0.5) {
+        const u = yr / 25;
+        const x = x0 + u * pw;
+        // Degradation sawtooth (augmentation CapEx every 5 years)
+        const cycleWear = (yr % 5.5) * (0.045 * cyc);
+        const capHealth = Math.max(0.35, 0.95 - cycleWear - yr * 0.012);
+        const y = y0 - capHealth * ph;
+        if (yr === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Curve 2: Mechanical/Geological LDES (CAES / Mine PSH / GeoTES — Zero chemical degradation over 50-100 yrs!)
+      ctx.strokeStyle = ldesHedged ? '#10b981' : '#f59e0b';
+      ctx.lineWidth = 2.8 * s;
+      ctx.beginPath();
+      for (let yr = 0; yr <= 25; yr += 0.5) {
+        const u = yr / 25;
+        const x = x0 + u * pw;
+        const noise = ldesHedged ? 0.01 * Math.sin(yr) : 0.18 * Math.sin(yr * 2.3);
+        const level = ldesHedged ? 0.92 : 0.68;
+        const y = y0 - (level + noise) * ph;
+        if (yr === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#10b981'; ctx.font = `bold ${8.8*s}px Segoe UI`;
+      ctx.fillText(
+        ldesHedged
+          ? '— LDES (CAES / Mine PSH) + E4/C3 Strip: 0% Degradation & Infra-PE Bankable!'
+          : '— LDES Unhedged Spot: 0% Degradation, But Revenue Too Volatile for Infra-PE',
+        x0 + 8*s, yTop + 8*s
+      );
+
+      ctx.fillStyle = '#f43f5e';
+      ctx.fillText('— Li-ion BESS (2x Daily Cycle + HVAC): Cell Degradation & 5-Yr Repowering Cliffs', x0 + 8*s, yTop + 22*s);
+
+      // X-axis year markers
+      [0, 5, 10, 15, 20, 25].forEach(yr => {
+        const x = x0 + (yr / 25) * pw;
+        ctx.fillStyle = '#94a3b8'; ctx.font = `${8*s}px Segoe UI`;
+        ctx.fillText(`Yr ${yr}`, x - 10*s, h * 0.94);
+      });
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  updateQ1();
+  updateQ3();
+  updateQ4();
+  requestAnimationFrame(animate);
+</script>
+</body>
+</html>

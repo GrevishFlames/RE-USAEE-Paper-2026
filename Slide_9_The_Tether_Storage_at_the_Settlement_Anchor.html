@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Tether — Storage at the Settlement Anchor · Presenting Points B · C · I</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1014; --panel:#151A20; --panel2:#1B222B; --panel3:#20293380;
+  --line:#2A323D; --line2:#38424F;
+  --copper:#C97F4E; --copper-hi:#E39A63; --copper-dim:#8A5A3A; --copper-glow:#C97F4E33;
+  --ink:#E9E2D5; --ink2:#C9C2B2; --muted:#8E8877; --faint:#5E5A4E;
+  --good:#7FA66B; --warn:#D9A853; --bad:#C25B4E; --dc:#6E93B5; --new:#9B8EC4;
+  --serif:'Fraunces',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:var(--copper);color:var(--bg)}
+
+/* ---------- header ---------- */
+header{border-bottom:1px solid var(--line);padding:34px 40px 0;background:linear-gradient(180deg,#11151B 0%,var(--bg) 100%)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--copper);text-transform:uppercase;font-weight:500}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.2vw,46px);letter-spacing:-.01em;margin:10px 0 6px}
+h1 em{font-style:italic;color:var(--copper-hi)}
+.sub{color:var(--muted);font-size:14.5px;max-width:820px;margin-bottom:6px}
+.sub b{color:var(--ink2);font-weight:500}
+.papertag{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;margin-bottom:22px}
+nav{display:flex;gap:2px;flex-wrap:wrap;margin-top:18px}
+nav button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:12px 18px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+nav button:hover{color:var(--ink2)}
+nav button.on{color:var(--copper-hi);border-bottom-color:var(--copper)}
+nav button:focus-visible{outline:1px solid var(--copper);outline-offset:-1px}
+nav button .k{color:var(--faint);margin-right:7px}
+nav button.on .k{color:var(--copper-dim)}
+
+main{padding:30px 40px 60px;max-width:1460px;margin:0 auto}
+section.tab{display:none}
+section.tab.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){section.tab.on{animation:none}}
+.lede{font-family:var(--serif);font-size:19px;font-weight:300;color:var(--ink2);max-width:920px;margin-bottom:26px;line-height:1.5}
+.lede b{color:var(--copper-hi);font-weight:500}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.ptitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:500}
+.hr{height:1px;background:var(--line);margin:16px 0}
+
+/* ---------- ATLAS TAB ---------- */
+.maplayout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.mapstack{display:flex;flex-direction:column;gap:18px}
+.mapwrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;position:relative;overflow:hidden}
+.mapcap{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;padding:6px 8px 2px}
+.mapscale{font-family:var(--mono);font-size:9.5px;color:var(--faint);position:absolute;bottom:12px;left:16px;letter-spacing:.1em}
+.mapwrap svg{width:100%;height:auto;display:block}
+.sidecol{position:sticky;top:16px;display:flex;flex-direction:column;gap:16px}
+.lay{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;user-select:none}
+.lay input{accent-color:var(--copper);width:14px;height:14px;cursor:pointer}
+.lay span{font-size:13px;color:var(--ink2)}
+.lay .sw{width:22px;height:0;border-top:2px solid var(--line2);flex:none}
+.lay .sw.hub{border:none;width:10px;height:10px;border-radius:50%;background:#D8D2C2}
+.lay .sw.stor{border:none;width:10px;height:10px;border-radius:50%;background:var(--copper);opacity:.55}
+.lay .sw.psh{border:none;width:10px;height:10px;border-radius:50%;border:1.5px dashed var(--dc);background:transparent}
+.lay .sw.fts{border:none;width:14px;height:10px;background:var(--copper-glow);border:1px solid var(--copper-dim)}
+#dossier .dname{font-family:var(--serif);font-size:21px;font-weight:500;color:var(--ink);margin-bottom:2px}
+#dossier .dtag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);margin-bottom:12px}
+#dossier .dbody{font-size:13px;color:var(--ink2);margin-bottom:14px}
+.drow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.drow .k{color:var(--muted)}
+.drow .v{color:var(--ink);text-align:right;font-family:var(--mono);font-size:11.5px}
+.dhint{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:12px;letter-spacing:.05em}
+
+.st{fill:#12161C;stroke:#232B34;stroke-width:1;transition:fill .15s}
+.st:hover{fill:#161B22}
+.st.mkt{fill:#1A212A;stroke:#33404E}
+.st.mkt:hover{fill:#202834}
+.st.fts{fill:#241E18;stroke:#4A3A2C}
+.st.fts:hover{fill:#2A2219}
+.iclab{font-family:var(--mono);font-size:11px;fill:#4E5866;letter-spacing:.3em;text-anchor:middle;pointer-events:none}
+.hubc{cursor:pointer}
+.hubc circle.core{fill:#D8D2C2;stroke:#0D1014;stroke-width:1.5}
+.hubc.sel circle.core{fill:var(--copper-hi)}
+.hubc circle.ring{fill:none;stroke:#D8D2C2;stroke-width:1;opacity:.35}
+.hubc text{font-family:var(--mono);font-size:10.5px;fill:var(--ink2);letter-spacing:.08em;pointer-events:none;font-weight:500}
+.hubc.ghost circle.core{fill:#3A4450}
+.hubc.ghost text{fill:#5E6A78}
+.storc{cursor:pointer}
+.storc circle.blob{fill:var(--copper);opacity:.28;stroke:var(--copper-dim);stroke-width:1}
+.storc.sel circle.blob{opacity:.5;stroke:var(--copper-hi)}
+.storc circle.dot{fill:var(--copper-hi)}
+.storc text{font-family:var(--mono);font-size:9px;fill:var(--copper-hi);letter-spacing:.05em;pointer-events:none;opacity:.85}
+.storc.psh circle.blob{fill:none;stroke:var(--dc);stroke-dasharray:4 4;opacity:.7}
+.storc.psh circle.dot{fill:var(--dc)}
+.storc.psh text{fill:var(--dc)}
+.storc.btm circle.blob{stroke-dasharray:2 4;opacity:.16}
+
+/* ---------- SIM SHARED ---------- */
+.simlayout{display:grid;grid-template-columns:330px minmax(0,1fr);gap:22px;align-items:start}
+.ctl{margin-bottom:16px}
+.ctl label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);margin-bottom:6px}
+.ctl label .val{font-family:var(--mono);color:var(--copper-hi);font-size:12px}
+input[type=range]{width:100%;appearance:none;height:3px;background:var(--line2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--copper);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--copper-dim)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 2px var(--copper-hi)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--copper);cursor:pointer;border:2px solid var(--bg)}
+.ctlgroup{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--copper);margin:20px 0 12px;padding-top:14px;border-top:1px solid var(--line)}
+.ctlgroup:first-child{margin-top:0;padding-top:0;border-top:none}
+.btn{appearance:none;border:1px solid var(--line2);background:var(--panel2);color:var(--ink2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 14px;border-radius:7px;cursor:pointer;width:100%;transition:border-color .15s,color .15s}
+.btn:hover{border-color:var(--copper);color:var(--copper-hi)}
+.btn.on{border-color:var(--copper);color:var(--copper-hi);background:#1E1913}
+.btnrow{display:flex;gap:8px}
+.btnrow .btn{width:auto;flex:1}
+.seg{display:flex;gap:0;border:1px solid var(--line2);border-radius:7px;overflow:hidden;margin-bottom:16px}
+.seg button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:9px 6px;cursor:pointer;flex:1;transition:color .15s,background .15s}
+.seg button.on{background:#1E1913;color:var(--copper-hi)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+.stat.hot{border-color:var(--copper-dim);background:linear-gradient(180deg,#1A150F 0%,var(--panel) 100%)}
+.stat .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.stat .v{font-family:var(--serif);font-size:24px;font-weight:500;color:var(--ink)}
+.stat.hot .v{color:var(--copper-hi)}
+.stat .d{font-size:10.5px;color:var(--faint);margin-top:3px}
+.chartrow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px 10px}
+.chart svg{width:100%;height:auto;display:block}
+.assum{font-size:11.5px;color:var(--muted);line-height:1.6}
+.tsline{font-family:var(--mono);font-size:11px;color:var(--warn);background:#1A160E;border:1px solid #3A3220;border-radius:8px;padding:10px 14px;margin-bottom:16px;letter-spacing:.02em}
+
+/* formation room specifics */
+.wf{display:flex;flex-direction:column;gap:0}
+.wfstep{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:12px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line)}
+.wfstep:first-child{border-top:none}
+.wfstep .n{font-family:var(--mono);font-size:10px;color:var(--copper);letter-spacing:.1em}
+.wfstep .t{font-size:12.5px;color:var(--ink2)}
+.wfstep .t small{display:block;font-size:10.5px;color:var(--faint)}
+.wfstep .r{font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap}
+.wfstep.hot .r{color:var(--copper-hi);font-size:14px}
+
+/* ledger */
+.ledger{display:flex;flex-direction:column;gap:8px}
+.lrow{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.lhead{display:grid;grid-template-columns:minmax(150px,1.2fr) 90px 92px minmax(160px,1.6fr) minmax(140px,1.4fr) 20px;gap:14px;padding:13px 18px;cursor:pointer;align-items:center;transition:background .15s}
+.lhead:hover{background:var(--panel2)}
+.lrow.open .lhead{background:var(--panel2)}
+.lhead .c1{font-family:var(--serif);font-size:15px;font-weight:500;color:var(--ink)}
+.lhead .c1 small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);letter-spacing:.08em;font-weight:400;margin-top:1px}
+.lhead .pill{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;border:1px solid;text-align:center;white-space:nowrap}
+.pill.phys{color:var(--good);border-color:#3A4A32}
+.pill.cash{color:var(--dc);border-color:#2E3E4E}
+.pill.hyb{color:var(--warn);border-color:#4A4028}
+.lhead .c3,.lhead .c4{font-size:11.5px;color:var(--ink2)}
+.lhead .c4{color:var(--copper-hi);font-family:var(--mono);font-size:10.5px}
+.lhead .car{color:var(--faint);font-family:var(--mono);font-size:11px;text-align:right;transition:transform .2s}
+.lrow.open .car{transform:rotate(90deg)}
+.lbody{display:none;border-top:1px solid var(--line);padding:16px 18px;background:#12161C}
+.lrow.open .lbody{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.lbody h4{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:500}
+.lbody h4.amend{color:var(--copper)}
+.spec .drow{font-size:12px}
+.amendbox{font-size:12.5px;color:var(--ink2);line-height:1.6}
+.amendbox b{color:var(--copper-hi);font-weight:500}
+.amendbox .sec12{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--new);border:1px solid #453E5C;border-radius:4px;padding:1px 7px;margin-top:9px}
+.lky{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em;margin:4px 2px 14px}
+
+/* verdict */
+.verlayout{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start;margin-bottom:22px}
+.prereq{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 4px;border-top:1px solid var(--line);cursor:pointer;transition:background .12s}
+.prereq:first-of-type{border-top:none}
+.prereq:hover{background:#181E26}
+.prereq .pt{font-size:13px;color:var(--ink2)}
+.prereq .pt small{display:block;font-size:10.5px;color:var(--faint);margin-top:1px}
+.prereq .sc{font-family:var(--mono);font-size:11px;letter-spacing:.05em;padding:3px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--muted);white-space:nowrap}
+.prereq[data-s="1"] .sc{color:var(--warn);border-color:#4A4028}
+.prereq[data-s="2"] .sc{color:var(--good);border-color:#3A4A32}
+.dial{text-align:center;margin:6px 0 2px}
+.dv{font-family:var(--serif);font-size:34px;font-weight:500;color:var(--copper-hi);margin-top:-6px}
+.dk{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase}
+.verd-note{font-size:12.5px;color:var(--ink2);line-height:1.6}
+.verd-note b{color:var(--copper-hi);font-weight:500}
+.chain{display:flex;flex-direction:column;gap:0}
+.chainstep{display:flex;gap:12px;align-items:baseline;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2)}
+.chainstep:first-child{border-top:none}
+.chainstep .n{font-family:var(--mono);font-size:10px;color:var(--copper);min-width:22px}
+.quote{border-left:2px solid var(--copper);padding:4px 0 4px 16px;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ink2);margin:14px 0}
+.quote .who{display:block;font-family:var(--mono);font-style:normal;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+
+footer{border-top:1px solid var(--line);padding:22px 40px 40px;font-size:11px;color:var(--faint);line-height:1.7;max-width:1460px;margin:0 auto}
+footer b{color:var(--muted)}
+
+@media(max-width:1080px){
+  .maplayout,.simlayout,.verlayout{grid-template-columns:1fr}
+  .sidecol{position:static}
+  .chartrow{grid-template-columns:1fr}
+  .lrow.open .lbody{grid-template-columns:1fr}
+  .lhead{grid-template-columns:minmax(120px,1fr) auto auto 20px}
+  .lhead .c3,.lhead .c4{display:none}
+  header,main{padding-left:20px;padding-right:20px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Presenting Points B · C · I — Companion Exhibit</div>
+  <h1>The Tether: <em>Storage at the Settlement Anchor</em></h1>
+  <p class="sub">The most liquid power hubs of North America and Europe, and the question Doug Houseman put on the table: <b>storage is being built — but not where the benchmarks settle. What happens to final-settlement calculation in exchange-traded power futures if inventory ever arrives at the pricing point itself?</b></p>
+  <p class="papertag">DAVIS · USAEE + RE+ 2026 · SISTER EXHIBIT TO "THE SEAM" (BAJA NORTE) · GRID-SCALE STORAGE: ENFORCING CONVERGENCE</p>
+  <nav id="tabs">
+    <button data-t="atlas" class="on"><span class="k">I</span>The Hub Atlas</button>
+    <button data-t="form"><span class="k">II</span>The Formation Room</button>
+    <button data-t="tether"><span class="k">III</span>The Tether Engine</button>
+    <button data-t="ledger"><span class="k">IV</span>The Settlement Ledger</button>
+    <button data-t="verdict"><span class="k">V</span>One Amendment Away</button>
+  </nav>
+</header>
+<main>
+
+<!-- ============ TAB I : ATLAS ============ -->
+<section class="tab on" id="tab-atlas">
+  <p class="lede">Every marker below is a settlement anchor — a published price that closes out billions in open interest. The copper blobs are where grid-scale storage is actually being built. <b>The exhibit's first finding is visual: the two layers barely touch.</b> Deep futures hubs with no inventory; deep inventory with no futures hub. Click anything.</p>
+  <div class="maplayout">
+    <div class="mapstack">
+      <div class="mapwrap">
+        <div class="mapcap">North America — ISO/RTO hub futures (Nodal · ICE · CME)</div>
+        <svg id="namap" role="img" aria-label="Map of North American power trading hubs and storage buildout"></svg>
+        <div class="mapscale">ALBERS CONIC · NATURAL EARTH 110m · LIQUIDITY RANKS &amp; STORAGE SITING: INDICATIVE, END-2025</div>
+      </div>
+      <div class="mapwrap">
+        <div class="mapcap">Europe — EEX / ICE / Nord Pool zonal futures &amp; the FTS footprint</div>
+        <svg id="eumap" role="img" aria-label="Map of European power futures zones and storage buildout"></svg>
+        <div class="mapscale">ALBERS CONIC · NATURAL EARTH 50m · FTS ZONES PER EEX POWER FUTURES SPECS · STORAGE: INDICATIVE</div>
+      </div>
+    </div>
+    <div class="sidecol">
+      <div class="panel">
+        <div class="ptitle">Layers</div>
+        <label class="lay"><input type="checkbox" data-l="hubs" checked><span class="sw hub"></span><span>Settlement hubs (r ∝ futures liquidity)</span></label>
+        <label class="lay"><input type="checkbox" data-l="stor" checked><span class="sw stor"></span><span>Battery buildout (r ∝ GW, indicative)</span></label>
+        <label class="lay"><input type="checkbox" data-l="psh" checked><span class="sw psh"></span><span>Legacy pumped hydro / reservoirs</span></label>
+        <label class="lay"><input type="checkbox" data-l="fts" checked><span class="sw fts"></span><span>FTS-eligible bidding zones (EU)</span></label>
+      </div>
+      <div class="panel" id="dossier">
+        <div class="ptitle">Dossier</div>
+        <div id="dcontent"></div>
+        <div class="dhint">CLICK ANY HUB OR STORAGE CLUSTER</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB II : FORMATION ROOM ============ -->
+<section class="tab" id="tab-form">
+  <p class="lede">Point B, made mechanical. Power is the only major commodity whose spot price is <b>not a traded price</b> — participants discover value and encode it in offers; the ISO forms the price. Inventory can therefore reach the futures settlement anchor through exactly one door: <b>the opportunity-cost term inside a storage bid.</b> This room runs a stylized settlement day and shows how often that door gets used.</p>
+  <div class="simlayout">
+    <div class="panel">
+      <div class="ctlgroup">Market Archetype</div>
+      <div class="seg" id="mktseg">
+        <button data-m="ercot" class="on">ERCOT-style · SPP</button>
+        <button data-m="phelix">Phelix-style · EPEX DA</button>
+      </div>
+      <div class="ctlgroup">The Day</div>
+      <div class="ctl"><label>Peak load <span class="val" id="v-fload"></span></label><input type="range" id="s-fload" min="40" max="95" step="1" value="84"></div>
+      <div class="ctl"><label>Solar fleet <span class="val" id="v-fpv"></span></label><input type="range" id="s-fpv" min="0" max="40" step="1" value="24"></div>
+      <div class="ctl"><label>Wind fleet <span class="val" id="v-fwd"></span></label><input type="range" id="s-fwd" min="0" max="45" step="1" value="20"></div>
+      <div class="ctl"><label>Dispatchable thermal <span class="val" id="v-fth"></span></label><input type="range" id="s-fth" min="30" max="90" step="1" value="52"></div>
+      <div class="ctl"><label>Gas benchmark <span class="val" id="v-fgas"></span></label><input type="range" id="s-fgas" min="2" max="14" step="0.25" value="4"></div>
+      <div class="ctlgroup">The Inventory</div>
+      <div class="ctl"><label>Storage power <span class="val" id="v-fst"></span></label><input type="range" id="s-fst" min="0" max="25" step="0.5" value="8"></div>
+      <div class="ctl"><label>Storage duration <span class="val" id="v-fsh"></span></label><input type="range" id="s-fsh" min="1" max="8" step="0.5" value="3"></div>
+      <div class="ctl"><label>Offer spread over charge cost <span class="val" id="v-fsp"></span></label><input type="range" id="s-fsp" min="5" max="120" step="5" value="15"></div>
+      <button class="btn" id="fzero">Set storage to zero (compare)</button>
+    </div>
+    <div>
+      <div class="statgrid">
+        <div class="stat hot"><div class="k">Final settlement</div><div class="v" id="f-settle">—</div><div class="d" id="f-settled">per contract spec, $/MWh</div></div>
+        <div class="stat hot"><div class="k">Storage-marginal share</div><div class="v" id="f-share">—</div><div class="d">of settlement-window hours where an inventory bid set the price</div></div>
+        <div class="stat"><div class="k">TB4 spread</div><div class="v" id="f-tb4">—</div><div class="d">top-4 minus bottom-4 hours, $/MWh</div></div>
+        <div class="stat"><div class="k">Settlement Δ vs no storage</div><div class="v" id="f-delta">—</div><div class="d">inventory's fingerprint on the anchor</div></div>
+        <div class="stat"><div class="k">Scarcity hours</div><div class="v" id="f-scar">—</div><div class="d">hours at adder/cap</div></div>
+      </div>
+      <div class="tsline" id="f-verdict"></div>
+      <div class="chart" style="margin-bottom:16px"><div class="ptitle">The stylized settlement day — hourly clearing price, colored by the marginal technology</div><svg id="c-day" viewBox="0 0 940 240"></svg></div>
+      <div class="chartrow">
+        <div class="chart"><div class="ptitle">Merit order at the peak hour — where the inventory bid sits</div><svg id="c-stack" viewBox="0 0 460 220"></svg></div>
+        <div class="panel"><div class="ptitle">Anatomy of the final settlement — the "missing questions"</div>
+          <div class="wf" id="wf"></div>
+        </div>
+      </div>
+      <div class="panel"><div class="ptitle">Model assumptions</div>
+        <p class="assum">Stylized single day, hourly resolution. Load follows a dual-peak shape scaled to the peak slider; solar a clear-sky bell; wind a flat draw at 34% CF. Merit order: must-run baseload at $0 bid, CC gas at 7.4 × gas, steam/peakers at 10.5 × gas, then a scarcity adder that scales with the residual shortfall toward the cap ($5,000 ERCOT SPP analog / $4,000 EPEX DA analog). Storage charges its energy budget in the cheapest hours and offers it back at average charge cost + the spread slider — the opportunity-cost bid. When that offer is the marginal one, the hour clears at the inventory price: decentralized discovery entering centralized formation. Settlement = arithmetic mean over the contract window (ERCOT peak HE7–22 analog · Phelix base 1–24). Screening exhibit — not a production-cost model, not a price forecast.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB III : TETHER ENGINE ============ -->
+<section class="tab" id="tab-tether">
+  <p class="lede">Point C, stress-tested. A gas forward curve can be <b>defended</b> — anyone with storage capacity and credit can cash-and-carry it back into line. A power forward curve is <b>expectational</b> — it holds only while balance-sheet conviction holds. This engine prices the difference, then replays the one natural experiment we have: <b>the 2002 merchant-credit collapse.</b></p>
+  <div class="simlayout">
+    <div class="panel">
+      <div class="ctlgroup">The Tether</div>
+      <div class="ctl"><label>At-hub inventory coverage <span class="val" id="v-tinv"></span></label><input type="range" id="s-tinv" min="0" max="100" step="5" value="0"></div>
+      <div class="ctl"><label>Cost of carry <span class="val" id="v-tcar"></span></label><input type="range" id="s-tcar" min="2" max="30" step="1" value="9"></div>
+      <div class="seg" id="cplseg">
+        <button data-c="0" class="on">Cash-settled only</button>
+        <button data-c="1">Opt-in FTS</button>
+        <button data-c="2">EFP / delivery</button>
+      </div>
+      <div class="ctlgroup">The Paper Market</div>
+      <div class="ctl"><label>Paper : physical multiple <span class="val" id="v-toi"></span></label><input type="range" id="s-toi" min="1" max="20" step="1" value="13"></div>
+      <div class="ctl"><label>Spot volatility <span class="val" id="v-tvol"></span></label><input type="range" id="s-tvol" min="5" max="60" step="5" value="30"></div>
+      <div class="ctlgroup">The Credit Event</div>
+      <div class="ctl"><label>Merchant credit shock <span class="val" id="v-tshk"></span></label><input type="range" id="s-tshk" min="0" max="100" step="5" value="0"></div>
+      <div class="btnrow" style="margin-bottom:10px">
+        <button class="btn" id="preset02">Replay 2002</button>
+        <button class="btn" id="preset02t">2002, tethered</button>
+      </div>
+      <button class="btn" id="treroll">↻ Redraw stochastic paths</button>
+    </div>
+    <div>
+      <div class="statgrid">
+        <div class="stat hot"><div class="k">Tracking error</div><div class="v" id="t-conv">—</div><div class="d">mean |front-month − spot|, final 15 days, $/MWh</div></div>
+        <div class="stat"><div class="k">P95 tracking error</div><div class="v" id="t-p95">—</div><div class="d">tail miss, final 15 days</div></div>
+        <div class="stat hot"><div class="k">Liquidity retained</div><div class="v" id="t-liq">—</div><div class="d">open interest surviving the credit event</div></div>
+        <div class="stat"><div class="k">Arbitrage band</div><div class="v" id="t-band">—</div><div class="d">± range storage can defend, $/MWh</div></div>
+        <div class="stat"><div class="k">Curve regime</div><div class="v" id="t-reg" style="font-size:17px">—</div><div class="d">what holds the curve together</div></div>
+      </div>
+      <div class="tsline" id="t-note"></div>
+      <div class="chart" style="margin-bottom:16px"><div class="ptitle">One illustrative expiry — front-month vs spot, with the inventory-defendable band</div><svg id="c-path" viewBox="0 0 940 240"></svg></div>
+      <div class="chartrow">
+        <div class="chart"><div class="ptitle">Convergence funnel — |basis| percentiles over 250 expiries</div><svg id="c-fun" viewBox="0 0 460 210"></svg></div>
+        <div class="chart"><div class="ptitle">Open interest through the credit event</div><svg id="c-oi" viewBox="0 0 460 210"></svg></div>
+      </div>
+      <div class="panel"><div class="ptitle">Model assumptions · the 2002 calibration</div>
+        <p class="assum">250 stochastic 60-day expiries. Spot follows a mean-reverting walk at the volatility slider; the front-month carries an expectational premium (OU noise) on top of the unbiased forecast. The tether clamps that premium inside ± (carry ÷ tether strength), where tether strength compounds at-hub inventory coverage with the settlement-coupling regime — cash-only contributes nothing regardless of inventory (the Doug Houseman point: inventory off-settlement is inventory off-curve); opt-in FTS couples weakly; EFP/delivery couples fully. The credit event removes the shocked share of speculative open interest and widens the premium noise; surviving OI = physical base + spec capital retained in proportion to tether strength — calibrated so that an untethered 13× paper market shocked at 90% reproduces the post-Enron outcome: liquidity −90%, never recovered. Gas curves survived 2002 because storage economics kept quoting them. Screening model — not investment advice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB IV : LEDGER ============ -->
+<section class="tab" id="tab-ledger">
+  <p class="lede">Point B's punchline is a spec sheet. "Settles to DA LMP" skips the questions that determine actual cash flow — <b>which hub, which market, which price, which hours, averaged how, published by whom, final when.</b> The ledger answers them for the benchmarks that matter, then drafts the storage-era amendment each contract is one committee vote away from. Click any row.</p>
+  <div class="lky">SORTED BY SETTLEMENT REGIME · COMPARATOR COMMODITIES FIRST · AMENDMENTS REFERENCE SECTION 12 PRODUCT CODES</div>
+  <div class="ledger" id="ledger"></div>
+</section>
+
+<!-- ============ TAB V : VERDICT ============ -->
+<section class="tab" id="tab-verdict">
+  <p class="lede">Point I, scored. Europe has the paper-to-physical scaffolding (FTS across ~15 bidding zones) but its storage is dispersed and behind the meter. ERCOT has the inventory but not even the scaffolding. <b>Click any row to flip its state</b> — the exercise is seeing which single flip does the most work on each side of the Atlantic.</p>
+  <div class="verlayout">
+    <div class="panel">
+      <div class="ptitle">Europe — Phelix DE-LU · the scaffolding side</div>
+      <div id="preqEU"></div>
+      <div class="hr"></div>
+      <div class="dial"><svg id="dialEU" viewBox="0 0 220 130" style="width:100%;max-width:240px"></svg>
+        <div class="dv" id="dvEU">—</div><div class="dk">of 12 · Henry Hub ≈ 12</div></div>
+      <div class="verd-note" id="noteEU"></div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">North America — ERCOT North · the inventory side</div>
+      <div id="preqNA"></div>
+      <div class="hr"></div>
+      <div class="dial"><svg id="dialNA" viewBox="0 0 220 130" style="width:100%;max-width:240px"></svg>
+        <div class="dv" id="dvNA">—</div><div class="dk">of 12 · Henry Hub ≈ 12</div></div>
+      <div class="verd-note" id="noteNA"></div>
+    </div>
+  </div>
+  <div class="verlayout">
+    <div class="panel">
+      <div class="ptitle">The critique this exhibit answers</div>
+      <div class="quote">"We cannot expect power hubs to behave like Henry Hub or Cushing until we give them the same physical tool oil and gas have always relied on — collocated, grid-scale inventory. And right now, storage is not being built at the hubs."
+        <span class="who">Doug Houseman — paraphrased critique · carried as Point I</span></div>
+      <p class="verd-note">The numbers agree with him. Europe's battery fleet already turns over roughly <b>15× more energy per month than the entire FTS bridge</b> even under generous utilization scenarios — the tether exists on paper across a dozen zones and is load-bearing almost nowhere. Siting is the missing variable: inventory that settles into a distribution feeder or a West Texas node never touches the hub average that futures cash-settle against. <b>Phelix physical-fulfilment products cannot take off while the inventory sits off-anchor.</b></p>
+    </div>
+    <div class="panel">
+      <div class="ptitle">The formation sequence — how the coupler gets built</div>
+      <div class="chain" id="chain"></div>
+      <div class="hr"></div>
+      <p class="verd-note"><b>Europe is one contract amendment away</b> — the FTS plumbing spans twelve countries and needs only an obligation, plus inventory sited in-zone at scale. <b>North America is one amendment plus one settlement infrastructure away</b> — Nodal and ICE power futures are purely financial; the EFP-at-storage mechanism has to be invented before it can be mandated. Either way the sequence is the same one every commodity has walked: infrastructure first, then the instrument.</p>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <b>The Tether — companion exhibit to Presenting Points B, C, I.</b> Basemaps: Natural Earth 110m/50m cultural vectors, Albers equal-area conic. Hub liquidity ranks, storage buildout siting/GW, and FTS utilization scenarios are indicative, assembled from exchange contract specifications (CME, ICE, EEX, Nodal), EEX/EPEX published volumes, EIA and interconnection-queue data; utilization of the EEX Future-to-Spot Service is unpublished and shown only as bounded scenarios. Settlement descriptions summarize public contract specs and can change — verify against the current rulebook before quoting. The Formation Room and Tether Engine are stylized screening models, not production-cost studies or price assessments. Nothing here is an offer or investment advice. · M. Davis · USAEE + RE+ 2026
+</footer>
+<script>
+window.__MAP__ = {"NA":{"W":860,"H":640,"states":{"Minnesota":"M477.5,236.5L470.6,236.6L454.7,246.9L455.2,255.1L450.2,258.3L448.9,261.0L451.1,263.7L450.4,274.6L466.7,286.3L467.6,292.7L412.3,293.9L411.3,266.1L408.5,262.7L411.4,259.1L411.6,254.3L408.2,231.6L405.9,225.9L405.1,213.4L425.3,213.4L425.3,207.9L428.5,207.8L430.4,215.7L433.5,218.1L450.4,220.9L460.1,225.0L468.0,222.7L481.5,225.6L477.5,236.5Z","Montana":"M223.0,192.9L280.4,203.3L338.3,210.0L333.5,267.7L261.6,258.8L260.2,266.7L257.5,262.9L255.6,265.6L247.5,263.7L246.9,265.1L243.7,264.0L241.4,265.7L239.4,259.2L236.9,257.3L234.4,244.3L233.3,243.7L229.5,246.8L228.0,245.1L228.6,241.3L230.0,240.7L229.9,236.8L233.3,230.2L230.3,229.5L228.2,226.9L225.1,219.4L221.8,214.9L222.4,212.3L220.6,208.0L223.0,192.9Z","North Dakota":"M405.1,213.4L405.9,225.9L408.2,231.6L411.6,256.9L392.1,257.4L335.2,254.4L338.3,210.0L405.1,213.4Z","Idaho":"M223.0,192.9L220.6,208.0L222.4,212.3L221.8,214.9L225.1,219.4L228.2,226.9L230.3,229.5L233.3,230.2L229.9,236.8L230.0,240.7L228.6,241.3L228.0,245.1L229.5,246.8L233.3,243.7L234.4,244.3L236.9,257.3L239.4,259.2L241.4,265.7L243.7,264.0L246.9,265.1L247.5,263.7L255.6,265.6L257.5,262.9L260.5,267.0L254.7,303.2L191.2,291.0L198.9,261.3L196.8,257.8L197.4,255.5L208.4,240.9L208.4,238.6L205.2,233.8L205.4,228.9L213.7,190.9L223.0,192.9Z","Washington":"M213.7,190.9L205.2,233.8L184.7,229.1L162.9,228.8L158.1,226.1L149.1,225.7L147.0,224.5L146.2,216.7L141.6,213.1L136.5,211.4L138.2,203.1L138.0,182.9L140.0,180.5L152.3,189.4L153.5,204.1L157.0,201.0L158.7,189.1L158.8,176.8L213.7,190.9Z","Arizona":"M266.1,379.8L254.7,462.7L230.2,459.2L187.0,433.6L192.2,428.7L190.5,426.3L190.4,421.4L193.3,418.5L195.6,412.0L199.8,409.8L196.4,398.7L197.7,394.6L198.0,383.5L199.1,381.8L205.0,384.7L206.8,382.2L209.0,370.5L266.1,379.8Z","California":"M196.4,397.3L197.1,403.5L199.8,409.8L195.6,412.0L193.3,418.5L190.4,421.4L190.5,426.3L192.2,428.7L190.3,431.3L159.2,427.5L158.9,419.7L153.1,409.6L148.0,406.6L147.7,402.1L141.3,399.8L138.1,394.9L127.6,390.7L125.3,387.6L126.0,379.4L118.8,362.0L115.1,339.6L116.4,336.4L112.9,330.3L108.0,315.9L110.0,303.8L106.7,294.4L112.6,283.3L115.9,271.1L159.9,283.6L148.8,326.6L196.4,397.3Z","Colorado":"M349.7,343.6L347.0,388.1L266.1,379.8L274.1,321.1L350.7,328.7L349.7,343.6Z","Nevada":"M191.2,291.0L222.9,297.8L206.8,382.2L205.0,384.7L199.1,381.8L198.0,383.5L197.7,394.6L196.4,397.3L148.8,326.6L159.9,283.6L191.2,291.0Z","New Mexico":"M254.7,462.7L266.1,379.8L335.8,387.3L330.4,461.0L285.6,456.8L286.8,460.6L265.4,458.0L264.6,464.0L254.7,462.7Z","Oregon":"M205.2,233.8L208.4,238.6L208.4,240.9L197.4,255.5L196.8,257.8L198.9,261.3L191.2,291.1L115.9,271.1L116.0,259.3L124.0,247.2L134.2,222.4L136.5,211.4L141.6,213.1L146.2,216.7L147.0,224.5L149.1,225.7L158.1,226.1L162.9,228.8L184.7,229.1L205.2,233.8Z","Utah":"M222.9,297.8L254.7,303.2L252.4,317.4L274.1,321.1L266.1,379.8L209.0,370.5L222.9,297.8Z","Wyoming":"M260.2,266.7L261.6,258.8L333.5,267.7L328.8,327.1L285.0,322.5L252.4,317.4L260.2,266.7Z","Arkansas":"M491.6,402.2L486.4,411.7L486.9,416.0L483.4,419.9L482.1,426.0L478.7,429.1L475.2,437.5L476.3,447.7L440.8,449.0L441.3,440.6L436.2,440.8L435.5,439.9L435.7,412.5L433.1,396.9L485.9,396.0L487.0,397.8L483.9,402.7L491.6,402.2Z","Iowa":"M412.3,293.9L467.6,292.7L469.3,295.8L468.6,300.0L469.9,303.6L473.5,304.8L480.2,312.7L479.9,316.7L477.4,321.2L471.3,323.1L470.4,325.7L472.4,329.1L470.5,334.0L467.8,336.3L467.7,339.1L463.9,335.6L419.3,337.1L418.7,329.2L416.0,322.7L415.3,316.8L413.3,314.0L412.2,307.5L410.5,305.9L412.2,299.5L410.8,297.5L410.9,293.9L412.3,293.9Z","Kansas":"M347.0,388.1L349.7,343.6L424.6,345.7L428.7,347.6L429.1,349.7L427.5,352.5L429.8,357.0L432.8,358.4L433.1,390.1L381.1,389.7L347.0,388.1Z","Missouri":"M491.6,402.2L483.9,402.7L487.0,397.8L485.9,396.0L433.1,396.9L432.8,358.4L429.8,357.0L427.5,352.5L429.1,349.7L428.7,347.6L424.6,345.7L419.3,337.1L463.9,335.6L467.7,339.1L466.9,342.8L470.1,350.1L476.2,355.0L477.6,360.2L481.0,359.7L483.3,361.9L481.3,369.6L491.1,377.0L493.7,386.3L494.9,385.8L497.1,388.0L497.3,391.8L493.0,394.9L491.6,402.2Z","Nebraska":"M349.7,343.6L350.7,328.7L328.8,327.1L331.2,297.7L389.4,301.0L396.0,304.2L403.3,303.5L412.2,308.9L418.7,329.2L419.5,338.3L424.6,345.7L349.7,343.6Z","Oklahoma":"M335.8,387.3L381.1,389.7L433.1,390.1L435.7,412.5L435.5,439.9L426.9,435.5L417.3,436.4L413.2,438.2L407.4,438.3L405.6,435.8L403.7,437.9L397.1,434.5L393.4,435.9L391.9,432.4L386.3,432.6L378.7,430.5L377.0,427.4L373.8,428.2L369.1,425.2L370.3,396.6L335.3,394.6L335.8,387.3Z","South Dakota":"M411.6,256.9L411.4,259.1L408.5,262.7L411.3,266.1L412.5,280.2L412.3,293.9L410.9,293.9L410.8,297.5L412.2,299.5L410.5,305.9L412.2,308.9L403.3,303.5L396.0,304.2L389.4,301.0L331.2,297.7L335.2,254.4L392.1,257.4L411.6,256.9Z","Louisiana":"M440.8,449.0L476.3,447.7L477.2,448.5L476.2,450.7L479.5,458.0L471.7,473.3L472.4,476.9L495.3,476.1L494.4,481.1L500.8,492.3L501.0,498.2L503.9,500.9L501.6,503.0L496.7,501.2L492.1,504.3L482.7,504.3L472.8,497.1L461.8,499.4L452.4,496.3L444.5,497.5L443.6,495.9L446.7,491.8L445.7,487.9L448.5,477.3L444.0,466.4L441.9,464.7L440.8,449.0Z","Texas":"M286.8,460.6L285.6,456.8L330.4,461.0L335.3,394.6L370.3,396.6L369.1,425.2L373.8,428.2L377.0,427.4L378.7,430.5L386.3,432.6L391.9,432.4L393.4,435.9L397.1,434.5L403.7,437.9L405.6,435.8L407.4,438.3L413.2,438.2L417.3,436.4L426.9,435.5L436.2,440.8L441.3,440.6L441.9,464.7L444.0,466.4L448.5,477.3L445.7,487.9L446.7,491.8L443.6,495.9L444.5,497.5L433.8,501.1L422.2,512.1L409.4,518.4L402.2,525.3L399.1,531.9L398.8,541.9L399.4,548.9L401.9,553.9L396.7,554.3L377.0,546.1L373.6,539.1L371.0,528.8L363.7,520.2L353.7,501.0L345.0,494.7L334.6,494.3L325.7,505.3L315.5,500.1L309.3,495.1L303.4,478.7L290.7,466.3L286.8,460.6Z","Connecticut":"M658.3,286.6L676.3,282.7L678.3,292.8L667.9,297.0L660.6,302.8L659.6,300.7L661.5,298.8L660.4,297.8L658.3,286.6Z","Massachusetts":"M676.3,282.7L658.3,286.6L658.2,276.2L679.4,271.2L680.1,269.5L683.3,267.9L685.3,275.4L690.8,282.1L695.2,281.2L692.7,276.3L696.7,278.6L697.0,282.9L690.6,287.2L685.4,288.3L680.7,281.4L676.3,282.7Z","New Hampshire":"M683.3,267.9L680.1,269.5L679.4,271.2L666.8,274.3L665.6,273.0L664.9,262.7L665.8,250.6L669.4,247.1L668.0,243.4L668.2,235.5L671.2,233.9L679.7,261.2L683.2,264.6L684.2,264.2L683.3,267.9Z","Rhode Island":"M678.3,292.8L676.3,282.7L680.7,281.4L685.4,288.3L678.3,292.8Z","Vermont":"M666.8,274.3L658.2,276.2L655.8,264.3L653.9,264.0L652.2,258.3L652.5,255.0L649.6,243.9L668.2,239.2L669.4,247.1L665.8,250.6L664.9,262.7L665.6,273.0L666.8,274.3Z","Alabama":"M510.4,416.0L540.5,413.3L550.2,445.5L553.8,452.3L552.1,455.2L552.0,459.9L552.9,467.6L554.7,471.1L522.2,475.3L525.3,479.8L524.1,484.8L512.8,484.1L510.6,461.7L511.4,418.8L510.4,416.0Z","Florida":"M524.1,484.8L525.3,479.8L522.2,475.3L554.7,471.1L557.1,474.8L590.3,473.3L591.6,475.7L593.0,474.2L592.3,469.1L599.0,469.0L608.9,490.5L616.2,499.8L617.3,506.0L626.2,521.7L627.8,537.1L626.0,546.4L622.3,548.9L615.5,548.2L612.4,542.2L606.9,539.7L590.5,518.2L587.7,512.8L589.0,502.8L584.3,495.3L572.8,484.5L567.6,482.8L555.7,491.0L553.3,490.5L546.5,484.4L538.2,481.6L524.1,484.8Z","Georgia":"M554.7,471.1L552.9,467.6L552.0,459.9L552.1,455.2L553.8,452.3L550.2,445.5L540.5,413.3L570.7,409.7L568.1,414.1L573.8,416.7L578.4,423.4L587.4,430.0L589.3,433.2L593.6,435.6L595.7,441.4L599.9,445.2L600.3,448.0L603.7,448.8L599.3,458.3L599.0,469.0L592.3,469.1L593.0,474.2L591.6,475.7L590.3,473.3L557.1,474.8L554.7,471.1Z","Mississippi":"M476.3,447.7L475.2,437.5L478.7,429.1L482.1,426.0L483.4,419.9L485.6,417.4L510.4,416.0L511.4,418.8L510.6,461.7L512.8,484.1L503.3,485.9L498.2,488.5L497.1,484.5L494.4,481.1L495.3,476.1L472.4,476.9L471.7,473.3L479.5,458.0L476.2,450.7L477.2,448.5L476.3,447.7Z","South Carolina":"M603.7,448.8L600.3,448.0L599.9,445.2L595.7,441.4L593.6,435.6L589.3,433.2L587.4,430.0L578.4,423.4L573.8,416.7L568.1,414.1L570.7,409.7L577.9,405.7L588.7,404.2L594.3,404.0L594.6,405.3L595.7,404.1L598.1,408.0L611.3,405.9L627.0,417.3L621.9,423.8L621.1,429.0L609.4,440.7L603.7,448.8Z","Illinois":"M467.7,339.1L467.8,336.3L470.5,334.0L472.4,329.1L470.4,325.7L471.3,323.1L477.4,321.2L479.9,316.7L480.2,312.7L474.7,307.0L513.3,304.3L512.4,315.3L509.1,315.6L512.2,350.5L511.2,354.7L513.2,360.2L508.4,371.2L507.3,377.5L508.4,378.8L504.0,381.5L504.7,384.7L503.2,386.0L497.2,384.3L497.1,388.0L494.9,385.8L493.7,386.3L491.1,377.0L481.3,369.6L483.3,361.9L481.0,359.7L477.6,360.2L476.2,355.0L472.4,352.5L468.1,347.2L466.9,342.8L467.7,339.1Z","Indiana":"M508.2,374.2L509.6,367.1L513.2,360.2L511.2,354.7L512.2,350.5L509.1,315.6L538.5,312.6L543.2,356.4L539.7,358.1L537.0,357.9L537.1,360.8L532.8,365.3L530.8,370.0L527.4,367.2L524.7,372.1L522.0,370.7L518.8,373.8L515.1,371.9L512.8,373.7L509.7,372.8L509.8,374.5L508.2,374.2Z","Kentucky":"M493.0,394.9L497.3,391.8L497.2,384.3L503.2,386.0L504.7,384.7L504.0,381.5L508.4,378.8L507.3,377.5L509.7,372.8L512.8,373.7L515.1,371.9L518.8,373.8L522.0,370.7L524.7,372.1L527.4,367.2L530.8,370.0L532.8,365.3L537.1,360.8L537.0,357.9L539.7,358.1L543.2,356.4L542.9,351.6L546.8,351.4L556.7,357.3L565.8,355.4L569.3,358.5L570.0,362.9L572.6,367.1L575.9,370.4L578.2,370.3L566.1,384.3L560.6,386.8L509.4,391.5L509.7,393.8L493.0,394.9Z","North Carolina":"M570.7,409.7L556.0,411.5L555.9,408.3L558.3,407.1L560.3,403.4L567.8,400.1L573.3,393.7L574.4,394.8L578.3,391.4L580.4,391.4L581.8,388.7L584.1,387.7L583.6,383.8L579.2,384.7L603.2,381.3L650.5,372.0L655.2,386.2L650.1,398.5L638.9,405.3L632.7,415.3L627.0,417.3L611.3,405.9L598.1,408.0L597.9,406.3L595.7,404.1L594.6,405.3L594.3,404.0L577.9,405.7L570.7,409.7Z","Ohio":"M542.9,351.6L538.6,313.7L553.1,311.7L556.0,307.1L561.4,310.8L564.1,310.4L575.4,300.7L583.3,297.8L587.3,322.3L585.9,323.3L586.7,328.6L585.7,337.4L583.2,341.2L579.2,342.7L577.1,345.6L576.9,349.8L576.0,350.5L575.6,348.9L574.0,348.7L572.1,357.7L569.3,358.5L565.8,355.4L556.7,357.3L546.8,351.4L542.9,351.6Z","Tennessee":"M485.6,417.4L486.9,416.0L486.4,411.7L491.5,403.4L493.0,394.9L509.7,393.8L509.4,391.5L552.8,388.3L564.4,385.2L560.6,386.8L583.6,383.8L584.1,387.7L581.8,388.7L580.4,391.4L578.3,391.4L574.4,394.8L573.3,393.7L567.8,400.1L560.3,403.4L558.3,407.1L555.9,408.3L556.0,411.5L485.6,417.4Z","Virginia":"M564.4,385.2L578.2,370.3L579.1,372.8L582.5,374.8L585.8,372.5L587.3,373.3L591.4,371.4L591.4,370.0L592.8,370.4L597.3,367.6L596.8,364.5L599.8,359.4L602.0,350.9L605.5,352.5L607.0,351.7L609.0,345.9L609.9,346.4L614.1,340.2L614.3,336.2L620.7,339.0L621.4,336.1L623.1,336.2L624.8,337.0L624.3,338.8L630.4,341.4L628.3,348.8L631.6,348.3L632.7,350.2L641.4,353.3L644.7,367.0L648.2,367.3L650.5,372.0L603.2,381.3L560.6,386.8L564.4,385.2ZM651.4,349.6L647.6,362.6L646.4,362.2L647.8,351.6L651.4,349.6Z","Wisconsin":"M467.6,292.7L466.7,286.3L450.4,274.6L451.1,263.7L448.9,261.0L450.2,258.3L455.2,255.1L454.7,246.9L470.6,236.6L477.5,236.5L473.6,247.0L476.0,247.2L477.0,249.8L492.1,254.0L497.0,253.8L497.7,256.2L500.2,256.9L501.3,258.9L500.5,262.5L502.8,262.4L502.2,264.9L503.8,266.5L505.4,266.9L508.4,261.0L511.9,260.6L517.5,263.4L513.4,269.4L511.2,280.8L510.9,292.2L513.3,304.3L474.7,307.0L473.5,304.8L469.9,303.6L468.6,300.0L469.3,295.8L467.6,292.7Z","West Virginia":"M578.2,370.3L575.9,370.4L572.6,367.1L570.0,362.9L569.3,358.5L572.1,357.7L573.2,355.4L574.0,348.7L575.6,348.9L576.0,350.5L576.9,349.8L577.1,345.6L579.2,342.7L583.2,341.2L585.7,337.4L586.7,328.6L585.9,323.3L587.3,322.3L589.5,335.8L601.0,333.8L602.2,341.3L608.5,334.9L611.9,334.9L614.8,332.0L618.4,332.6L620.2,334.4L621.4,336.1L620.7,339.0L614.3,336.2L614.1,340.2L609.9,346.4L609.0,345.9L607.0,351.7L605.5,352.5L602.0,350.9L599.8,359.4L596.8,364.5L597.3,367.6L595.7,369.0L582.5,374.8L579.1,372.8L578.2,370.3Z","Delaware":"M653.7,342.5L646.3,344.2L641.5,325.9L642.9,323.7L645.4,323.9L644.1,325.8L645.0,328.5L649.0,335.8L652.3,337.8L653.7,342.5Z","District of Columbia":"M630.5,342.3L629.2,340.4L630.0,339.5L631.7,340.7L630.5,342.3Z","Maryland":"M651.4,349.6L647.8,351.6L640.9,347.3L637.1,335.5L636.2,342.2L640.5,350.9L632.7,350.2L631.6,348.3L628.3,348.8L631.7,340.7L624.3,338.8L624.8,337.0L621.4,336.1L618.4,332.6L614.8,332.0L611.9,334.9L608.5,334.9L602.2,341.3L601.0,333.8L641.5,325.9L646.3,344.2L653.7,342.5L651.4,349.6Z","New Jersey":"M645.0,328.5L644.1,325.8L651.1,316.6L645.1,312.0L644.6,309.7L645.5,307.6L644.5,305.9L648.2,299.6L657.7,303.4L658.0,306.5L655.7,311.3L659.0,311.2L659.1,322.1L653.7,335.1L652.0,331.6L649.4,331.3L645.0,328.5Z","New York":"M658.3,286.6L660.4,297.8L661.5,298.8L659.6,300.7L660.0,303.3L675.0,296.7L678.8,298.7L664.9,306.7L658.1,308.4L657.7,303.4L644.2,298.4L643.0,294.8L638.6,292.0L592.1,301.1L590.6,293.2L598.6,287.0L596.8,281.3L594.6,278.7L598.9,275.6L618.6,271.7L620.7,265.4L630.4,251.3L634.3,247.6L649.6,243.9L652.5,255.0L652.2,258.3L653.9,264.0L655.8,264.3L658.2,276.2L658.3,286.6Z","Pennsylvania":"M587.3,322.3L583.3,297.8L590.6,293.2L592.1,301.1L638.6,292.0L643.0,294.8L644.2,298.4L648.2,299.6L644.5,305.9L645.5,307.6L644.6,309.7L645.1,312.0L651.1,316.6L647.4,322.1L645.4,323.9L642.9,323.7L641.5,325.9L589.5,335.8L587.3,322.3Z","Maine":"M684.2,264.2L683.2,264.6L679.7,261.2L671.2,233.9L674.9,230.6L676.6,223.2L676.5,211.4L680.9,198.6L685.2,201.4L690.9,197.1L696.4,199.9L702.2,218.9L711.1,224.9L714.2,228.9L705.7,239.0L687.3,254.2L684.2,264.2Z","Michigan":"M477.5,236.5L481.5,225.6L492.1,220.6L528.9,237.5L530.3,241.2L532.8,242.3L532.4,243.9L535.1,244.0L536.9,242.2L537.9,245.6L540.2,247.6L543.0,247.3L544.7,248.9L543.8,251.6L555.3,257.0L563.3,282.2L561.5,291.3L556.0,307.1L553.1,311.7L512.4,315.3L513.3,304.3L510.9,292.2L511.2,280.8L513.4,269.4L517.5,263.4L511.9,260.6L508.4,261.0L505.4,266.9L503.8,266.5L502.2,264.9L502.8,262.4L500.5,262.5L501.3,258.9L500.2,256.9L497.7,256.2L497.0,253.8L492.1,254.0L477.0,249.8L476.0,247.2L473.6,247.0L477.5,236.5Z"},"countries":{"Canada":"M158.8,176.8L143.8,157.3L139.1,149.3L124.7,138.2L123.9,124.5L128.0,116.7L118.9,107.0L121.3,95.8L114.7,82.4L117.1,75.6L124.1,71.0L126.9,62.7L116.3,49.2L112.8,20.5L105.2,4.7L104.0,-3.4L94.7,-2.8L84.3,0.6L78.8,-18.1L73.3,-24.9L66.4,-28.9L118.5,-130.4L128.9,-122.3L136.5,-112.8L142.7,-108.9L150.1,-110.6L159.2,-110.4L168.1,-105.2L179.5,-105.8L190.9,-104.3L193.8,-98.5L199.5,-99.1L202.6,-103.3L206.6,-100.7L214.6,-87.9L225.5,-92.1L224.0,-84.0L232.7,-83.3L236.0,-85.6L243.9,-82.7L252.9,-75.6L267.8,-67.8L276.7,-63.9L283.6,-63.2L291.8,-55.8L280.9,-52.2L293.1,-47.3L312.2,-45.4L318.5,-46.4L325.1,-38.5L333.5,-43.3L327.0,-49.0L332.0,-52.2L346.2,-52.2L351.6,-49.0L358.0,-42.2L366.0,-42.5L378.2,-36.5L389.3,-37.8L399.7,-37.1L399.1,-44.2L405.4,-46.0L416.2,-42.1L416.2,-31.3L420.7,-40.4L426.4,-40.2L429.4,-51.5L421.9,-58.2L413.8,-62.5L414.4,-74.1L422.3,-81.6L431.1,-80.1L438.0,-75.8L447.7,-64.3L441.8,-58.8L454.8,-57.2L455.4,-45.9L464.1,-55.2L473.0,-48.7L471.6,-40.2L479.2,-33.0L485.8,-42.0L489.9,-52.2L488.9,-64.2L509.0,-64.3L519.0,-60.3L520.3,-55.0L516.0,-48.2L521.9,-42.9L521.9,-37.2L509.0,-27.1L499.2,-24.0L491.3,-26.7L489.7,-20.5L483.7,-9.7L482.0,-4.2L474.0,4.9L463.2,6.5L457.5,12.1L457.5,20.3L448.6,22.3L439.4,33.0L431.2,47.8L428.2,58.2L428.0,73.7L440.2,75.7L448.7,98.4L460.5,95.2L476.8,100.1L485.7,104.6L492.5,110.6L503.7,113.3L513.6,118.1L537.9,117.1L538.2,129.3L543.0,142.9L551.9,157.7L567.8,168.8L574.2,163.0L576.5,147.7L567.8,126.5L560.3,120.4L573.1,111.4L581.0,99.9L583.8,89.5L581.2,80.7L573.3,70.5L561.4,62.4L568.3,46.8L562.5,35.8L556.1,16.4L560.9,12.5L582.8,12.7L588.4,7.9L607.7,15.3L611.3,19.5L625.3,16.7L628.1,27.4L635.4,42.8L643.2,42.7L651.3,48.5L660.6,37.8L663.4,21.3L666.6,13.7L706.9,47.3L706.8,56.6L720.4,59.8L730.6,64.2L745.0,62.2L752.0,64.1L760.0,73.6L767.2,72.4L772.7,75.8L779.9,90.1L771.8,105.0L759.5,115.8L752.9,131.2L738.6,139.2L718.3,143.4L695.6,152.0L691.1,164.3L681.1,174.0L672.8,196.4L665.3,212.5L672.9,207.9L683.0,185.1L699.1,167.5L712.4,161.6L722.9,165.5L717.3,177.8L732.0,201.0L747.0,203.5L762.1,195.6L765.7,176.6L770.2,186.2L778.3,188.8L770.0,202.4L751.5,218.6L743.7,227.6L736.0,241.5L728.0,243.0L723.8,231.2L737.0,214.0L711.1,224.9L702.2,218.9L696.4,199.9L690.9,197.1L685.2,201.4L680.9,198.6L676.5,211.4L676.6,223.2L674.9,230.6L668.2,235.5L668.2,239.2L634.3,247.6L630.4,251.3L620.7,265.4L618.6,271.7L598.9,275.6L594.6,278.7L596.8,281.3L598.6,287.0L586.0,296.7L575.4,300.7L564.1,310.4L561.4,310.8L557.5,309.0L556.0,305.5L561.5,291.3L563.3,282.2L555.3,257.0L543.8,251.6L544.7,248.9L543.0,247.3L540.2,247.6L537.9,245.6L536.9,242.2L535.1,244.0L532.4,243.9L532.8,242.3L530.3,241.2L528.9,237.5L492.1,220.6L483.6,225.3L480.4,225.7L468.0,222.7L460.1,225.0L450.4,220.9L433.4,218.1L430.4,215.7L428.5,207.8L425.3,207.9L425.3,213.4L405.1,213.4L371.7,212.4L309.6,207.2L252.2,198.7L223.0,192.9L158.8,176.8ZM510.5,21.9L515.4,15.4L526.0,14.0L526.2,16.5L518.1,24.7L512.6,25.2L510.5,21.9ZM539.6,22.4L541.9,18.1L545.1,17.9L547.6,20.1L545.7,27.3L542.1,26.8L539.6,22.4ZM785.5,100.6L783.9,125.0L787.7,118.0L794.8,118.1L793.8,124.1L803.3,124.2L805.8,119.1L816.5,119.0L818.3,129.9L823.4,124.7L834.7,137.8L836.5,151.2L832.6,153.7L825.5,154.1L822.3,142.3L819.0,141.8L813.8,158.2L808.1,160.2L811.7,151.1L801.6,151.8L792.1,156.8L774.1,163.9L771.0,160.5L774.8,153.4L769.3,151.4L773.6,140.2L773.8,115.1L775.9,105.3L781.3,97.5L785.5,96.3L785.5,100.6ZM507.1,-11.1L524.8,-5.5L526.4,0.3L531.8,-1.6L537.8,1.6L531.7,6.6L519.5,5.4L514.5,0.5L507.9,8.0L497.8,15.8L494.4,8.7L484.2,11.0L490.2,4.2L491.5,-16.9L496.9,-16.5L498.9,-11.4L502.4,-13.7L507.1,-11.1ZM530.2,-96.1L535.6,-101.1L550.9,-99.2L560.9,-96.5L562.7,-92.4L574.3,-97.6L582.7,-93.0L599.6,-93.4L606.5,-91.0L615.7,-83.3L605.0,-74.6L623.0,-72.4L634.5,-73.6L647.7,-67.0L658.7,-70.1L659.4,-61.6L652.0,-44.0L641.7,-45.9L627.1,-53.3L618.5,-49.1L619.6,-42.2L629.1,-37.8L640.5,-35.6L644.5,-33.4L653.1,-23.3L653.6,-13.9L643.2,-14.1L621.8,-18.0L645.4,-5.9L648.0,-2.0L626.2,-0.6L608.1,-3.2L597.5,-6.8L599.2,-10.9L574.6,-17.7L575.5,-14.2L554.6,-7.8L547.5,-10.8L550.7,-20.5L578.8,-28.3L575.4,-32.0L576.6,-38.3L583.0,-51.7L576.2,-59.3L564.5,-62.1L549.8,-62.9L553.6,-66.5L545.1,-71.7L539.0,-71.1L533.0,-73.8L530.0,-70.0L517.9,-66.6L492.8,-65.6L466.9,-67.8L461.0,-71.1L467.7,-76.4L458.1,-75.7L455.4,-85.8L459.8,-94.9L466.2,-99.3L482.6,-103.3L478.5,-96.7L484.3,-91.3L489.4,-99.7L505.2,-105.6L517.7,-97.6L517.8,-91.1L530.2,-96.1ZM95.1,78.4L103.5,80.6L95.1,94.5L98.4,108.1L94.9,106.7L92.1,98.6L91.4,91.3L88.9,85.4L89.7,79.1L91.9,75.1L95.1,78.4ZM150.5,181.7L145.2,182.2L131.8,171.1L130.6,165.3L123.9,157.8L123.6,153.3L115.1,147.7L114.2,139.0L116.1,136.2L129.4,146.4L137.4,150.6L141.5,164.3L149.0,172.9L150.5,181.7ZM714.4,151.1L717.1,148.9L730.2,148.1L741.6,150.3L742.8,152.7L738.5,154.6L725.1,154.6L714.4,151.1ZM732.6,188.5L738.3,194.0L745.8,193.4L754.5,189.7L751.9,197.1L748.7,199.3L734.4,197.8L730.4,194.0L732.6,188.5Z","Haiti":"M759.8,598.5L763.0,605.7L763.3,611.3L760.5,614.4L765.2,617.6L765.8,621.4L755.9,621.5L749.5,624.1L740.7,625.2L734.7,629.4L726.1,626.8L726.4,622.1L750.6,619.5L754.9,615.1L747.0,610.8L745.8,605.5L736.5,605.5L738.7,600.9L759.8,598.5Z","Dominican Republic":"M765.8,621.4L765.2,617.6L760.5,614.4L763.3,611.3L763.0,605.7L759.8,598.5L760.9,595.7L771.7,592.9L780.8,594.2L784.3,592.9L788.2,597.0L795.6,594.6L796.4,598.8L802.7,597.5L810.9,600.4L807.4,607.5L799.9,606.5L789.0,609.5L787.1,612.7L782.0,615.0L779.0,612.3L774.9,615.5L771.8,626.4L767.6,625.1L765.8,621.4Z","Mexico":"M159.2,427.5L188.7,431.0L187.0,433.6L230.2,459.2L264.6,464.0L265.4,458.0L286.8,460.6L290.7,466.3L303.4,478.7L309.3,495.1L315.5,500.1L325.7,505.3L334.6,494.3L345.0,494.7L353.7,501.0L363.7,520.2L371.0,528.8L373.6,539.1L377.0,546.1L396.7,554.3L401.9,553.9L396.5,566.6L394.0,577.0L391.1,603.3L393.4,611.2L397.6,618.2L400.3,629.3L409.6,640.0L412.9,648.2L418.5,655.1L433.8,658.8L439.9,664.6L483.1,652.9L492.0,646.6L494.9,638.2L495.4,626.1L497.5,621.8L506.8,617.5L521.3,613.1L533.7,612.6L542.1,610.6L545.7,613.3L545.9,620.2L539.1,629.3L536.5,638.3L539.4,640.5L535.2,658.1L531.2,654.8L525.5,655.7L521.0,664.6L518.2,663.1L516.5,663.9L516.8,666.0L489.8,667.5L490.2,675.4L483.6,675.8L494.9,683.2L496.7,686.1L499.1,686.8L499.0,691.6L480.0,692.6L473.3,704.3L475.6,706.8L473.8,714.2L456.3,699.8L448.6,695.4L436.4,692.0L428.2,693.1L416.3,698.4L408.8,699.8L387.3,693.1L373.6,686.3L362.7,684.0L346.4,676.7L334.5,669.3L331.1,665.4L323.0,664.0L308.6,658.4L303.1,651.5L288.4,642.1L282.2,632.5L279.5,625.3L284.4,624.4L283.3,620.2L286.9,616.8L287.5,611.9L283.4,605.0L282.7,599.2L278.9,591.5L268.4,575.9L256.2,563.1L250.9,553.3L240.2,545.8L238.3,542.0L241.6,533.4L235.4,529.0L228.7,520.9L227.1,510.3L220.3,508.0L209.4,491.2L209.6,486.6L204.8,474.5L202.4,462.6L203.6,457.1L195.8,449.7L191.6,449.5L185.4,444.2L182.2,449.6L181.9,468.0L193.9,490.3L195.6,491.7L196.4,497.0L198.7,497.2L199.6,506.9L202.9,511.3L204.7,516.8L211.7,525.5L213.8,539.6L219.4,553.8L218.9,561.5L225.3,562.9L233.8,577.3L233.1,579.8L226.6,584.2L224.2,583.8L221.9,574.6L214.3,565.1L199.6,551.9L201.8,541.5L201.1,533.4L187.9,519.8L185.8,521.3L183.3,517.0L176.0,512.0L170.1,502.1L171.2,501.3L176.3,503.1L182.1,498.7L183.8,492.3L176.2,480.1L169.6,474.6L161.2,441.5L159.2,427.5Z","Guatemala":"M473.8,714.2L475.6,706.8L473.3,704.3L480.0,692.6L499.0,691.6L499.1,686.8L496.7,686.1L494.9,683.2L483.6,675.8L490.2,675.4L489.8,667.5L516.8,666.0L517.4,693.0L521.8,692.6L526.9,694.8L528.0,692.6L532.5,694.0L519.4,704.3L518.5,707.0L519.9,709.7L517.0,713.4L513.6,714.5L514.5,716.1L506.8,721.6L506.5,723.6L498.6,721.7L489.1,722.0L482.1,719.5L473.8,714.2Z","Belize":"M516.8,666.0L516.5,663.9L518.2,663.1L521.0,664.6L525.5,655.7L528.2,655.3L528.4,657.3L531.2,657.2L529.4,667.3L530.8,669.4L529.6,683.0L527.0,686.9L524.4,687.6L521.8,692.6L517.4,693.0L516.8,666.0Z","Jamaica":"M681.7,634.2L691.5,633.5L699.7,635.3L702.9,638.6L692.9,640.9L689.0,644.1L680.6,643.4L671.5,640.0L672.6,636.5L681.7,634.2Z","Cuba":"M605.1,579.2L627.7,576.9L641.3,579.6L647.6,583.9L660.1,579.9L688.7,593.4L693.1,592.2L701.9,593.3L701.8,597.5L712.1,595.8L723.8,599.1L722.9,602.7L714.1,606.6L675.4,615.7L683.2,606.0L676.8,603.5L667.7,604.3L662.1,601.2L657.4,593.8L649.7,595.7L636.2,594.2L631.6,591.9L613.3,592.5L608.1,590.4L612.7,586.1L599.2,587.3L590.4,596.1L584.7,597.0L583.1,600.7L576.5,603.2L570.4,602.5L577.2,597.2L579.5,591.7L585.3,587.8L605.1,579.2Z"},"anchors":{"PJMW":[613.3,322.1],"ERN":[404.8,448.6],"ERH":[424.1,495.1],"SP15":[162.9,401.6],"NP15":[130.8,327.8],"MIDC":[181.7,219.2],"PV":[212.9,425.5],"MISO":[525.1,341.7],"NYJ":[657.6,307.1],"MASS":[674.2,278.9],"AESO":[258.9,135.8],"stCAs":[157.9,391.3],"stCAn":[123.0,351.8],"stTXw":[340.4,460.2],"stTXs":[383.5,513.7],"stTXh":[420.9,499.5],"stAZ":[219.4,428.0],"stNV":[193.9,376.5],"stPJM":[624.2,331.3],"stNY":[656.7,298.5],"stNE":[672.5,285.5],"stMISO":[487.9,321.1],"stAB":[260.7,162.2],"capMX":[330.1,556.4],"capUS":[411.7,308.7],"capERCOT":[384.5,475.5]}},"EU":{"W":640,"H":640,"countries":{"United Kingdom":"M177.6,312.4L170.1,315.4L166.7,314.5L163.6,310.4L159.6,310.1L161.5,308.7L158.5,306.5L152.2,307.5L149.1,301.9L163.3,296.0L166.0,292.3L166.0,285.0L159.2,285.8L165.0,280.4L175.0,278.4L178.3,280.6L178.0,277.9L179.2,277.5L180.4,280.1L182.3,280.3L179.5,275.9L183.9,263.7L180.5,264.1L177.5,255.0L179.6,251.3L184.7,248.8L179.3,247.9L174.4,250.2L171.5,248.3L168.4,249.5L165.6,247.2L164.0,249.9L162.3,246.3L162.4,243.8L163.6,244.0L169.6,235.2L168.1,231.0L169.0,227.7L172.2,227.1L169.9,224.5L170.8,222.6L165.4,226.8L166.1,223.4L169.1,220.7L163.9,224.3L160.0,235.3L157.7,235.4L162.2,227.7L161.0,227.3L163.7,219.3L169.2,210.5L163.6,213.7L159.6,209.2L164.2,207.5L163.1,206.3L167.4,200.8L165.7,197.6L166.0,195.9L168.5,194.9L167.4,192.3L169.6,188.6L173.9,189.5L172.2,185.5L173.6,182.5L176.9,182.7L177.1,178.3L179.0,176.8L183.4,179.1L197.1,179.4L194.5,185.0L185.6,190.4L184.8,192.3L186.4,193.2L182.8,197.2L190.5,196.2L203.5,198.6L205.8,203.0L194.7,219.2L186.7,221.6L191.2,221.8L192.9,224.9L185.0,227.9L180.9,225.8L188.0,229.9L192.9,229.3L197.1,232.4L201.2,239.6L203.1,256.7L208.5,261.4L213.8,269.6L212.2,271.3L214.6,279.6L210.8,276.6L206.5,276.2L210.4,277.4L215.6,285.0L216.1,288.5L212.0,292.8L214.4,295.0L217.9,292.4L225.8,294.2L229.7,298.0L230.3,301.5L227.6,310.0L223.2,312.3L223.3,314.8L217.1,316.3L218.7,317.2L218.3,319.5L212.7,320.8L217.8,323.5L223.9,324.2L223.3,327.6L217.6,331.9L208.3,333.8L196.8,332.1L189.8,328.5L190.5,330.1L188.2,331.2L182.1,330.6L181.7,332.9L170.8,328.8L165.8,329.5L161.2,336.3L155.7,332.3L149.1,333.0L143.5,336.7L140.1,334.7L137.6,335.3L137.6,333.6L148.1,328.0L152.6,324.2L154.1,320.5L156.9,320.1L158.7,317.3L170.9,319.3L180.7,310.6L177.6,312.4ZM166.5,277.2L168.0,277.8L163.9,280.3L162.7,275.2L165.5,275.1L166.5,277.2ZM203.8,169.0L203.5,167.8L205.4,168.0L203.8,169.0ZM221.8,147.2L221.9,143.2L221.8,147.2ZM219.4,146.3L221.5,148.5L217.6,158.7L218.5,153.6L215.4,150.6L218.2,150.1L216.9,146.8L219.1,144.9L219.4,146.3ZM225.1,141.9L223.5,144.1L223.8,141.8L225.1,141.9ZM196.5,176.2L194.7,173.6L196.5,176.2ZM198.6,177.6L197.9,175.9L199.2,176.0L198.6,177.6ZM198.4,171.9L200.5,174.7L195.5,172.6L196.3,169.6L198.6,170.6L198.4,171.9ZM202.0,169.5L199.5,166.2L202.0,169.5ZM154.3,210.6L155.9,209.4L154.3,210.6ZM164.9,235.2L162.7,234.1L163.7,229.9L165.2,231.0L164.9,235.2ZM161.6,217.0L156.0,216.7L158.6,213.4L157.6,210.8L159.6,210.6L162.4,214.3L161.6,217.0ZM156.3,223.9L156.1,228.5L153.2,229.6L154.1,226.5L151.6,227.4L152.4,225.4L156.3,223.9ZM157.5,226.5L156.8,224.7L161.2,221.3L157.5,226.5ZM165.8,178.3L161.3,182.6L162.2,184.2L155.6,188.0L154.9,186.6L157.6,185.1L156.0,183.1L156.6,179.7L160.0,180.4L160.0,178.2L166.1,175.6L165.8,178.3ZM159.2,204.2L157.9,202.9L159.1,202.5L159.2,204.2ZM162.8,194.5L162.1,198.0L166.4,200.2L162.8,203.5L162.6,200.4L159.7,199.7L156.5,194.2L161.4,191.0L162.8,194.5ZM153.2,188.7L154.0,190.0L152.7,191.6L149.8,189.5L153.2,188.7ZM150.2,199.2L149.0,198.6L149.8,193.9L151.2,194.4L150.2,199.2ZM147.9,201.6L147.0,200.6L147.9,201.6ZM147.7,258.2L142.9,257.7L143.4,255.7L140.6,250.3L136.1,254.6L133.1,253.7L129.0,247.3L133.6,244.9L132.5,242.5L136.6,242.2L139.5,237.8L142.5,238.1L144.7,236.0L153.3,237.3L156.0,245.7L153.6,248.6L157.2,249.8L156.9,253.3L155.4,250.8L154.9,256.2L152.5,256.3L149.6,259.4L147.7,258.2ZM193.3,333.1L190.8,334.6L187.4,332.6L190.6,331.0L193.3,333.1Z","Ukraine":"M675.4,343.2L667.5,346.7L661.1,356.5L657.9,356.8L650.0,362.5L643.5,375.4L645.6,371.1L644.0,368.5L640.9,374.6L645.0,382.5L640.3,379.1L637.4,380.4L628.0,378.7L626.1,379.1L626.0,381.6L624.2,383.0L620.7,381.8L612.2,386.3L603.1,385.2L602.2,384.7L604.5,381.9L598.2,381.3L608.6,379.7L610.4,376.3L608.0,378.1L603.7,377.9L597.0,368.5L600.5,373.2L601.6,378.4L597.3,379.4L597.0,377.2L595.9,380.5L588.8,384.2L588.6,389.9L585.2,398.8L578.5,403.5L581.8,411.7L577.1,409.8L569.7,414.0L569.8,415.4L565.6,415.4L561.8,413.3L565.1,411.1L564.3,408.4L568.2,399.8L566.4,392.2L568.9,390.3L569.8,392.9L570.7,390.9L574.9,391.1L575.8,389.9L577.9,391.2L581.2,388.9L578.0,387.5L576.0,382.3L571.5,380.9L569.5,375.3L563.5,372.7L563.0,367.1L561.0,363.9L558.7,364.8L556.0,362.2L552.9,362.4L552.4,363.7L549.6,361.5L539.5,359.3L536.2,362.2L531.5,363.0L525.7,367.9L524.8,372.3L516.6,375.7L510.3,380.8L504.4,377.5L500.8,379.0L487.3,378.0L484.6,381.2L482.7,378.4L473.9,374.2L473.5,371.1L476.7,360.8L480.5,360.3L478.4,358.6L477.0,350.4L486.2,333.7L489.2,332.5L490.1,329.9L487.9,325.4L488.9,323.5L482.4,316.2L481.0,310.2L484.9,310.2L488.3,304.2L504.1,299.8L520.1,299.5L522.5,302.0L527.1,301.3L527.6,303.1L528.9,300.5L532.5,299.3L537.4,299.3L539.5,300.9L542.7,296.2L546.6,300.0L555.3,295.8L560.7,298.5L558.9,290.5L561.4,282.7L567.5,279.6L573.9,278.8L575.8,273.0L580.2,272.7L583.4,269.9L589.7,267.7L600.4,275.5L598.0,278.4L601.7,285.7L607.7,285.3L611.4,283.4L613.3,285.6L615.1,285.3L619.5,294.0L622.6,296.3L628.3,293.4L635.2,294.9L642.8,287.8L653.2,293.8L654.6,290.5L663.6,291.5L666.2,289.8L675.1,291.9L678.4,290.4L681.2,295.9L678.3,302.3L683.3,304.0L681.0,305.3L681.0,309.8L683.5,309.7L685.5,313.9L687.0,313.9L687.8,321.5L677.9,326.4L676.2,331.0L673.5,333.3L673.6,339.2L675.4,343.2ZM605.8,386.0L607.8,386.3L599.9,386.7L598.6,384.8L605.8,386.0Z","Turkey":"M554.7,518.2L550.4,519.2L553.5,516.5L554.7,518.2ZM758.2,422.6L762.9,422.2L763.7,420.5L771.1,418.2L771.8,414.9L774.2,414.1L782.6,417.7L785.9,417.0L790.3,419.5L793.7,423.8L793.2,427.5L797.4,432.8L801.9,432.8L808.1,430.2L816.5,433.2L812.5,432.8L812.9,439.9L808.4,443.1L816.3,450.5L820.4,457.8L822.9,457.6L823.3,466.4L830.0,467.0L832.2,471.7L836.4,472.6L837.3,475.2L834.8,475.8L832.0,481.3L827.0,477.1L821.6,481.4L808.1,485.0L804.4,492.1L800.8,490.0L792.8,497.9L781.4,502.9L773.8,511.8L765.5,518.3L757.0,521.6L747.3,521.4L738.3,530.2L732.9,532.1L730.4,531.0L726.0,531.8L726.5,538.4L729.4,541.7L726.0,544.3L726.7,547.3L724.6,551.5L720.6,551.3L721.0,549.6L716.9,544.9L720.1,536.8L719.0,534.3L716.5,533.2L709.1,542.5L697.6,541.9L686.6,558.1L674.1,565.1L667.1,564.4L659.9,559.8L648.5,558.1L637.7,560.1L637.8,571.6L634.4,571.8L627.0,576.8L619.2,575.7L613.5,569.7L611.5,571.0L603.1,570.5L599.7,574.8L600.1,572.4L590.9,575.5L598.6,571.3L601.2,566.8L586.8,571.4L586.7,568.6L590.1,567.0L589.5,565.6L584.4,564.1L581.0,559.8L583.0,558.0L582.0,553.4L566.9,551.2L568.4,549.1L567.6,544.0L570.1,545.1L572.3,548.8L572.7,547.1L574.9,547.5L578.7,545.1L575.1,545.4L572.0,541.7L574.9,537.6L571.7,536.9L571.6,534.0L568.4,531.4L570.4,525.9L559.5,530.0L558.3,520.2L564.5,510.9L572.0,508.1L575.3,509.9L578.8,508.9L580.2,507.5L578.1,506.1L580.0,505.0L581.7,505.0L581.9,507.3L596.5,503.2L592.7,501.3L594.6,499.0L606.5,493.7L599.4,494.2L595.3,492.8L594.0,491.8L594.4,487.5L624.0,481.4L625.6,476.7L634.9,465.8L646.5,456.6L666.3,450.8L669.1,447.7L671.2,447.6L671.7,450.2L675.1,452.2L679.1,452.7L685.4,449.4L688.8,453.3L692.8,454.8L697.2,451.4L702.2,453.0L721.6,450.6L734.1,441.7L740.0,441.7L746.2,439.4L754.6,429.5L758.2,422.6ZM575.3,477.9L575.4,480.1L579.7,484.9L593.1,487.7L592.8,492.1L581.6,493.6L572.7,497.9L570.6,503.9L564.5,509.0L558.3,518.6L558.0,514.1L564.3,506.6L554.7,509.1L553.3,507.2L556.4,502.1L555.2,496.9L558.6,492.9L557.2,489.4L553.0,487.0L556.1,482.6L564.2,478.2L568.9,480.4L575.3,477.9Z","Tunisia":"M348.3,672.4L348.6,686.5L337.5,692.7L331.7,699.1L328.3,700.0L325.7,704.1L328.1,713.6L327.4,716.4L322.0,723.6L315.5,726.5L307.9,692.9L296.3,684.0L292.9,674.6L286.7,670.5L283.3,660.0L283.7,655.5L295.8,643.8L298.3,635.1L296.3,624.0L298.1,613.6L296.0,610.7L302.2,605.0L301.8,603.1L319.0,595.8L321.3,596.4L321.1,599.6L321.8,597.4L326.8,598.3L328.3,606.2L330.1,607.1L339.9,600.7L341.1,604.3L336.1,611.5L331.9,614.7L331.2,617.4L333.0,622.7L339.5,627.4L341.5,634.6L334.8,645.1L325.7,652.5L324.5,656.6L328.7,662.6L335.3,663.3L335.5,666.5L338.4,666.1L339.3,664.4L344.3,670.1L343.4,671.3L348.3,672.4ZM344.1,643.6L341.7,644.9L343.7,642.3L344.1,643.6ZM339.3,662.6L335.4,662.4L335.8,659.6L340.2,660.8L339.3,662.6Z","Switzerland":"M317.7,403.5L319.0,404.6L317.2,412.3L321.8,413.4L325.5,416.3L328.2,413.8L329.6,415.4L329.3,422.1L324.9,421.1L325.4,428.0L323.0,425.7L317.6,426.7L316.3,423.3L314.8,423.1L310.0,435.7L307.8,432.5L308.3,431.0L303.7,427.7L303.3,423.8L299.0,427.1L299.3,429.2L294.8,433.6L291.6,432.4L285.2,433.6L281.7,428.5L281.8,423.7L277.5,423.2L274.9,425.0L274.3,427.6L271.3,428.2L274.2,419.6L277.6,417.0L278.4,413.4L285.0,407.6L284.4,405.2L286.4,403.4L289.1,404.7L293.6,401.7L304.2,401.9L305.7,400.9L303.6,400.2L305.8,398.5L317.7,403.5Z","Sweden":"M414.0,200.3L411.7,203.1L413.3,208.9L406.7,218.8L407.8,215.6L405.6,212.2L405.3,206.8L408.7,201.1L411.3,200.7L412.1,199.1L414.0,200.3ZM391.4,232.5L390.4,233.5L389.7,227.3L394.6,211.9L395.5,212.3L391.4,232.5ZM337.2,182.9L338.0,185.3L339.7,184.9L341.0,178.0L339.7,172.2L342.0,167.0L347.1,162.2L347.8,155.6L344.7,145.2L348.4,144.0L349.8,138.4L343.1,131.7L344.0,121.0L342.2,115.2L342.9,107.5L340.8,102.1L342.2,96.3L347.1,88.5L350.5,87.0L356.9,87.8L357.6,86.3L357.4,79.4L353.7,77.3L359.7,63.6L359.3,48.2L366.4,44.4L365.7,41.1L372.3,30.1L369.7,23.5L372.7,19.7L373.8,14.5L377.4,10.3L382.0,12.4L383.6,1.4L396.0,3.5L397.6,1.1L395.5,0.2L397.5,-5.7L395.4,-8.6L398.9,-9.4L410.1,-1.6L416.7,0.1L423.7,6.4L424.0,15.5L426.2,15.8L426.5,21.3L430.2,26.5L429.9,37.0L435.0,44.5L427.1,47.3L423.8,45.3L422.5,47.0L421.2,46.0L420.9,51.0L419.5,51.0L418.4,54.7L416.0,55.4L416.8,58.0L415.0,57.2L416.9,60.6L414.3,66.9L418.4,72.8L413.9,84.8L407.5,90.6L406.2,93.6L403.1,93.7L400.9,98.5L397.4,100.1L395.3,103.8L396.9,103.7L396.8,105.5L394.5,107.8L392.0,106.2L393.8,111.5L392.2,113.5L390.0,114.7L388.5,113.8L389.0,117.0L391.0,118.8L389.4,125.9L390.6,129.2L388.1,128.7L387.8,131.6L390.5,148.0L394.6,150.7L397.2,149.4L406.7,159.1L408.4,164.1L399.8,172.7L401.5,173.3L405.4,171.4L406.1,172.6L404.2,173.5L403.4,177.1L391.7,187.1L384.3,188.1L390.0,188.6L391.5,190.2L388.9,191.5L390.5,195.6L389.0,203.5L390.5,209.3L388.8,224.7L384.4,236.3L382.2,235.3L373.5,236.4L373.3,238.9L369.7,240.2L367.9,243.0L369.6,248.8L368.0,251.4L364.1,251.0L359.0,252.8L354.3,251.8L355.0,245.3L349.4,235.1L352.8,235.5L351.2,232.2L353.3,231.9L353.4,228.7L348.5,223.3L342.5,208.7L341.1,208.0L340.7,203.1L338.1,200.4L337.8,196.2L336.0,195.6L334.8,183.8L335.3,182.1L337.2,182.9ZM414.6,198.6L414.0,199.8L414.2,197.5L416.2,197.6L414.6,198.6ZM404.8,178.5L405.3,177.0L404.8,178.5ZM405.6,169.9L406.4,168.6L405.6,169.9Z","Spain":"M198.4,563.7L195.6,563.4L196.2,561.7L198.4,563.7ZM223.4,545.3L227.0,545.9L227.8,547.5L224.1,553.0L221.5,554.3L217.6,552.4L216.4,549.3L213.4,550.2L211.6,548.3L218.2,543.6L223.9,542.0L223.4,545.3ZM240.2,545.8L234.2,543.1L234.1,541.1L239.5,542.1L240.2,545.8ZM196.7,558.9L196.0,560.0L193.4,558.8L195.6,555.7L198.9,555.3L199.6,557.0L196.7,558.9ZM162.5,468.8L163.3,470.8L167.2,472.8L166.3,476.5L168.3,475.6L175.2,479.7L177.2,482.7L181.2,482.8L184.4,485.8L193.7,487.1L195.0,484.3L203.6,488.3L204.4,493.2L208.2,492.4L211.8,495.5L214.9,494.7L221.0,496.8L224.5,495.0L228.9,495.9L230.0,498.7L228.0,499.1L227.6,500.9L228.6,505.1L210.9,515.8L195.5,518.2L190.4,522.1L192.7,524.3L188.2,525.8L172.1,544.4L172.7,553.1L177.9,559.5L166.0,566.2L160.2,575.7L160.3,579.0L151.9,578.4L146.6,580.8L136.4,591.2L132.7,589.0L127.2,590.2L103.2,585.7L97.8,588.6L89.9,588.5L85.9,593.2L81.5,594.3L75.8,589.9L74.0,581.8L72.4,580.6L72.4,578.9L76.1,576.2L73.0,577.1L67.2,568.8L67.9,567.3L65.9,568.4L59.4,567.2L59.6,560.7L61.3,557.2L66.3,553.0L68.8,552.9L70.4,550.5L68.2,550.1L65.9,544.3L68.0,539.8L73.5,534.6L71.4,532.6L68.5,521.7L74.5,522.8L77.1,521.1L79.2,517.3L77.9,514.2L81.8,511.7L83.0,499.1L95.1,491.3L91.2,488.2L91.2,483.0L84.2,480.6L80.0,482.5L73.1,479.8L69.6,480.3L69.0,478.5L70.9,476.6L69.6,474.0L60.6,475.7L61.0,472.4L64.4,470.0L62.8,469.3L64.6,467.3L64.5,462.8L61.3,462.9L63.8,459.5L60.5,455.2L62.2,451.8L67.1,449.9L74.3,450.6L75.9,450.2L76.4,447.5L84.7,446.0L92.2,451.9L108.8,454.0L125.6,461.9L138.4,462.4L145.4,466.6L148.0,465.4L154.9,469.1L162.5,468.8Z","Slovakia":"M476.7,360.8L473.7,374.5L469.1,376.1L465.1,372.8L453.4,375.0L452.1,379.7L447.8,383.2L443.5,382.3L441.9,384.7L433.7,387.8L433.4,391.9L419.7,393.0L412.4,389.4L409.0,383.0L411.5,374.1L417.5,373.4L422.3,369.2L423.2,364.8L428.0,359.8L432.1,359.1L432.7,361.0L434.8,360.7L437.9,356.5L442.5,360.2L443.3,363.6L446.4,363.4L449.5,359.0L456.8,359.3L458.1,357.1L461.3,356.4L468.0,357.0L470.0,359.3L476.7,360.8Z","Slovenia":"M407.9,419.3L405.3,418.9L404.4,422.0L397.0,425.9L397.7,432.3L393.0,435.2L394.2,440.1L387.0,440.4L383.8,437.2L381.4,440.7L376.4,440.5L375.0,442.1L370.9,440.6L374.7,438.5L370.7,435.0L370.8,431.8L369.3,431.7L371.0,428.0L367.6,426.6L371.6,421.4L382.7,423.1L386.8,418.9L400.4,416.5L401.9,412.9L404.3,412.8L407.9,419.3Z","Russia":"M1347.2,-603.2L1343.0,-600.6L1341.3,-601.2L1339.5,-598.9L1335.5,-607.6L1326.3,-609.4L1320.2,-607.8L1313.2,-608.3L1298.9,-603.4L1295.7,-609.3L1288.7,-614.1L1292.9,-629.0L1290.7,-631.1L1283.7,-631.3L1281.3,-634.4L1276.0,-634.8L1268.5,-638.4L1263.7,-637.9L1251.3,-640.7L1248.0,-639.9L1244.0,-644.1L1239.3,-646.2L1233.8,-643.1L1230.0,-644.1L1228.1,-642.3L1227.9,-637.8L1234.0,-629.3L1234.3,-625.2L1237.9,-620.1L1242.6,-617.7L1244.5,-598.7L1238.8,-595.3L1232.6,-595.8L1227.9,-592.2L1222.9,-591.9L1222.7,-587.5L1213.7,-578.3L1214.3,-573.1L1210.2,-568.4L1211.2,-559.9L1207.0,-554.3L1199.2,-554.5L1196.6,-551.4L1189.7,-550.9L1182.3,-546.1L1158.3,-538.9L1145.4,-530.9L1142.3,-524.4L1143.6,-521.5L1136.3,-509.6L1135.3,-504.8L1136.9,-491.2L1141.5,-475.6L1149.7,-467.6L1152.0,-468.9L1153.0,-474.3L1162.1,-474.9L1171.1,-466.4L1193.1,-454.1L1195.7,-456.1L1199.7,-454.8L1203.1,-444.7L1208.8,-437.2L1205.9,-429.8L1197.2,-418.3L1198.9,-412.0L1198.1,-408.6L1190.6,-401.3L1189.1,-396.2L1192.9,-386.8L1200.5,-376.2L1200.5,-358.0L1203.1,-349.7L1195.8,-332.9L1193.8,-324.4L1186.4,-319.2L1180.8,-319.9L1178.1,-312.1L1170.5,-307.5L1169.2,-301.8L1163.5,-293.1L1165.1,-276.4L1161.6,-267.8L1151.0,-258.4L1136.3,-261.0L1131.9,-253.5L1123.5,-245.1L1120.8,-239.4L1110.3,-230.6L1114.9,-225.8L1115.2,-222.1L1118.5,-219.2L1118.7,-216.8L1125.0,-211.9L1133.1,-211.2L1136.1,-213.2L1140.2,-211.3L1144.2,-206.6L1144.3,-201.2L1146.3,-197.4L1145.8,-195.7L1142.1,-194.2L1138.7,-186.9L1135.8,-184.8L1134.3,-181.9L1134.8,-178.2L1132.5,-173.8L1129.7,-172.6L1128.5,-169.0L1123.8,-167.7L1117.4,-169.2L1110.9,-157.2L1107.1,-156.8L1107.1,-152.7L1102.7,-151.3L1104.7,-148.2L1102.8,-144.0L1104.6,-138.0L1103.7,-120.2L1105.1,-118.4L1104.6,-114.2L1107.8,-112.6L1107.1,-107.4L1108.4,-104.9L1103.9,-94.6L1107.2,-90.0L1105.6,-82.8L1092.7,-79.1L1089.5,-81.6L1091.1,-73.8L1083.3,-65.0L1074.5,-67.0L1067.4,-61.9L1056.3,-63.6L1049.0,-60.0L1046.8,-53.0L1047.8,-48.7L1040.8,-38.7L1036.9,-40.2L1034.6,-37.3L1031.5,-40.2L1027.2,-37.6L1027.1,-33.6L1030.6,-30.8L1030.4,-24.7L977.3,-33.1L956.6,-29.8L954.2,-30.8L955.9,-32.7L952.6,-37.8L948.4,-21.6L949.9,-17.4L948.2,-7.8L949.8,-5.0L944.4,-2.4L943.7,3.5L939.1,1.1L938.6,-4.8L936.5,-6.3L935.0,-1.3L928.0,1.5L929.6,5.4L922.1,2.7L922.6,5.7L918.4,11.7L915.8,13.0L911.0,7.3L897.8,1.7L895.8,7.9L888.0,10.7L883.8,14.2L881.2,23.2L883.4,26.0L875.9,39.9L867.5,51.0L868.2,57.9L862.6,61.9L847.5,86.6L840.8,90.5L843.6,98.1L849.5,95.6L847.8,98.9L849.5,101.4L854.2,99.0L860.6,99.1L860.4,100.8L852.1,107.2L853.4,113.5L859.5,116.9L855.9,129.9L863.2,130.9L873.8,127.3L876.9,127.6L881.2,135.6L879.2,141.4L874.7,145.6L869.3,145.8L870.2,151.6L868.6,155.1L866.5,153.7L860.3,156.8L851.1,155.0L845.9,158.3L846.1,162.2L844.5,164.3L838.5,164.6L834.1,168.9L831.3,181.3L816.5,181.7L820.9,189.8L811.3,184.6L798.8,182.9L791.4,187.9L785.6,186.4L782.0,193.9L779.5,195.7L776.0,194.0L771.5,195.0L770.5,205.5L765.1,213.4L765.6,218.3L762.8,225.5L760.8,226.4L768.8,235.0L768.8,236.9L765.0,240.6L753.6,235.7L751.2,236.5L750.6,239.7L752.3,244.7L751.0,248.7L752.4,255.6L753.5,258.0L757.9,260.2L757.6,268.0L760.7,274.8L766.8,275.4L769.7,280.0L773.9,282.2L775.3,280.0L783.8,277.3L801.4,287.6L801.3,289.3L797.2,290.5L798.4,293.1L809.3,293.7L805.0,300.8L807.3,303.6L804.2,304.5L802.4,310.0L797.6,313.8L797.8,315.9L795.0,315.4L797.3,318.2L798.6,332.2L797.1,331.7L796.6,338.8L798.3,340.9L802.2,340.5L807.8,342.6L814.7,350.6L813.8,343.9L819.5,359.2L840.8,370.6L844.2,371.0L844.3,376.3L841.5,381.0L841.3,386.4L833.9,389.1L822.0,384.2L819.9,385.6L804.7,385.1L803.0,379.8L798.2,381.6L794.7,380.4L790.4,380.9L790.4,383.8L786.0,383.3L779.0,390.6L777.5,390.3L777.0,387.9L760.8,386.9L745.6,393.0L731.5,392.8L725.0,394.9L724.0,398.5L701.7,390.0L694.1,390.5L688.0,387.2L683.6,389.0L678.1,385.5L670.1,385.5L669.3,384.6L672.6,381.2L669.3,380.8L670.0,379.7L676.1,380.2L680.7,376.2L679.0,373.1L679.8,363.8L680.4,362.6L682.0,364.3L682.2,360.9L685.9,359.5L678.7,356.1L676.7,356.7L673.3,353.4L681.9,349.3L680.1,347.0L688.2,338.8L685.7,335.3L680.4,340.0L679.0,340.5L680.6,337.5L678.6,338.8L675.4,343.2L673.6,339.2L672.9,334.5L676.2,331.0L677.1,327.1L687.8,321.5L687.0,313.9L685.5,313.9L683.5,309.7L681.0,309.8L681.0,305.3L683.3,304.0L678.3,302.3L681.2,295.9L678.4,290.4L675.1,291.9L666.2,289.8L663.6,291.5L654.6,290.5L653.2,293.8L642.8,287.8L635.2,294.9L628.3,293.4L622.6,296.3L619.5,294.0L615.1,285.3L613.3,285.6L611.4,283.4L607.7,285.3L601.7,285.7L598.0,278.4L600.4,275.5L589.7,267.7L583.4,269.9L580.2,272.7L575.8,273.0L573.9,278.8L569.7,279.1L566.4,275.8L563.8,267.7L559.1,263.9L559.8,260.1L568.2,259.7L572.7,253.3L571.9,251.3L569.0,250.2L568.0,247.6L560.0,247.7L559.5,243.5L554.1,241.8L549.1,237.4L549.2,234.7L544.6,232.8L545.0,227.4L542.1,223.7L541.1,217.6L533.2,214.9L530.3,215.8L526.5,220.0L523.0,215.3L520.2,215.0L518.2,217.1L515.2,214.9L512.5,216.3L504.9,203.1L502.4,203.3L502.2,194.5L496.4,190.9L497.1,185.8L499.0,183.9L494.8,178.0L491.6,167.7L493.7,157.5L495.6,155.2L493.8,153.4L492.8,147.8L495.8,148.8L496.7,145.5L500.7,144.9L501.7,141.2L511.2,141.1L511.2,139.5L505.9,136.2L500.1,137.9L495.3,135.5L492.7,130.3L487.0,134.5L498.9,111.6L506.7,90.9L507.5,82.7L502.8,77.8L490.3,71.1L493.0,64.7L492.2,61.5L487.1,58.2L485.8,52.3L483.3,52.2L481.1,49.7L481.9,46.0L479.7,44.6L478.7,37.7L481.3,35.8L480.7,34.0L467.7,16.4L470.6,0.8L464.1,-4.9L458.9,-5.9L456.0,-10.7L456.5,-17.4L453.7,-17.9L457.9,-21.7L458.6,-26.6L462.2,-29.3L462.2,-33.7L467.3,-33.5L466.2,-37.7L471.1,-37.6L473.5,-40.4L472.6,-42.9L480.6,-41.1L480.7,-38.8L475.4,-38.5L477.8,-35.6L482.0,-36.7L482.4,-34.9L485.2,-37.0L485.2,-30.2L487.4,-35.5L502.6,-38.6L518.3,-34.9L525.3,-31.2L528.2,-31.8L534.9,-29.6L536.7,-30.1L536.0,-31.6L542.1,-28.0L547.0,-27.8L551.5,-20.8L553.5,-20.6L555.2,-13.6L551.5,-1.4L542.8,7.0L537.1,8.8L529.2,8.3L517.7,10.2L511.4,8.3L509.3,10.2L508.4,8.5L497.8,8.3L494.6,6.0L494.9,4.6L487.0,5.7L492.2,7.1L492.4,8.7L496.4,11.2L499.0,11.1L500.1,13.7L503.9,14.2L502.3,16.9L508.5,16.8L514.5,20.1L516.2,23.1L515.7,30.6L526.4,45.7L533.1,45.4L539.6,49.6L549.4,49.7L552.5,45.7L552.3,42.9L549.8,39.3L543.3,40.1L536.7,35.8L534.8,32.8L536.3,31.2L535.8,27.7L537.6,26.6L546.3,29.4L561.7,29.1L562.5,24.8L565.4,23.4L556.3,15.8L554.6,11.5L558.2,2.5L562.6,-2.7L564.7,-11.8L568.2,-11.5L572.7,-13.5L577.0,-12.2L577.2,-9.7L579.2,-11.1L582.1,-9.8L580.2,-13.5L579.3,-22.0L576.6,-26.2L574.4,-28.4L569.6,-29.2L564.3,-46.9L555.2,-50.9L560.8,-51.2L567.2,-55.1L573.3,-56.2L583.9,-48.9L577.1,-43.4L575.8,-35.6L582.2,-34.2L586.9,-30.6L591.8,-31.3L598.0,-38.4L593.9,-49.0L599.2,-54.1L596.7,-57.2L599.5,-58.3L605.0,-71.1L610.7,-79.5L615.0,-78.2L615.7,-81.6L612.2,-81.9L617.0,-93.6L621.0,-96.3L617.8,-92.2L619.5,-92.0L620.4,-88.0L623.4,-85.7L621.1,-80.4L625.8,-82.7L628.2,-85.8L631.4,-86.1L630.0,-88.9L630.9,-93.8L633.7,-97.7L641.0,-100.9L643.3,-110.3L644.3,-109.8L646.9,-115.8L651.7,-113.4L653.5,-108.1L658.1,-109.6L655.0,-115.4L658.0,-118.4L657.5,-124.0L646.4,-128.9L647.5,-135.7L668.3,-146.5L674.7,-147.2L675.4,-146.1L690.9,-151.5L705.0,-151.4L704.1,-157.0L700.6,-163.4L697.4,-160.5L688.2,-164.3L685.0,-163.7L680.8,-162.3L681.8,-159.7L676.1,-165.8L676.5,-168.4L668.8,-176.6L666.9,-177.2L665.1,-174.9L662.7,-178.6L661.5,-177.9L660.4,-181.7L661.6,-192.9L650.8,-213.2L651.8,-214.8L653.1,-213.9L660.1,-222.3L665.6,-225.2L668.3,-225.8L672.6,-221.7L679.1,-212.0L680.4,-207.2L687.5,-207.2L690.6,-205.7L697.3,-199.8L698.7,-196.5L715.1,-182.7L718.6,-181.1L728.3,-181.5L730.3,-175.4L735.7,-170.1L735.9,-165.3L740.2,-154.0L738.3,-150.7L743.0,-148.3L741.1,-141.6L738.2,-140.7L737.8,-144.2L736.5,-141.2L732.2,-140.9L728.4,-135.4L732.2,-133.7L738.8,-135.9L751.7,-146.1L751.9,-148.5L749.2,-151.9L750.0,-165.1L745.5,-171.6L743.8,-179.7L739.4,-183.1L732.9,-185.2L729.1,-190.0L730.0,-194.3L734.3,-203.1L745.0,-201.9L754.7,-193.9L760.4,-195.1L765.3,-202.2L757.0,-196.0L750.9,-201.3L751.4,-204.0L740.5,-209.0L728.7,-203.4L726.0,-200.2L725.4,-195.2L721.3,-190.9L719.2,-190.8L716.7,-194.0L710.1,-196.8L702.8,-209.6L685.8,-213.1L682.9,-220.5L684.3,-230.3L679.2,-235.0L674.6,-236.6L677.1,-239.2L685.3,-235.6L688.0,-229.7L693.0,-227.5L696.6,-223.2L706.0,-229.1L708.1,-233.0L714.3,-234.4L716.3,-239.2L714.5,-236.5L709.2,-237.3L705.6,-234.0L698.1,-231.1L691.6,-232.9L693.3,-238.5L698.5,-239.9L700.1,-243.8L696.9,-244.9L694.3,-242.0L693.7,-248.9L698.1,-255.0L707.1,-259.0L715.7,-260.2L720.8,-268.0L724.3,-264.7L724.7,-259.3L733.9,-252.0L737.1,-250.4L731.1,-257.2L731.2,-259.4L737.3,-256.7L741.4,-251.2L744.8,-252.3L742.0,-254.0L742.5,-257.1L740.4,-260.4L730.0,-262.4L722.8,-270.0L718.8,-269.9L716.2,-267.4L709.3,-267.7L701.7,-263.3L697.9,-264.6L695.2,-267.8L689.8,-268.5L685.7,-272.5L698.6,-297.2L701.4,-307.3L702.7,-307.4L704.5,-297.8L706.2,-296.9L712.1,-299.6L704.7,-298.7L706.0,-306.2L704.5,-310.1L695.3,-308.6L692.5,-306.3L691.8,-309.4L695.0,-310.9L695.5,-312.9L687.3,-308.0L686.0,-311.5L689.2,-312.6L689.0,-315.3L686.9,-319.3L684.6,-317.2L683.4,-318.3L685.8,-321.3L685.9,-337.2L688.3,-344.1L690.1,-359.5L687.9,-352.9L685.8,-354.4L686.1,-356.0L690.7,-367.8L692.5,-369.9L694.4,-366.6L694.5,-371.7L696.2,-370.9L695.9,-376.1L696.9,-376.5L695.4,-384.0L700.6,-388.5L703.6,-386.0L702.2,-388.3L699.1,-389.3L692.1,-386.0L695.2,-396.5L697.7,-399.9L694.9,-397.1L688.6,-399.6L683.8,-410.0L682.7,-417.9L688.0,-425.4L690.5,-426.7L692.1,-416.2L694.2,-423.4L695.9,-423.9L696.9,-429.8L699.1,-431.9L704.0,-425.1L705.5,-431.9L702.8,-435.1L706.3,-450.3L709.7,-454.1L712.4,-453.7L712.9,-457.3L718.1,-456.6L715.6,-460.4L721.4,-461.1L722.2,-462.7L726.5,-459.8L725.0,-460.0L721.2,-455.0L725.9,-456.9L725.6,-458.6L728.5,-460.9L734.8,-455.3L742.6,-435.7L745.1,-435.0L750.8,-424.0L750.6,-418.3L754.5,-413.6L754.1,-410.6L761.2,-402.1L761.1,-405.7L757.4,-411.6L758.7,-419.3L755.6,-429.8L756.6,-432.9L753.5,-439.7L751.9,-432.9L749.0,-434.5L748.1,-437.1L750.3,-441.5L748.5,-442.3L749.4,-444.6L750.0,-442.6L752.5,-443.1L755.3,-447.2L755.3,-451.1L751.8,-451.9L752.8,-452.9L757.6,-454.5L760.4,-452.4L762.6,-454.1L772.0,-450.6L774.8,-453.3L771.4,-451.0L764.6,-454.2L763.0,-456.5L760.0,-454.7L758.3,-466.0L763.3,-486.8L764.3,-487.1L764.4,-484.2L768.0,-483.7L773.2,-491.4L774.1,-503.7L775.7,-506.8L775.4,-509.8L774.2,-508.3L773.3,-509.0L774.6,-512.4L770.6,-515.3L766.6,-513.5L762.6,-514.6L763.3,-516.5L761.3,-520.9L765.2,-527.4L766.4,-527.3L764.7,-531.2L768.2,-533.1L764.6,-535.9L765.5,-540.2L769.0,-543.5L771.4,-548.8L775.3,-545.9L775.5,-548.5L778.3,-550.1L781.5,-545.1L782.9,-550.6L787.5,-551.6L789.1,-548.7L783.4,-541.3L785.5,-541.6L794.8,-548.9L791.9,-550.6L794.9,-552.4L796.4,-548.5L805.5,-555.1L809.2,-560.5L807.8,-561.8L811.5,-564.8L802.2,-569.8L795.1,-570.4L789.9,-572.6L795.1,-576.2L797.7,-580.2L797.7,-586.8L793.1,-591.8L792.4,-595.2L798.8,-608.5L797.3,-607.6L795.1,-610.3L794.5,-607.6L790.5,-609.0L789.3,-612.3L791.9,-615.7L790.1,-620.5L783.8,-617.4L783.1,-614.9L778.0,-619.3L779.7,-613.1L776.9,-612.3L773.6,-614.6L770.1,-623.3L766.4,-619.8L765.4,-620.5L766.5,-628.8L764.7,-637.6L764.4,-655.3L765.9,-655.6L767.9,-646.6L771.0,-643.5L771.9,-644.6L765.7,-659.5L772.8,-656.9L769.4,-656.6L768.8,-653.3L773.5,-654.7L775.0,-650.5L778.0,-650.9L778.7,-652.4L775.2,-657.3L764.4,-661.9L762.4,-668.9L762.6,-676.3L765.9,-680.9L769.6,-675.6L771.5,-675.7L772.1,-683.4L770.8,-686.7L776.8,-685.3L772.3,-689.7L772.4,-694.1L775.5,-698.9L777.0,-697.1L777.6,-702.7L762.5,-726.3L759.6,-734.8L759.6,-744.6L761.2,-748.8L765.2,-752.4L773.0,-754.3L773.4,-763.7L781.1,-768.8L782.0,-771.5L787.8,-773.2L790.6,-772.5L789.4,-773.8L782.3,-773.8L774.9,-769.5L769.2,-771.4L764.0,-776.7L761.1,-781.0L761.0,-785.5L754.2,-800.2L746.8,-804.0L751.9,-811.2L750.8,-819.0L753.9,-823.8L749.5,-828.8L743.1,-828.2L738.2,-821.1L739.3,-818.3L734.6,-817.8L731.0,-815.1L724.6,-828.0L723.6,-833.5L721.2,-833.1L716.7,-841.3L711.2,-846.9L710.1,-855.1L704.7,-868.3L704.6,-879.2L757.2,-928.3L763.6,-928.1L771.7,-925.2L774.3,-919.1L773.8,-909.3L777.1,-906.4L774.1,-911.2L775.1,-914.1L777.0,-914.0L779.8,-905.7L783.0,-905.3L791.6,-899.4L784.4,-905.4L780.6,-906.3L782.0,-910.5L784.8,-910.7L781.4,-911.8L780.4,-914.5L775.5,-916.1L779.9,-920.5L780.5,-923.8L779.7,-927.1L776.6,-926.4L781.4,-935.8L783.6,-938.2L786.4,-937.7L785.6,-939.1L787.3,-941.8L785.0,-940.2L787.0,-943.5L786.8,-948.1L789.7,-949.9L791.2,-954.9L800.1,-957.8L806.8,-942.3L804.0,-940.4L805.8,-938.3L807.9,-939.4L808.1,-941.9L811.5,-939.5L833.8,-932.8L839.8,-929.7L840.4,-927.9L847.7,-928.0L848.3,-925.3L850.4,-927.5L855.4,-925.4L857.0,-926.6L876.3,-920.4L885.0,-923.7L885.4,-919.7L881.6,-912.9L881.2,-908.2L887.2,-900.1L894.5,-894.8L908.1,-892.9L906.8,-890.6L897.6,-887.2L910.1,-881.0L914.9,-882.5L913.4,-876.9L918.1,-875.1L916.5,-874.5L917.7,-870.9L923.5,-870.2L931.9,-874.0L951.5,-872.4L958.6,-874.3L962.5,-881.4L957.4,-881.5L957.2,-888.0L959.9,-889.1L966.6,-888.2L974.5,-892.8L976.4,-895.4L975.3,-898.7L982.4,-903.8L987.1,-903.0L987.8,-900.9L986.1,-897.4L979.2,-898.4L981.6,-895.4L984.0,-894.6L986.1,-896.3L991.2,-893.8L1003.0,-896.0L1013.6,-906.5L1020.0,-904.1L1021.2,-898.6L1024.0,-895.7L1033.5,-892.2L1041.6,-893.5L1051.8,-901.0L1052.2,-895.7L1062.1,-890.1L1061.3,-886.3L1062.8,-886.6L1063.4,-889.1L1072.4,-892.0L1084.2,-892.9L1104.4,-886.2L1105.5,-885.5L1099.5,-879.8L1080.6,-869.1L1075.5,-863.7L1042.7,-843.1L1034.5,-838.7L1009.1,-832.2L995.1,-835.5L991.5,-835.3L986.7,-831.4L983.7,-836.8L979.0,-837.0L976.6,-842.5L963.7,-846.4L950.6,-846.7L924.8,-853.5L918.2,-853.2L908.8,-857.5L903.3,-862.1L902.2,-859.8L894.9,-860.3L893.9,-857.6L878.5,-852.7L873.9,-853.9L872.7,-859.5L871.4,-858.8L870.5,-860.3L870.9,-850.3L878.2,-843.6L890.4,-847.4L892.1,-848.3L892.5,-851.1L895.4,-851.0L894.2,-847.9L896.9,-844.7L919.1,-840.0L923.6,-836.2L916.2,-834.4L919.9,-830.3L901.9,-826.2L908.0,-821.7L905.9,-817.1L913.3,-809.6L914.8,-804.4L918.4,-802.2L923.3,-800.5L927.1,-801.7L934.0,-799.2L940.7,-798.7L948.8,-794.8L960.8,-793.0L966.7,-794.0L965.0,-801.8L965.8,-804.2L968.8,-805.4L971.4,-801.8L971.1,-799.0L975.2,-796.1L973.7,-792.2L975.1,-789.3L977.6,-789.4L982.2,-786.5L982.1,-781.3L985.1,-780.0L988.3,-773.4L985.3,-770.1L978.9,-779.4L978.7,-774.6L976.0,-769.0L976.6,-766.0L979.5,-765.0L980.0,-761.7L978.3,-762.9L977.8,-752.4L982.1,-748.1L984.2,-750.2L984.7,-746.3L987.7,-746.8L987.1,-748.8L989.8,-747.3L990.5,-745.2L988.4,-742.1L993.3,-736.2L992.6,-726.2L997.6,-725.1L999.2,-723.3L996.0,-717.4L1002.7,-695.9L1006.6,-690.8L1012.3,-686.6L1019.7,-684.2L1027.9,-677.9L1037.8,-676.5L1041.1,-672.7L1057.2,-662.1L1074.6,-655.1L1101.3,-633.3L1105.3,-633.8L1107.2,-640.5L1104.9,-650.5L1120.5,-652.2L1119.4,-656.9L1115.3,-657.4L1112.6,-655.6L1109.7,-660.9L1113.8,-658.0L1115.8,-663.8L1124.4,-658.8L1122.0,-666.3L1114.1,-671.3L1116.7,-672.2L1122.9,-669.8L1122.3,-671.9L1115.5,-673.5L1107.5,-671.5L1108.1,-679.0L1105.7,-682.8L1108.9,-688.7L1116.3,-696.0L1120.3,-704.7L1122.3,-705.5L1126.0,-703.8L1125.4,-699.8L1129.1,-705.4L1136.9,-705.7L1140.9,-710.7L1146.0,-710.5L1152.7,-706.8L1169.1,-705.5L1182.3,-709.6L1185.9,-708.4L1191.6,-710.3L1212.6,-710.4L1243.9,-696.3L1254.2,-694.9L1269.3,-689.0L1283.3,-679.6L1297.5,-672.9L1300.2,-669.6L1317.6,-661.9L1330.4,-648.0L1336.5,-636.9L1333.8,-630.3L1334.3,-624.7L1326.2,-623.9L1330.9,-618.2L1327.2,-619.9L1326.9,-618.9L1329.0,-616.1L1340.6,-609.2L1340.5,-603.0L1342.9,-604.9L1347.2,-603.2ZM527.7,30.6L528.8,34.3L525.7,31.9L527.7,30.6ZM566.8,-16.5L564.4,-17.1L566.8,-16.5ZM439.9,246.2L436.9,252.4L440.2,253.3L443.3,252.4L442.8,246.1L452.2,248.4L457.5,247.6L460.8,250.7L460.3,256.8L461.9,260.5L427.7,263.8L429.9,260.1L430.4,254.5L436.0,252.3L439.9,246.2ZM626.0,381.6L626.1,379.1L628.0,378.7L637.4,380.4L640.3,379.1L642.8,382.0L645.7,382.1L654.0,387.6L662.0,381.9L667.4,381.1L667.3,387.7L661.2,391.3L655.6,391.4L652.7,398.4L645.4,402.6L642.2,409.7L636.8,411.3L633.5,410.0L633.4,403.0L631.6,399.8L622.0,397.9L618.3,399.5L616.6,398.6L627.8,384.0L626.0,381.6Z","Romania":"M561.8,413.3L565.6,415.4L569.8,415.4L569.7,414.0L577.1,409.8L581.8,411.7L582.0,419.9L575.8,423.2L575.4,419.1L573.0,420.8L573.6,427.6L574.6,427.1L572.8,433.1L574.7,443.4L569.7,444.1L564.3,441.3L558.1,442.2L553.0,440.5L542.1,446.2L533.9,454.5L502.8,456.8L498.8,458.2L497.8,456.2L499.5,453.4L491.2,448.0L493.6,444.3L490.4,442.9L485.5,446.9L475.0,443.1L477.0,441.4L474.3,439.7L475.7,436.8L465.7,432.2L464.7,426.9L456.8,421.2L467.6,416.2L475.1,391.4L478.0,386.6L481.8,385.2L487.3,378.0L500.8,379.0L505.6,377.6L510.3,380.8L516.6,375.7L524.8,372.3L525.7,367.9L530.4,365.7L534.1,367.0L545.5,380.2L552.8,385.5L556.5,391.2L557.9,404.0L560.2,409.8L559.3,411.0L561.8,413.3Z","Portugal":"M61.7,475.7L69.6,474.0L70.9,476.6L69.0,478.5L69.6,480.3L73.1,479.8L80.0,482.5L84.2,480.6L91.2,483.0L91.2,488.2L94.3,489.5L95.1,491.8L83.0,499.1L81.8,511.7L77.9,514.2L79.2,517.3L77.1,521.1L74.5,522.8L68.5,521.7L71.4,532.6L73.5,534.6L68.0,539.8L65.9,544.3L68.2,550.1L70.4,550.5L68.8,552.9L66.3,553.0L61.3,557.2L59.7,559.5L59.4,567.2L52.3,568.8L41.4,563.8L35.1,563.9L39.7,557.4L43.5,538.8L46.5,540.0L45.0,537.9L38.7,537.5L39.2,533.6L42.9,532.9L45.3,528.6L47.8,527.7L45.2,528.3L41.2,532.5L36.3,531.4L40.7,520.8L44.9,518.0L52.1,508.8L57.3,497.7L60.8,480.3L59.3,478.6L61.7,475.7Z","Poland":"M480.9,312.4L482.4,316.2L488.9,323.5L487.9,325.4L490.1,329.9L483.4,338.2L476.5,351.8L480.2,361.2L470.0,359.3L464.8,356.2L458.1,357.1L455.8,359.5L449.5,359.0L446.4,363.4L442.7,363.5L442.5,360.2L437.9,356.5L434.8,360.7L432.7,361.0L426.7,352.4L420.0,350.2L418.3,351.6L415.0,349.2L415.5,345.4L412.2,346.8L405.5,344.1L407.2,347.6L403.3,350.6L397.6,344.9L399.8,341.8L398.1,340.4L394.9,341.5L382.4,334.7L382.4,337.2L380.4,337.8L382.3,330.1L380.8,326.2L378.6,325.2L376.8,319.4L378.2,314.5L375.6,309.3L376.2,306.0L370.2,299.7L373.0,293.3L370.7,283.3L374.4,284.8L373.9,281.3L370.1,280.6L370.0,279.1L371.9,279.5L391.1,271.0L394.7,265.7L410.5,258.6L418.0,260.7L418.6,261.6L414.4,259.9L417.7,265.6L421.2,266.8L427.7,263.8L455.5,261.6L463.2,259.7L470.0,263.2L478.7,283.4L480.0,289.4L475.2,294.0L473.4,298.8L479.6,302.5L480.9,312.4Z","Norway":"M398.9,-9.4L395.4,-8.6L397.5,-5.7L395.5,0.2L397.6,1.1L396.0,3.5L383.6,1.4L382.0,12.4L377.4,10.3L373.8,14.5L372.7,19.7L369.7,23.5L372.3,30.1L365.7,41.1L366.4,44.4L359.3,48.2L359.7,63.6L353.7,77.3L357.4,79.4L357.6,86.3L356.9,87.8L350.5,87.0L347.1,88.5L342.2,96.3L340.8,102.1L342.9,107.5L342.2,115.2L344.0,121.0L343.1,131.7L349.8,138.4L348.4,144.0L344.7,145.2L347.8,155.6L347.1,162.2L342.0,167.0L339.7,172.2L341.0,178.0L339.7,184.9L338.0,185.3L336.9,181.6L331.8,180.1L329.4,169.1L325.5,183.5L322.2,184.5L319.5,181.5L320.4,184.2L305.6,199.8L298.6,202.0L294.1,201.7L292.9,199.3L290.0,200.2L290.8,197.0L285.0,194.6L280.1,187.6L281.4,182.2L285.9,185.2L288.6,182.8L286.0,183.6L284.2,180.7L285.0,176.9L289.5,172.2L279.2,179.1L277.0,177.8L279.2,170.0L280.9,168.8L283.7,169.9L288.0,167.2L284.4,167.4L283.5,166.1L287.7,159.2L291.4,156.1L291.2,161.0L293.3,156.0L295.9,154.3L287.9,157.1L277.7,170.0L278.8,161.5L283.4,161.1L279.7,159.3L278.6,154.7L283.6,150.4L279.8,152.4L278.7,151.0L278.2,143.3L294.4,142.3L296.6,146.0L296.8,143.4L302.0,141.3L299.7,139.5L300.7,137.0L298.0,142.0L293.4,141.0L292.9,139.4L290.8,142.3L282.3,142.4L279.3,140.6L278.7,135.9L281.8,135.1L278.4,130.6L278.6,127.4L283.4,127.4L288.2,129.7L294.6,128.5L281.7,126.5L280.3,124.7L280.8,122.2L282.7,122.5L287.9,117.8L289.3,119.1L293.7,118.3L294.8,117.2L289.8,118.1L291.9,114.3L303.2,115.7L302.3,113.6L306.8,111.9L295.4,112.4L297.3,108.5L302.9,105.6L307.4,105.9L311.8,110.6L307.9,104.5L309.0,102.2L312.1,101.2L309.8,98.2L311.7,96.4L316.4,96.6L316.6,99.1L321.2,96.0L323.9,100.4L330.2,99.1L329.9,96.0L335.3,92.5L333.6,90.8L335.9,88.8L334.7,88.0L331.4,90.4L332.6,91.8L331.6,93.2L324.2,98.1L321.8,94.6L320.1,94.5L328.4,81.1L336.2,74.9L337.1,73.6L334.4,74.8L335.8,70.6L341.2,66.7L342.4,68.4L345.8,65.9L347.1,63.5L343.2,66.5L340.8,63.3L344.9,53.1L347.6,52.0L345.6,49.4L352.5,47.6L355.1,45.3L348.1,46.9L348.5,39.3L351.5,36.3L354.1,36.2L351.6,34.2L354.9,30.2L364.6,28.0L357.2,27.2L360.8,21.4L365.8,25.2L366.3,22.0L362.9,20.8L363.0,17.8L359.8,19.9L359.3,17.2L361.5,14.1L365.1,14.3L362.7,12.2L367.6,9.0L370.3,15.1L368.9,7.2L370.1,5.8L378.4,4.3L371.4,4.3L370.8,3.1L376.6,-2.3L378.2,-7.9L380.9,-9.2L381.4,-15.0L384.4,-12.6L386.2,-13.1L383.8,-15.6L386.3,-17.2L387.3,-20.7L390.8,-21.7L391.1,-15.3L392.3,-22.7L394.5,-25.2L395.4,-19.4L394.2,-14.1L396.7,-18.2L398.5,-18.1L396.6,-20.9L396.6,-24.9L400.4,-25.1L401.9,-27.5L406.1,-25.0L404.2,-28.9L400.7,-31.3L407.1,-32.9L409.2,-35.3L415.0,-29.2L414.3,-33.9L417.9,-38.9L419.7,-43.1L418.2,-45.1L420.8,-48.9L424.7,-46.7L425.5,-48.1L428.1,-47.0L425.8,-41.7L425.9,-33.6L433.4,-50.4L435.0,-41.1L437.2,-43.5L437.6,-47.8L439.7,-49.4L437.1,-51.4L438.8,-54.4L444.4,-53.7L444.6,-51.0L442.5,-47.8L444.9,-48.2L446.3,-40.9L447.7,-52.5L454.5,-50.4L456.4,-51.9L458.1,-49.5L463.4,-48.4L464.2,-46.3L460.5,-42.4L450.6,-40.1L456.8,-38.7L458.5,-34.8L461.3,-35.1L461.6,-37.9L463.5,-35.8L463.5,-37.2L466.2,-37.7L467.2,-35.6L466.9,-33.2L462.2,-33.7L462.7,-30.2L458.6,-26.6L457.0,-21.0L455.5,-23.5L457.4,-29.5L455.2,-32.6L444.1,-37.0L440.6,-33.2L436.6,-32.4L434.4,-27.9L434.9,-15.0L430.7,-6.8L422.3,-9.1L419.1,-5.6L412.4,-5.7L405.1,-14.6L401.5,-13.0L402.0,-9.9L398.9,-9.4ZM277.8,142.4L276.4,142.4L277.1,140.3L277.8,142.4ZM278.0,157.3L277.9,159.5L277.0,154.5L278.0,157.3ZM339.4,58.4L337.9,58.9L338.0,57.4L339.4,57.0L339.4,58.4ZM310.8,95.1L309.3,94.7L313.4,92.6L313.5,94.5L310.8,95.1ZM307.6,101.2L305.0,99.7L307.4,98.7L307.6,101.2ZM352.0,9.3L353.7,10.1L347.5,14.5L347.9,11.4L352.0,9.3ZM345.7,16.8L344.6,17.8L346.3,13.1L345.7,16.8ZM360.8,-3.5L362.4,-0.7L361.3,2.4L355.4,1.9L356.3,-1.0L358.1,-0.6L358.5,-2.8L359.7,-2.6L359.5,-4.5L360.8,-3.5ZM390.1,-29.5L392.5,-27.7L390.5,-27.0L388.8,-30.2L390.1,-29.5ZM397.2,-28.2L395.1,-27.6L395.0,-29.9L396.9,-30.5L397.2,-28.2ZM387.0,-26.4L389.5,-25.8L388.1,-22.1L384.8,-17.3L380.3,-16.4L381.4,-20.3L383.6,-20.8L385.7,-29.4L387.0,-26.4ZM343.5,53.2L343.2,51.8L345.3,51.1L343.5,53.2ZM342.7,50.6L343.5,47.5L344.3,49.1L342.7,50.6ZM333.8,72.7L329.8,72.7L332.0,70.6L333.8,72.7ZM375.9,-16.6L379.6,-15.4L379.8,-9.8L376.5,-9.5L374.0,-5.9L372.0,-6.7L372.8,-12.1L375.3,-12.7L374.2,-14.3L375.9,-16.6ZM365.3,3.1L368.9,-2.9L370.6,1.3L367.1,5.8L354.9,10.5L357.0,6.6L360.7,5.6L362.7,2.3L362.6,-5.5L366.3,-10.4L365.3,3.1Z","Netherlands":"M276.4,340.5L272.3,338.5L274.5,332.6L270.9,329.9L267.9,329.8L266.0,326.0L263.8,327.2L262.8,325.4L261.3,326.6L259.9,325.5L258.2,327.7L249.2,325.0L247.8,323.2L251.3,322.5L257.2,325.4L254.3,322.7L256.4,322.6L254.0,318.6L260.8,309.5L265.0,297.7L268.3,297.5L277.8,290.1L288.4,289.4L292.5,292.6L290.2,304.6L286.9,304.8L286.2,306.8L289.6,309.1L289.7,312.0L286.2,315.4L286.2,318.7L277.0,320.3L279.5,327.2L278.4,333.0L275.1,335.0L277.2,337.6L276.4,340.5ZM256.5,326.9L252.5,330.0L247.1,328.8L246.3,326.2L256.5,326.9ZM283.1,287.8L281.1,288.2L283.1,287.8ZM278.5,288.6L275.5,288.3L278.5,288.6ZM269.2,290.9L266.9,291.9L269.2,290.9ZM271.8,289.6L270.3,289.4L274.7,288.8L271.8,289.6ZM266.5,295.3L264.4,295.8L266.6,293.1L266.5,295.3ZM253.9,319.9L255.2,321.8L250.9,320.3L253.9,319.9ZM287.6,286.7L286.6,286.7L288.4,285.9L287.6,286.7Z","Morocco":"M130.9,621.1L136.5,628.7L135.2,631.1L136.6,634.0L135.4,635.7L135.6,650.6L134.1,655.0L136.3,665.2L141.7,671.9L138.4,673.9L138.0,678.1L110.7,674.2L107.8,678.1L93.9,678.7L92.3,687.0L95.3,690.0L94.2,691.7L88.8,691.6L82.4,694.3L70.8,696.3L60.9,703.6L43.1,702.2L39.5,706.0L31.2,703.1L1.7,712.5L-3.5,730.8L-5.8,730.2L-7.9,739.6L-18.7,737.3L-26.8,739.5L-34.2,737.2L-42.1,732.0L-53.7,731.1L-54.0,735.7L-63.3,742.7L-69.8,742.8L-82.4,760.4L-94.2,763.3L-102.5,769.6L-114.4,771.1L-121.4,779.6L-128.1,791.9L-138.0,796.8L-138.3,798.7L-142.2,801.9L-183.3,788.2L-179.0,781.0L-174.9,777.7L-168.9,776.7L-164.5,773.5L-158.5,767.6L-158.8,766.3L-147.2,757.6L-151.3,758.4L-148.8,756.0L-126.2,747.8L-120.3,737.0L-108.8,725.1L-91.8,721.8L-79.8,708.4L-74.6,705.3L-57.2,706.7L-49.0,705.8L-27.3,698.1L-21.0,694.0L-8.6,683.7L-6.8,677.9L-9.1,672.2L-4.6,660.1L6.0,650.5L10.0,642.3L24.8,633.4L53.3,626.8L65.3,614.3L75.9,597.6L86.3,597.6L84.8,600.3L85.6,602.9L93.7,612.3L98.2,614.1L108.5,613.8L112.9,615.9L120.1,613.6L121.3,619.0L130.9,621.1Z","Montenegro":"M449.4,471.5L456.0,477.5L466.9,482.2L463.1,484.5L463.8,488.4L460.1,490.3L457.9,487.7L453.8,496.9L455.4,502.5L441.3,491.8L442.5,489.4L440.6,482.8L442.8,482.0L443.0,478.1L445.2,475.6L447.7,476.3L446.1,472.1L449.4,471.5Z","Moldova":"M529.2,366.0L531.5,363.0L536.2,362.2L539.5,359.3L549.6,361.5L552.4,363.7L552.9,362.4L556.0,362.2L558.7,364.8L561.0,363.9L563.0,367.1L563.5,372.7L569.5,375.3L571.5,380.9L576.7,383.0L578.0,387.5L581.0,389.4L577.9,391.2L575.8,389.9L574.9,391.1L570.7,390.9L569.8,392.9L568.4,390.4L566.4,392.2L568.2,399.8L564.3,408.4L564.8,411.4L561.8,413.3L559.3,411.0L557.5,394.7L552.8,385.5L545.5,380.2L534.1,367.0L529.2,366.0Z","North Macedonia":"M485.3,491.0L494.4,487.4L503.1,492.2L507.0,497.0L507.2,504.3L505.2,505.1L503.3,509.1L494.7,510.8L489.6,516.6L477.6,517.7L473.1,511.4L472.4,500.3L474.7,499.7L474.9,495.9L478.6,493.5L481.9,494.3L485.3,491.0Z","Luxembourg":"M277.2,352.6L278.1,356.6L281.4,359.0L279.3,365.5L275.3,365.5L272.7,363.5L273.9,361.6L272.5,356.2L275.6,351.6L277.2,352.6Z","Lithuania":"M439.9,246.2L440.5,239.6L439.9,246.2ZM461.9,260.5L460.3,256.8L460.8,250.7L457.5,247.6L452.2,248.4L442.8,246.1L438.5,231.1L444.0,225.5L448.1,223.0L456.2,221.8L458.2,222.9L469.4,222.0L476.1,217.7L479.3,221.2L485.7,221.7L497.0,227.8L497.0,234.2L500.6,234.7L499.4,237.8L495.8,238.7L492.1,245.3L491.7,255.2L494.1,256.1L494.5,258.0L492.0,258.5L490.9,256.1L485.2,260.2L484.8,263.7L480.2,266.2L478.6,265.4L471.9,267.2L468.9,262.3L463.2,259.7L461.9,260.5Z","Latvia":"M497.0,227.8L485.7,221.7L479.3,221.2L476.1,217.7L469.4,222.0L448.1,223.0L438.5,231.1L436.6,216.8L438.8,212.7L440.9,201.6L448.6,197.4L455.7,203.9L458.0,208.0L462.0,209.6L464.7,208.3L468.4,202.9L465.5,191.4L472.4,186.2L481.8,188.6L487.7,193.0L492.3,190.7L498.1,191.3L502.5,195.3L502.4,203.3L504.9,203.1L510.8,214.1L506.5,222.9L501.0,223.6L497.0,227.8Z","Kosovo":"M466.9,482.7L470.2,478.2L469.7,475.2L472.0,473.6L481.4,480.4L481.5,481.9L486.7,482.7L484.5,489.6L485.3,491.0L481.9,494.3L478.6,493.5L474.9,495.9L474.7,499.7L472.7,500.2L470.5,493.7L463.8,488.4L463.1,484.5L466.9,482.7Z","Italy":"M284.8,433.2L286.2,434.1L291.6,432.4L294.8,433.6L299.3,429.2L299.0,427.1L303.3,423.8L303.7,427.7L308.3,431.0L307.8,432.5L311.0,435.4L310.7,432.2L314.8,423.1L316.3,423.3L317.6,426.7L323.0,425.7L324.8,428.2L324.9,421.1L329.3,422.1L329.6,416.1L336.5,417.7L339.7,413.8L351.5,411.5L351.4,414.3L354.5,418.7L371.6,421.4L367.6,426.6L371.0,428.0L369.3,431.7L370.8,431.8L370.7,435.0L374.7,438.5L372.7,439.2L373.5,438.4L371.3,435.7L369.3,437.0L365.8,436.0L363.6,438.6L353.8,442.6L353.3,446.6L357.4,451.6L353.9,456.4L356.1,465.8L360.3,470.0L372.5,477.5L379.5,493.9L387.4,501.8L396.6,507.1L410.7,506.7L410.7,509.3L407.6,512.2L407.6,514.2L438.4,527.5L444.4,532.2L447.2,536.9L445.8,542.5L441.7,540.7L437.9,534.7L431.0,534.3L427.6,531.5L424.0,532.7L419.3,546.5L428.7,552.6L430.2,559.6L422.3,564.1L421.9,571.5L418.2,574.8L415.3,580.8L410.3,581.3L409.0,579.6L408.8,577.0L412.2,570.9L411.6,568.5L416.2,565.4L416.1,562.0L406.9,543.0L395.7,539.1L395.4,534.8L392.5,531.3L386.5,533.0L388.1,530.4L382.0,529.2L377.1,521.5L367.9,521.7L361.2,517.8L346.7,502.7L341.9,500.3L339.7,500.9L340.1,498.2L333.6,490.7L330.9,490.1L330.9,485.6L326.3,471.6L314.2,464.5L307.1,462.4L304.2,463.8L296.6,472.5L289.6,474.4L291.8,466.9L287.4,467.3L281.9,463.3L281.3,460.0L284.0,456.2L283.6,454.0L280.2,452.1L279.0,449.3L285.0,446.3L286.0,443.6L281.6,436.6L284.8,433.2ZM357.6,471.9L357.8,470.2L356.3,471.3L357.6,471.9ZM329.2,492.2L329.6,494.9L325.6,494.4L325.5,493.1L329.2,492.2ZM380.6,531.3L379.5,530.3L380.6,531.3ZM355.4,606.2L353.8,604.6L355.4,606.2ZM407.7,576.2L401.5,590.9L405.0,598.2L402.6,602.4L402.7,605.2L393.2,603.7L387.3,598.4L383.7,598.7L372.1,592.2L363.9,590.3L360.7,586.2L365.0,579.3L367.6,582.0L373.3,578.8L381.0,582.4L391.8,580.6L395.9,578.0L400.9,578.0L406.4,575.0L408.5,575.2L407.7,576.2ZM318.5,529.5L320.9,536.7L318.6,541.0L319.5,545.7L317.3,561.7L309.8,560.2L308.4,565.4L303.6,566.0L300.3,560.7L300.2,555.5L302.5,548.9L300.5,547.4L301.5,540.3L297.6,533.5L298.2,528.6L303.2,529.9L312.7,522.4L318.2,526.9L317.3,528.5L318.5,529.5ZM301.2,563.3L300.3,565.1L299.5,562.4L301.2,563.3ZM299.2,526.2L298.0,527.0L299.7,524.7L299.2,526.2Z","Ireland":"M107.2,251.4L104.1,249.3L107.1,249.6L107.2,251.4ZM141.5,237.0L136.6,242.2L132.5,242.5L133.6,244.9L128.9,246.5L133.1,253.7L136.1,254.6L140.6,250.3L143.4,255.7L142.9,257.7L148.0,258.9L145.7,260.6L144.9,280.4L141.2,287.1L137.6,290.2L138.7,292.4L132.0,292.6L131.6,290.7L130.8,292.1L124.7,292.0L117.5,295.6L113.8,293.4L113.8,296.4L107.9,297.9L95.9,296.7L100.4,294.0L93.3,293.6L100.5,290.2L94.6,290.6L91.9,289.3L91.8,287.9L98.4,284.6L93.1,282.9L93.9,281.7L96.7,281.0L100.5,282.7L99.8,279.5L103.6,277.6L113.5,277.7L111.6,275.7L109.0,277.4L100.6,276.4L106.8,273.0L110.0,268.4L114.5,267.5L108.4,265.2L107.6,263.1L105.0,262.2L106.1,261.5L103.1,260.3L103.5,257.7L108.0,257.8L106.7,255.0L110.5,254.5L110.9,253.1L107.3,252.5L109.1,248.3L107.2,245.4L113.3,245.3L117.1,248.3L119.0,247.2L123.6,249.4L123.3,247.2L129.9,243.0L126.3,242.8L123.5,240.6L128.5,237.8L130.8,233.3L136.4,233.9L137.6,232.8L138.1,235.6L136.4,238.1L138.6,237.2L139.1,233.3L141.8,231.6L144.8,234.9L141.5,237.0Z","Iceland":"M128.5,13.1L136.4,12.9L131.0,16.0L133.4,18.9L130.9,23.0L134.3,23.8L132.4,27.3L135.1,26.9L138.5,30.5L136.1,32.9L135.8,39.1L133.6,39.2L130.6,43.1L128.0,42.1L125.8,46.3L121.1,48.2L113.2,48.1L104.8,51.2L94.5,50.3L92.3,53.0L85.8,53.0L74.8,45.2L73.5,42.0L75.0,40.2L72.7,40.6L70.7,35.5L67.5,35.7L58.1,32.0L59.8,27.5L60.5,29.7L63.3,30.1L71.4,26.8L66.5,25.9L68.8,22.8L72.4,22.2L67.8,22.0L67.2,16.3L61.0,12.7L56.9,12.4L56.4,9.6L66.9,10.9L73.5,14.0L75.4,12.0L73.0,12.2L70.2,9.4L77.0,7.4L70.4,1.6L61.8,1.0L58.7,-3.1L61.1,-3.7L63.2,-1.1L63.5,-5.9L66.1,-2.6L69.0,-2.6L66.0,-6.2L68.4,-5.6L67.7,-8.8L70.2,-7.7L69.7,-9.6L71.4,-10.3L73.3,-7.4L72.8,-5.5L75.7,-5.0L74.7,-2.2L76.3,-2.3L77.6,-5.1L75.2,-9.1L78.9,-8.5L75.0,-11.8L76.9,-12.7L80.6,-11.0L84.6,-0.9L82.7,4.0L80.5,3.4L80.8,12.9L86.0,7.7L88.0,9.9L93.8,1.7L96.5,9.6L99.5,4.7L104.2,4.5L106.1,14.3L107.9,6.5L110.7,7.9L112.1,12.0L116.6,9.1L118.3,11.3L121.4,11.1L122.6,6.6L125.2,6.0L127.1,6.9L128.5,13.1Z","Hungary":"M473.9,374.2L482.7,378.4L484.6,381.2L481.8,385.2L478.0,386.6L475.1,391.4L468.0,415.8L463.1,417.6L461.5,420.0L448.5,421.1L444.6,424.8L436.9,427.6L434.2,430.6L426.0,431.1L419.1,427.9L407.9,419.3L404.3,412.8L401.9,412.9L406.2,409.7L405.4,402.3L408.2,399.4L404.7,397.1L406.7,395.4L409.3,396.6L412.8,395.7L413.2,389.9L421.4,393.6L433.4,391.9L433.7,387.8L441.9,384.7L443.5,382.3L447.8,383.2L452.1,379.7L453.4,375.0L465.1,372.8L469.6,376.2L473.9,374.2Z","Greece":"M597.7,576.8L596.3,576.2L597.3,575.3L597.7,576.8ZM482.6,564.8L485.7,570.3L482.1,570.1L480.7,567.9L479.3,569.1L481.7,563.2L482.6,564.8ZM488.3,574.9L490.2,576.4L487.7,577.6L484.2,574.6L485.0,573.0L488.3,574.9ZM483.1,560.5L481.2,561.3L482.6,556.1L483.1,560.5ZM485.0,565.5L482.5,563.0L485.0,565.5ZM472.0,546.5L472.5,547.5L469.1,546.3L464.9,541.1L468.9,540.5L468.0,542.6L470.1,546.0L472.0,546.5ZM522.2,547.4L524.3,549.7L533.7,551.1L537.5,558.5L542.4,559.3L542.2,562.1L536.9,560.6L533.4,556.1L527.5,556.2L520.4,550.7L514.5,550.4L519.7,546.4L522.2,547.4ZM527.0,543.5L525.4,544.2L524.0,542.3L527.0,543.5ZM528.4,542.4L529.2,540.1L528.4,542.4ZM541.2,546.5L539.3,547.3L537.8,543.9L541.2,546.5ZM535.8,513.0L532.1,513.2L533.0,510.2L535.4,510.9L535.8,513.0ZM527.8,566.0L525.8,566.2L526.5,564.9L527.8,566.0ZM526.1,599.1L523.8,598.9L523.9,595.8L526.6,597.9L526.1,599.1ZM592.1,599.0L591.7,600.1L589.9,597.0L591.3,592.4L592.1,599.0ZM583.3,572.6L581.8,573.2L580.8,570.7L583.3,572.6ZM583.2,577.0L586.5,573.0L588.7,573.0L583.2,577.0ZM561.1,577.4L559.9,578.4L558.0,576.2L559.9,573.3L561.1,577.4ZM556.7,576.5L555.8,578.1L554.2,577.6L555.8,575.1L556.7,576.5ZM562.4,588.1L560.8,589.1L560.8,587.0L562.4,588.1ZM559.8,583.3L558.1,581.5L559.8,583.3ZM576.7,557.8L580.6,558.9L577.8,560.8L573.5,560.3L576.7,557.8ZM566.1,565.6L566.5,563.5L570.3,561.9L566.1,565.6ZM566.5,579.6L564.8,580.0L569.2,576.9L566.5,579.6ZM576.5,581.3L573.7,582.7L574.9,580.7L576.5,581.3ZM541.0,570.0L540.2,571.1L541.0,568.0L541.0,570.0ZM543.0,574.0L542.3,574.8L542.5,571.7L543.0,574.0ZM546.7,584.3L546.9,585.8L543.9,586.9L544.0,585.2L546.7,584.3ZM550.1,569.8L550.0,571.7L550.1,569.8ZM549.8,564.8L549.6,566.1L544.7,562.0L548.7,562.2L549.8,564.8ZM554.3,566.9L553.1,568.2L550.2,566.3L554.3,566.9ZM548.9,580.9L547.9,579.2L548.9,580.9ZM564.3,552.9L563.1,554.2L561.2,553.1L562.2,550.8L559.2,547.2L563.9,546.8L564.3,552.9ZM564.3,531.6L568.2,536.1L566.5,536.0L567.7,537.2L566.6,537.9L561.0,537.1L562.9,534.4L560.4,536.9L556.7,535.8L560.6,531.6L564.3,531.6ZM549.5,513.8L545.9,513.5L547.5,512.5L549.5,513.8ZM547.7,522.7L547.2,526.1L545.4,524.9L542.8,526.2L542.2,523.5L547.7,522.7ZM557.2,569.7L555.8,570.1L555.6,568.7L557.9,568.5L557.2,569.7ZM545.2,577.8L543.7,576.9L545.2,577.8ZM600.2,588.2L598.1,588.1L597.2,584.3L599.4,580.4L603.8,577.6L603.3,584.8L600.2,588.2ZM540.6,608.7L545.2,606.7L544.7,608.7L549.0,610.4L554.4,608.1L566.5,607.8L570.3,606.2L572.1,610.0L579.5,604.7L578.4,610.6L557.5,616.7L555.5,614.2L551.4,613.7L537.5,614.5L536.2,609.6L537.9,609.6L538.4,606.9L540.6,608.7ZM553.1,488.1L557.2,489.4L558.6,492.9L555.2,496.9L556.6,501.2L554.2,506.5L539.1,505.1L535.2,508.5L530.4,507.8L525.6,513.0L521.0,513.4L523.7,519.2L528.9,519.9L531.4,522.9L524.5,520.2L522.0,521.2L526.2,524.6L526.4,527.4L521.5,523.4L517.9,523.3L518.5,526.0L522.5,528.2L518.4,528.4L516.4,524.4L509.9,522.1L509.6,518.5L505.8,521.0L506.7,529.6L520.2,543.6L517.9,545.4L517.5,542.5L513.9,542.3L512.8,543.4L513.8,544.9L515.4,547.2L516.9,546.8L510.1,551.3L520.8,553.3L528.3,557.8L532.7,558.4L536.0,568.5L534.9,569.3L526.7,564.1L520.3,568.2L523.5,572.5L526.6,572.7L528.5,575.0L523.9,577.9L521.2,575.6L516.7,575.2L526.9,594.1L519.0,589.0L517.4,589.5L516.6,595.9L515.6,595.6L514.1,591.5L508.6,586.3L506.8,587.3L506.6,592.1L500.9,586.6L501.4,580.7L491.9,572.2L494.9,566.5L498.8,566.3L500.8,563.0L517.1,567.1L521.6,563.1L509.3,559.5L508.1,561.3L502.6,561.2L495.6,564.0L493.0,561.3L492.9,563.4L491.2,564.2L483.6,555.4L485.3,553.9L488.6,554.2L488.3,551.7L482.4,552.5L475.5,548.0L470.2,541.5L473.8,541.6L475.5,539.0L474.0,535.9L478.6,532.6L479.8,526.2L482.6,522.4L481.0,518.3L489.6,516.6L494.7,510.8L503.3,509.1L505.2,505.1L517.0,501.9L522.4,498.2L528.7,496.5L533.0,499.4L536.1,498.6L540.1,500.1L549.3,496.8L551.9,494.8L549.9,489.1L553.1,488.1Z","Germany":"M317.7,403.5L305.8,398.5L303.6,400.2L305.5,401.4L303.7,402.0L293.0,401.4L294.0,390.9L300.8,375.5L292.6,371.8L283.8,371.3L281.6,366.7L279.3,365.5L281.4,359.0L278.7,357.5L277.1,353.1L280.4,349.0L280.2,346.4L278.4,345.0L279.1,343.6L276.4,340.5L277.2,337.6L275.1,335.0L278.4,333.0L279.5,327.2L277.0,320.3L286.2,318.7L286.2,315.4L289.7,312.0L289.6,309.1L286.2,306.8L286.9,304.8L289.9,305.0L292.1,298.7L292.5,292.6L291.0,290.8L292.9,285.5L301.8,285.1L302.7,289.4L304.2,289.9L305.3,286.8L307.0,290.9L308.6,281.7L315.0,282.2L321.4,288.0L316.2,282.1L311.9,280.0L311.8,274.4L308.8,272.5L312.4,270.4L309.5,262.0L322.6,264.5L324.1,268.3L322.3,270.4L325.3,270.1L326.1,271.6L327.7,271.0L331.7,273.3L334.8,272.1L334.8,275.9L332.6,278.0L333.8,279.5L339.1,280.4L343.4,276.4L346.8,275.9L351.7,270.0L356.6,270.9L361.4,275.9L364.4,275.5L366.3,281.1L370.7,283.3L373.0,293.3L370.2,299.7L376.2,306.0L375.6,309.3L378.2,314.5L376.8,319.4L378.6,325.2L380.8,326.2L382.3,330.1L380.0,338.6L374.5,334.8L375.2,337.4L365.8,341.6L358.8,347.7L354.1,348.1L351.0,352.3L348.7,350.0L354.0,357.6L352.6,360.7L356.4,366.8L370.8,378.5L369.9,382.9L366.9,382.3L365.7,386.5L358.3,391.7L360.9,395.8L360.3,399.0L362.3,400.2L362.0,403.6L357.7,400.1L355.1,400.8L351.6,399.4L351.4,401.3L345.5,402.1L337.0,405.9L334.8,403.5L329.3,403.0L328.4,406.5L326.1,408.2L326.3,406.6L323.4,403.9L320.6,402.5L317.7,403.5ZM364.1,271.1L364.1,273.0L361.6,272.1L360.4,273.9L358.5,272.5L358.1,268.3L359.7,265.3L363.3,267.7L362.6,269.6L364.1,271.1ZM370.0,279.1L370.1,280.6L366.9,280.6L365.6,275.9L370.0,279.1ZM337.7,271.3L336.0,271.4L335.1,269.5L337.7,271.3ZM305.5,264.1L307.2,259.0L306.4,262.0L309.0,262.2L305.5,264.1ZM308.5,265.6L306.5,265.6L308.5,265.6Z","France":"M316.5,493.2L317.4,506.0L312.2,520.0L306.8,516.0L308.0,513.9L305.6,512.8L306.0,509.7L304.3,509.5L305.5,506.5L303.9,505.2L305.2,502.9L303.7,501.5L307.2,496.8L311.8,494.5L314.2,494.9L314.9,489.2L316.3,489.9L316.5,493.2ZM293.6,401.7L290.0,404.6L285.3,404.1L284.4,405.2L285.6,406.6L278.4,413.4L271.4,427.0L271.8,428.4L274.3,427.6L274.9,425.0L277.5,423.2L282.0,423.9L281.7,428.5L284.8,433.2L281.6,436.6L286.1,443.2L285.0,446.3L279.0,449.3L280.2,452.1L283.6,454.0L284.0,456.2L281.3,460.0L281.9,463.3L287.4,467.3L291.8,466.9L289.6,474.4L278.6,481.4L276.5,484.6L270.1,486.7L260.5,483.2L259.5,480.9L256.1,480.3L256.0,478.8L251.1,479.8L242.4,475.0L240.5,475.4L230.9,481.6L227.6,486.6L228.9,495.9L224.5,495.0L221.0,496.8L214.9,494.7L212.4,495.7L208.2,492.4L208.4,490.5L204.5,490.2L203.6,488.3L195.9,484.5L192.1,486.9L184.4,485.8L181.2,482.8L177.2,482.7L175.2,479.7L168.3,475.6L166.3,476.5L167.2,472.8L162.8,470.4L162.5,468.8L167.1,466.5L173.3,448.4L175.9,446.3L175.1,444.7L173.6,446.4L178.2,430.4L181.1,433.8L183.7,441.5L181.8,432.2L177.3,426.8L177.2,425.7L179.5,426.6L179.6,415.6L172.0,410.5L169.5,404.4L170.7,400.2L168.9,397.5L171.3,395.7L174.7,397.4L172.1,395.2L165.5,394.0L166.9,391.2L162.8,389.6L163.0,387.5L160.7,387.6L149.9,381.0L144.8,380.3L143.9,377.2L141.1,375.3L145.8,373.7L143.3,370.8L147.4,371.4L141.8,369.1L141.6,367.4L145.1,364.8L161.6,363.7L164.2,365.1L167.2,370.5L170.5,369.0L175.7,371.1L177.3,369.2L178.1,370.6L183.6,371.0L181.7,367.8L182.7,360.2L180.9,350.6L188.0,351.8L188.6,357.6L200.1,361.0L207.5,359.1L204.2,357.5L205.4,353.9L218.8,349.9L223.5,345.6L225.8,333.6L236.2,330.7L238.3,337.5L242.4,337.4L244.0,342.3L247.7,343.7L248.5,347.0L251.7,346.7L254.2,348.7L253.8,354.1L258.2,354.5L261.7,351.0L261.8,358.0L266.7,360.5L269.2,363.8L272.7,363.5L275.3,365.5L278.1,364.7L281.6,366.7L283.8,371.3L292.6,371.8L300.8,375.5L294.0,390.9L292.6,400.1L293.6,401.7ZM178.0,423.2L177.3,424.8L175.8,420.1L178.0,423.2Z","Finland":"M435.0,44.5L429.9,37.0L430.2,26.5L426.5,21.3L426.2,15.8L424.0,15.5L423.7,6.4L416.7,0.1L410.1,-1.6L398.9,-9.4L402.0,-9.9L401.5,-13.0L405.1,-14.6L412.4,-5.7L419.1,-5.6L422.3,-9.1L430.7,-6.8L434.9,-15.0L434.4,-27.9L436.6,-32.4L440.6,-33.2L445.1,-37.2L449.6,-33.9L455.2,-32.6L457.4,-29.5L455.5,-23.5L457.0,-21.0L453.7,-17.9L456.5,-17.4L456.0,-10.7L458.9,-5.9L464.1,-4.9L470.6,0.8L467.7,16.4L480.7,34.0L481.3,35.8L478.7,37.7L479.7,44.6L481.9,46.0L481.1,49.7L483.3,52.2L485.8,52.3L487.1,58.2L492.2,61.5L493.0,64.7L490.3,71.1L502.8,77.8L507.5,82.7L506.7,90.9L498.9,111.6L487.0,134.5L484.3,136.6L481.6,135.7L476.1,139.5L475.5,135.5L474.7,139.6L470.6,139.6L471.9,141.9L469.7,143.8L468.5,142.8L458.6,150.9L449.7,153.3L446.2,157.2L447.1,153.1L443.8,150.0L442.8,153.2L440.3,154.1L440.3,147.4L433.2,146.1L432.4,144.6L430.9,146.0L429.1,145.1L427.3,138.2L427.6,126.2L423.4,119.2L423.3,113.7L420.2,107.6L422.2,99.4L423.7,99.1L422.3,96.2L428.5,93.1L427.9,89.5L436.8,77.7L441.8,62.2L447.4,59.9L445.5,48.5L439.5,46.2L438.5,42.8L435.0,44.5ZM435.0,149.1L433.0,146.9L435.0,149.1ZM419.4,95.9L421.2,96.5L420.0,97.5L418.2,95.4L419.4,95.9ZM436.5,148.2L438.9,149.1L438.9,151.7L435.9,149.9L436.5,148.2ZM429.4,146.3L428.2,147.4L427.1,144.9L429.4,146.3ZM434.1,153.0L432.9,153.7L433.3,152.0L434.1,153.0ZM432.3,154.0L430.9,153.8L432.2,152.8L432.3,154.0ZM443.4,58.3L441.3,58.9L441.1,57.8L444.2,56.9L443.4,58.3Z","Estonia":"M496.5,191.3L492.3,190.7L487.7,193.0L481.8,188.6L474.1,186.1L465.5,191.4L465.6,181.9L463.7,181.8L462.0,184.4L458.3,183.2L454.7,178.1L455.9,175.4L454.2,175.7L453.1,173.3L452.7,168.1L457.9,165.2L457.4,163.7L460.0,161.3L469.8,158.3L469.9,156.0L480.6,155.3L484.3,156.4L493.0,155.0L493.8,153.4L495.6,155.2L493.7,157.5L491.6,167.7L494.8,178.0L499.0,183.9L497.1,185.8L496.5,191.3ZM446.3,180.4L449.7,180.1L453.7,182.3L448.7,187.5L445.2,188.4L442.5,194.4L443.6,189.9L440.3,188.3L440.9,185.8L439.4,183.9L443.3,183.1L446.3,180.4ZM448.6,176.0L445.4,179.2L443.5,176.1L439.9,175.2L443.7,174.0L445.1,171.5L447.9,172.9L448.6,176.0ZM453.5,180.4L450.9,178.8L453.1,178.6L453.5,180.4Z","Denmark":"M350.7,244.7L350.6,247.2L347.2,251.0L349.4,254.4L346.0,256.3L345.8,263.5L343.8,264.4L341.4,256.5L337.5,256.2L334.0,246.4L337.6,245.7L339.2,242.0L340.8,241.7L341.5,246.1L342.9,246.7L343.3,241.5L346.9,238.5L350.6,239.4L350.7,244.7ZM321.0,263.6L315.7,263.9L309.5,262.0L309.1,252.1L304.0,248.5L304.9,229.2L310.0,231.5L312.4,226.9L314.2,225.8L315.5,227.6L316.2,221.7L314.7,221.1L311.2,227.1L308.0,228.2L306.0,226.4L306.2,224.6L309.7,219.7L318.0,218.6L323.4,210.8L329.8,207.8L328.2,211.2L329.1,217.3L326.8,222.0L326.7,229.2L333.3,232.5L331.6,236.4L329.4,237.2L328.2,235.8L327.1,237.0L325.7,243.7L322.7,244.1L324.0,245.7L319.4,250.8L320.3,255.2L317.9,259.5L320.9,260.9L321.0,263.6ZM330.6,248.6L332.1,257.7L328.5,259.3L323.6,257.1L322.3,250.4L330.6,248.6ZM338.4,262.2L342.5,263.7L342.8,266.2L339.5,267.2L334.9,264.5L335.1,261.3L338.4,262.2ZM331.7,265.0L330.4,263.1L333.9,257.2L331.7,265.0ZM351.1,260.5L346.5,261.6L348.1,258.7L351.1,260.5ZM351.9,248.3L350.7,249.1L351.1,246.7L351.9,248.3ZM329.0,263.2L325.9,261.0L329.0,263.2ZM324.4,262.5L321.7,262.1L321.4,258.9L324.4,262.5ZM330.1,245.2L329.5,241.2L330.1,245.2ZM334.4,217.0L332.6,216.9L335.6,215.7L334.4,217.0ZM378.2,258.0L373.8,256.7L374.4,252.9L378.5,255.6L378.2,258.0Z","Czechia":"M430.8,359.1L428.0,359.8L423.2,364.8L422.7,368.6L419.1,372.4L411.5,374.1L409.7,378.9L408.7,377.0L404.3,375.6L398.4,376.9L385.0,373.2L384.4,377.6L381.8,381.1L375.6,381.9L356.4,366.8L352.6,360.7L354.0,357.6L348.7,350.0L351.0,352.3L354.1,348.1L358.8,347.7L365.8,341.6L375.2,337.4L374.0,335.0L377.2,335.5L379.5,338.8L382.4,337.2L382.4,334.7L394.9,341.5L399.1,341.0L399.5,343.0L397.6,344.9L403.3,350.6L407.2,347.6L405.5,344.1L412.2,346.8L415.5,345.4L415.0,349.2L418.3,351.6L420.0,350.2L426.7,352.4L430.8,359.1Z","Croatia":"M370.9,440.6L375.0,442.1L376.4,440.5L381.4,440.7L383.8,437.2L387.0,440.4L394.2,440.1L393.0,435.2L397.7,432.3L396.7,426.5L404.4,422.0L405.3,418.9L411.0,420.6L419.1,427.9L426.0,431.1L433.2,431.0L439.9,426.8L439.3,428.7L440.9,433.0L443.0,434.4L442.5,436.7L448.2,440.0L444.7,440.3L444.6,445.5L442.9,446.9L438.7,443.3L429.8,443.1L427.5,444.6L425.2,443.2L418.2,443.7L415.3,442.0L413.7,443.7L410.3,443.6L407.5,447.8L403.7,444.7L400.5,445.2L400.4,453.0L405.7,457.3L409.0,464.5L423.4,476.1L423.9,478.7L429.4,483.9L428.7,485.2L418.4,477.6L411.2,475.4L405.7,476.3L404.9,473.8L393.9,464.8L392.9,463.3L397.6,462.7L390.6,456.9L388.3,447.9L384.0,444.1L380.8,443.5L376.7,453.3L375.3,453.3L372.0,448.3L370.9,440.6ZM415.7,485.4L423.2,486.2L418.6,487.1L415.7,485.4ZM422.9,482.3L415.8,483.0L411.5,481.7L422.9,482.3ZM417.0,480.1L413.0,480.1L412.2,478.3L418.4,479.1L417.0,480.1ZM394.6,466.9L392.3,465.2L394.6,466.9ZM387.8,449.9L382.9,448.3L384.3,445.4L387.8,449.9ZM388.4,454.0L386.3,454.0L386.4,452.5L388.4,454.0ZM393.7,461.7L387.2,455.3L393.7,461.7ZM394.3,469.6L389.6,465.2L394.3,469.6ZM396.7,468.4L397.7,469.7L395.2,467.8L396.7,468.4ZM383.9,456.2L381.3,451.8L381.2,446.8L383.9,456.2ZM429.3,488.4L431.3,489.5L425.6,488.4L429.3,488.4ZM441.2,491.1L442.6,493.3L432.2,487.6L421.1,484.6L430.7,486.7L429.9,485.9L431.7,485.6L441.2,491.1Z","Bulgaria":"M575.3,477.9L568.9,480.4L564.2,478.2L556.1,482.6L553.1,488.1L550.1,488.6L551.9,494.8L549.3,496.8L540.1,500.1L536.1,498.6L533.0,499.4L528.3,496.5L507.1,504.7L507.0,497.0L503.8,492.7L495.9,487.9L498.0,485.2L495.9,477.8L499.1,476.5L501.8,470.1L494.2,465.1L491.6,460.5L491.6,456.2L494.6,451.2L499.5,453.4L497.8,456.2L498.8,458.2L502.8,456.8L533.9,454.5L542.1,446.2L553.0,440.5L558.1,442.2L564.3,441.3L569.7,444.1L574.7,443.4L574.8,450.3L570.3,451.3L568.5,455.9L570.0,464.0L565.8,470.5L569.4,472.0L575.3,477.9Z","Bosnia and Herzegovina":"M448.2,445.9L446.4,456.1L453.4,461.3L449.0,463.3L453.1,469.9L446.1,472.1L447.7,476.3L445.2,475.6L443.0,478.1L442.8,482.0L440.4,483.4L442.5,489.4L441.2,491.1L428.7,485.2L429.4,483.9L423.9,478.7L423.4,476.1L409.0,464.5L405.7,457.3L400.4,453.0L400.9,444.7L403.7,444.7L407.5,447.8L410.3,443.6L413.7,443.7L415.3,442.0L418.2,443.7L425.2,443.2L427.5,444.6L429.8,443.1L438.7,443.3L442.9,446.9L448.2,445.9Z","Belgium":"M256.5,326.9L258.2,327.7L259.9,325.5L261.3,326.6L262.8,325.4L263.8,327.2L266.0,326.0L267.9,329.8L270.9,329.9L274.9,333.2L272.3,338.5L279.1,343.6L278.4,345.0L280.2,346.4L280.4,349.0L277.2,352.6L275.6,351.6L272.5,356.2L273.9,361.6L272.7,363.5L269.2,363.8L266.7,360.5L261.8,358.0L261.7,351.0L258.2,354.5L253.8,354.1L254.2,348.7L251.7,346.7L248.5,347.0L247.7,343.7L244.0,342.3L242.4,337.4L239.2,338.4L236.6,335.0L236.2,330.7L244.8,326.6L246.3,326.2L247.1,328.8L252.5,330.0L256.5,326.9Z","Belarus":"M569.7,279.1L562.3,281.8L559.7,286.2L558.8,292.4L561.2,296.5L560.7,298.5L555.3,295.8L546.6,300.0L542.7,296.2L539.5,300.9L537.4,299.3L532.5,299.3L528.9,300.5L527.6,303.1L527.1,301.3L522.5,302.0L520.1,299.5L498.2,300.8L488.3,304.2L484.9,310.2L481.7,309.9L480.9,312.4L479.6,302.5L473.4,298.8L479.9,288.2L471.1,267.0L480.2,266.2L484.8,263.7L485.2,260.2L490.9,256.1L492.0,258.5L494.5,258.0L494.1,256.1L491.7,255.2L492.1,245.3L495.8,238.7L499.4,237.8L500.6,234.7L497.0,234.2L497.0,227.8L501.0,223.6L506.5,222.9L509.6,215.5L512.8,216.3L515.2,214.9L518.2,217.1L520.2,215.0L523.0,215.3L526.5,220.0L530.3,215.8L533.2,214.9L541.5,218.0L542.1,223.7L545.0,227.4L544.6,232.8L549.2,234.7L549.1,237.4L554.1,241.8L559.5,243.5L560.0,247.7L568.0,247.6L569.0,250.2L572.3,251.8L572.7,253.3L568.2,259.7L559.8,260.1L559.1,263.9L563.8,267.7L566.4,275.8L569.7,279.1Z","Austria":"M317.7,408.3L319.0,404.6L317.7,403.5L320.6,402.5L326.3,406.6L326.1,408.2L328.4,406.5L329.3,403.0L334.8,403.5L337.0,405.9L345.5,402.1L351.4,401.3L351.6,399.4L355.1,400.8L357.7,400.1L362.0,403.6L362.3,400.2L360.3,399.0L360.9,395.8L358.3,392.3L358.9,390.7L365.7,386.5L366.9,382.3L369.9,382.9L370.8,378.5L373.9,381.5L381.8,381.1L384.4,377.6L385.0,373.2L398.4,376.9L404.3,375.6L408.7,377.0L409.0,383.0L413.2,389.9L412.8,395.7L409.3,396.6L406.7,395.4L404.7,397.1L408.2,399.4L405.4,402.3L406.3,409.4L401.2,413.3L400.4,416.5L386.8,418.9L382.7,423.1L355.7,419.2L351.4,414.3L351.5,411.5L339.7,413.8L336.5,417.7L329.9,416.2L328.2,413.8L325.5,416.3L318.4,412.4L317.7,408.3Z","Algeria":"M301.8,603.1L302.2,605.0L296.0,610.7L298.1,613.6L296.3,624.0L298.3,635.1L295.8,643.8L283.7,655.5L283.3,660.0L286.7,670.5L292.9,674.6L296.3,684.0L307.9,692.9L315.5,726.5L312.0,728.5L317.6,737.2L320.6,746.6L322.3,770.5L319.3,778.6L321.7,791.2L314.6,796.4L313.3,799.7L323.8,814.2L324.3,819.2L328.5,827.3L331.1,829.2L336.4,828.0L351.7,831.9L360.6,845.7L275.1,891.5L241.9,914.0L193.4,918.8L188.0,916.4L191.1,912.0L190.8,904.8L175.7,898.6L172.4,895.0L162.3,891.7L161.2,888.5L153.2,883.0L153.4,878.0L83.8,820.6L-5.2,737.3L1.7,712.5L31.2,703.1L39.5,706.0L43.1,702.2L60.9,703.6L70.8,696.3L82.4,694.3L88.8,691.6L94.2,691.7L95.3,690.0L92.3,687.0L93.9,678.7L107.8,678.1L110.7,674.2L138.0,678.1L138.4,673.9L141.7,671.9L136.3,665.2L134.1,655.0L135.6,650.6L135.4,635.7L136.6,634.0L135.2,631.1L136.5,628.7L130.9,621.1L139.7,621.1L149.9,615.3L161.0,611.7L166.8,613.0L173.2,607.7L188.6,603.0L209.3,603.8L215.5,600.9L223.9,601.5L228.0,600.0L243.1,601.2L251.0,606.3L263.1,603.0L269.8,599.2L276.5,602.6L281.3,601.9L280.8,599.6L291.5,604.3L301.8,603.1Z","Albania":"M455.4,502.5L453.8,496.9L458.5,487.2L460.1,490.3L463.8,488.4L471.1,494.6L473.1,511.4L477.1,517.4L480.4,517.4L482.6,522.4L479.8,526.2L478.6,532.6L474.0,535.9L475.5,539.0L473.3,542.1L470.2,541.5L467.2,535.6L461.4,533.2L458.6,529.8L460.6,529.6L458.2,525.0L459.3,519.8L457.9,510.6L459.2,506.3L458.9,503.6L455.4,502.5Z"},"anchors":{"DE":[327.3,337.0],"FR":[226.6,408.5],"GB":[195.0,296.3],"NL":[271.3,310.4],"BE":[259.6,344.2],"CH":[300.6,417.0],"AT":[376.8,400.5],"NORD":[371.9,115.4],"IT":[357.1,494.6],"ES":[125.4,523.7],"PL":[430.1,309.1],"HU":[443.5,403.9],"stGB":[185.5,265.5],"stDEbtm":[316.6,352.3],"stDEfom":[349.9,309.7],"stIT":[373.3,511.0],"stAlps":[308.2,426.7],"stES":[135.4,542.7],"stIE":[127.2,268.9],"stPL":[421.4,323.7],"capEU":[254.9,104.0]}}};
+</script>
+<script>
+(function(){
+"use strict";
+const M = window.__MAP__;
+const SVGNS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const el = (t, attrs, parent) => { const e = document.createElementNS(SVGNS, t); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const fmt$ = v => (v < 0 ? '−$' : '$') + Math.abs(v).toFixed(2);
+const fmt0 = v => (v < 0 ? '−$' : '$') + Math.abs(v).toFixed(0);
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('#tabs button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('section.tab').forEach(s => s.classList.toggle('on', s.id === 'tab-' + b.dataset.t));
+}));
+
+/* ================= TAB I : THE HUB ATLAS ================= */
+const FTS_ZONES = new Set(['Germany','France','United Kingdom','Netherlands','Belgium','Austria','Switzerland','Norway','Sweden','Denmark','Finland','Poland','Hungary']);
+const NA_MKT = new Set(['Texas','California','Pennsylvania','New York','Massachusetts','Washington','Arizona']);
+
+const HUBS = [
+ /* ---------- North America ---------- */
+ {panel:'NA', id:'pjmw', a:'PJMW', r:8.5, dx:-34, dy:-20, name:'PJM WESTERN HUB',
+  d:{name:'PJM Western Hub', tag:'Nodal · ICE · the deepest US power futures', body:'A 111-bus aggregate in western Pennsylvania that anchors more power open interest than any point in North America. Every contract on it is purely financial — the anchor is an ISO optimization output, not a traded price, and there is functionally no storage behind it: PJM\u2019s battery fleet is the smallest of any big-four market relative to load.', rows:[['Venue','Nodal Exchange · ICE'],['Final settlement','Avg of hourly PJM DA/RT LMP, WH aggregate, contract hours'],['Settle type','Cash — no physical leg'],['Liquidity','Deepest in North America'],['Storage at hub','≈ nil (PJM ≲ 1.5 GW, dispersed)'],['Tether status','Fully expectational']]}},
+ {panel:'NA', id:'ern', a:'ERN', r:7, dx:10, dy:-6, name:'ERCOT NORTH',
+  d:{name:'ERCOT North 345 kV Hub', tag:'ICE · Nodal · the inventory-adjacent benchmark', body:'The most liquid hub in the market with the most storage — and the two still barely touch. ERCOT\u2019s 10+ GW battery fleet concentrates in West Texas and the south, hundreds of miles and many congested flowgates from the North Hub buses whose SPP average the futures settle against. Inventory in the market is not inventory at the anchor.', rows:[['Venue','ICE · Nodal'],['Final settlement','Arith. mean of ERCOT DA (or RT) Hub SPP, North, contract hours'],['Settle type','Cash — SPP is an optimization output'],['Liquidity','Deep, growing'],['Storage in market','>10 GW — mostly West/South, off-hub'],['Tab V','Scores the amendment path']]}},
+ {panel:'NA', id:'erh', a:'ERH', r:5, dx:10, dy:20, name:'HOUSTON',
+  d:{name:'ERCOT Houston Hub', tag:'ICE · the load-side hub', body:'Houston-zone SPPs against coastal load; the one ERCOT hub where recent battery siting is drifting genuinely close to the settlement buses. Watch this one.', rows:[['Venue','ICE'],['Final settlement','ERCOT DA SPP, Houston Hub, avg of contract hours'],['Storage nearby','≈ 3.5 GW and rising'],['Note','Closest NA case to at-hub inventory after SP15']]}},
+ {panel:'NA', id:'sp15', a:'SP15', r:6.5, dx:-58, dy:-8, name:'SP15',
+  d:{name:'CAISO SP15 (TH_SP15)', tag:'ICE · deepest in WECC — and the storage paradox', body:'Thirteen-plus gigawatts of CAISO batteries sit zonally inside SP15 — the closest thing on the continent to inventory at a settlement anchor. But the futures settle to the zonal DA aggregate while the batteries live at nodes whose prices routinely decouple from it. Zonal co-location without nodal co-location is a basis position, not a tether.', rows:[['Venue','ICE · Nodal'],['Final settlement','Avg of CAISO DA hourly LMP, TH_SP15, peak/off buckets'],['Settle type','Cash'],['Storage in zone','≈ 13 GW zonal · nodally dispersed'],['Paradox','In the zone ≠ at the anchor'],['Tether status','Partial, unpriced']]}},
+ {panel:'NA', id:'np15', a:'NP15', r:5, dx:-52, dy:2, name:'NP15',
+  d:{name:'CAISO NP15 (TH_NP15)', tag:'ICE · Northern California', body:'The northern CAISO aggregate; moderate futures depth, hedged with CRRs underneath. Moss Landing sits closer to these buses than almost any battery sits to any hub — the accidental prototype.', rows:[['Venue','ICE'],['Final settlement','Avg CAISO DA LMP, TH_NP15'],['Storage nearby','≈ 3.5 GW (Moss Landing complex)']]}},
+ {panel:'NA', id:'midc', a:'MIDC', r:5.5, dx:10, dy:-6, name:'MID-C',
+  d:{name:'Mid-Columbia (Mid-C)', tag:'Bilateral + ICE · the hydro precedent', body:'The one North American hub that already sits on inventory — Columbia River reservoir storage. It is the closest US analog to what this paper proposes, and the proof that inventory-anchored power trading is not hypothetical: Mid-C forward quotes have always leaned on the dams\u2019 ability to shift water through time.', rows:[['Venue','Bilateral physical + ICE financial'],['Final settlement','ICE Mid-C DA index avg, contract hours'],['Inventory','Reservoir hydro — the original LDES'],['Lesson','Inventory-backed quoting predates batteries']]}},
+ {panel:'NA', id:'pv', a:'PV', r:6, dx:8, dy:28, name:'PALO VERDE',
+  d:{name:'Palo Verde', tag:'ICE · the sleeper', body:'The West\u2019s legacy benchmark — and quietly the best North American candidate for true at-hub inventory. Arizona utilities are clustering multi-GW batteries on the same 500 kV corridors that made a nuclear switchyard the region\u2019s price. If storage-at-the-anchor happens by accident anywhere, it happens here.', rows:[['Venue','ICE'],['Final settlement','PV DA index avg, peak/off'],['Storage nearby','≈ 4.5 GW on PV corridors (indicative)'],['Watch','Accidental convergence candidate']]}},
+ {panel:'NA', id:'miso', a:'MISO', r:5.5, dx:10, dy:-6, name:'INDIANA HUB',
+  d:{name:'MISO Indiana Hub', tag:'ICE · Nodal', body:'The Midcontinent benchmark. Deep enough to matter, with effectively no storage behind it — MISO\u2019s battery fleet is a rounding error against its load.', rows:[['Venue','ICE · Nodal'],['Final settlement','Avg MISO DA LMP, Indiana Hub'],['Storage at hub','≈ 1 GW market-wide, dispersed']]}},
+ {panel:'NA', id:'nyj', a:'NYJ', r:5, dx:10, dy:16, name:'NYISO ZONE J',
+  d:{name:'NYISO Zone J (NYC)', tag:'ICE · Nodal · load pocket', body:'New York City\u2019s constrained load pocket. State targets promise 6 GW of storage; siting economics keep pushing it away from exactly the buses that set Zone J\u2019s price.', rows:[['Venue','ICE · Nodal'],['Final settlement','Avg NYISO DA LBMP, Zone J'],['Storage at hub','< 0.5 GW in-city']]}},
+ {panel:'NA', id:'mass', a:'MASS', r:5, dx:10, dy:-6, name:'MASS HUB',
+  d:{name:'ISO-NE Massachusetts Hub', tag:'ICE · Nodal', body:'New England\u2019s benchmark; thin storage, winter gas exposure, purely financial settlement.', rows:[['Venue','ICE · Nodal'],['Final settlement','Avg ISO-NE DA LMP, Mass Hub'],['Storage at hub','< 0.5 GW']]}},
+ {panel:'NA', id:'aeso', a:'AESO', r:4, dx:10, dy:-6, name:'AESO',
+  d:{name:'AESO Pool Price (Alberta)', tag:'ICE NGX · energy-only market', body:'A single system marginal price for the whole province — the simplest settlement anchor in North America, in an energy-only market where scarcity pricing does the capacity market\u2019s job. Battery build is accelerating but small.', rows:[['Venue','ICE NGX'],['Final settlement','Avg AESO hourly pool price'],['Storage','≈ 1.3 GW, growing']]}},
+ /* ---------- Europe ---------- */
+ {panel:'EU', id:'de', a:'DE', r:9, dx:13, dy:-14, name:'PHELIX DE-LU',
+  d:{name:'Phelix DE-LU', tag:'EEX · the deepest power futures on earth', body:'EEX power derivatives traded 11,489 TWh in 2024 against 880 TWh of EPEX spot — a 13:1 paper-to-physical ratio with effectively zero settlement-mediated bridge. The FTS service exists for week and month tenors, utilization unpublished and understood to be negligible. Germany\u2019s storage boom, meanwhile, is overwhelmingly behind-the-meter: inventory on the wrong side of the meter from the auction that forms the settlement price.', rows:[['Venue','EEX'],['Final settlement','Arith. mean of EPEX SPOT DA hourly prices, DE-LU, delivery period'],['Settle type','Cash · FTS opt-in (wk/mo)'],['Paper : physical','≈ 13 : 1 (2024)'],['Storage in zone','Large, mostly BTM / distributed'],['Thesis','One contract amendment away']]}},
+ {panel:'EU', id:'fr', a:'FR', r:6.5, dx:-64, dy:14, name:'FRENCH BASE',
+  d:{name:'EEX French Power', tag:'EEX · FTS week + month', body:'Second-deepest continental complex; nuclear-heavy fundamentals make its DA auction the least storage-influenced major anchor in Europe — for now.', rows:[['Venue','EEX'],['Final settlement','Mean EPEX DA hourly, FR zone'],['FTS','Week + month'],['Storage in zone','Minimal']]}},
+ {panel:'EU', id:'gb', a:'GB', r:5.5, dx:10, dy:16, name:'GB BASE',
+  d:{name:'GB Power', tag:'ICE · EEX · Europe\u2019s battery capital', body:'The one European market where fleet-scale batteries (≈ 6–7 GW) and a liquid futures curve genuinely cohabit a single bidding zone. And still: every GB future is cash-settled to the day-ahead index. The UK is the cleanest test of the thesis — inventory arrived, the contract design did not.', rows:[['Venue','ICE · EEX'],['Final settlement','Avg GB DA auction index (N2EX/EPEX GB)'],['FTS','Week + month (EEX)'],['Storage in zone','≈ 6–7 GW BESS — Europe\u2019s largest'],['Status','Inventory present, coupler absent']]}},
+ {panel:'EU', id:'nord', a:'NORD', r:6, dx:10, dy:-6, name:'NORDIC SYSTEM',
+  d:{name:'Nordic System Price + EPADs', tag:'Nord Pool · EEX · the hydro exception', body:'The Nordics already run on inventory — ≈ 85 TWh of reservoir hydro storage, the true structural analog to Henry Hub\u2019s 50 days of gas. Forward quotes here have always been defended by water values. Yet the futures settle financially, and FTS access requires the automated Initiation Service — a hint at how thin the physical bridge is expected to be.', rows:[['Venue','Nord Pool/Euronext · EEX'],['Final settlement','Avg DA system price (zonal EPADs on top)'],['FTS','Month, Initiation Service only'],['Inventory','≈ 85 TWh reservoir — the exception'],['Lesson','Inventory can anchor quotes without touching settlement']]}},
+ {panel:'EU', id:'nl', a:'NL', r:4.5, dx:10, dy:-6, name:'DUTCH',
+  d:{name:'EEX Dutch Power', tag:'EEX · FTS week + month', body:'Liquid mid-tier zone; grid-fee design has made the Netherlands an early mover on grid-scale BESS contracts.', rows:[['Venue','EEX'],['Final settlement','Mean EPEX DA, NL zone'],['FTS','Week + month']]}},
+ {panel:'EU', id:'be', a:'BE', r:4, dx:-56, dy:14, name:'BELGIAN',
+  d:{name:'EEX Belgian Power', tag:'EEX · FTS month only', body:'Month-tenor FTS only — even the scaffolding thins out as zones get smaller.', rows:[['Venue','EEX'],['Final settlement','Mean EPEX DA, BE zone'],['FTS','Month only']]}},
+ {panel:'EU', id:'ch', a:'CH', r:4, dx:8, dy:-12, name:'SWISS',
+  d:{name:'EEX Swiss Power', tag:'EEX · FTS week + month', body:'Sits atop the Alpine pumped-hydro complex — gigawatts of legacy inventory, none of it coupled to futures settlement.', rows:[['Venue','EEX'],['Final settlement','Mean EPEX DA, CH zone'],['FTS','Week + month'],['Inventory','Alpine PSH, uncoupled']]}},
+ {panel:'EU', id:'at', a:'AT', r:4, dx:10, dy:-6, name:'AUSTRIAN',
+  d:{name:'EEX Austrian Power', tag:'EEX · FTS month only', body:'Post-split from the German zone; month-only FTS.', rows:[['Venue','EEX'],['Final settlement','Mean EPEX DA, AT zone'],['FTS','Month only']]}},
+ {panel:'EU', id:'it', a:'IT', r:5, dx:12, dy:28, name:'ITALIAN PUN',
+  d:{name:'Italian Power (PUN)', tag:'GME · EEX · no FTS', body:'Cash-only, no FTS at all — and simultaneously home to Europe\u2019s most ambitious centrally procured storage buildout (the MACSE auctions). The zone most likely to get inventory at scale is one with no paper-to-physical scaffolding whatsoever.', rows:[['Venue','EEX · GME reference'],['Final settlement','Avg GME DA (PUN)'],['FTS','None — cash only'],['Storage pipeline','MACSE multi-GWh auctions']]}},
+ {panel:'EU', id:'es', a:'ES', r:4.5, dx:10, dy:-6, name:'SPANISH',
+  d:{name:'Spanish Power (OMIE)', tag:'OMIP · EEX · no FTS', body:'Iberian DA anchor; solar-heavy duck curve makes it a natural storage market, but no FTS scaffolding exists.', rows:[['Venue','OMIP · EEX'],['Final settlement','Avg OMIE DA, ES zone'],['FTS','None — cash only']]}},
+ {panel:'EU', id:'pl', a:'PL', r:4, dx:10, dy:-6, name:'POLISH',
+  d:{name:'EEX-PXE Polish Power', tag:'FTS month · via TGE', body:'The domestic auction is run by TGE rather than EPEX proper — FTS mechanics route through partner-exchange arrangements. Verify with EEX market ops before quoting as an EPEX zone.', rows:[['Venue','EEX-PXE'],['Final settlement','Avg TGE DA'],['FTS','Month, via partner exchange']]}},
+ {panel:'EU', id:'hu', a:'HU', r:4, dx:10, dy:14, name:'HUNGARIAN',
+  d:{name:'EEX-PXE Hungarian Power', tag:'FTS week + month · via HUPX', body:'CEE\u2019s liquidity point; domestic auction run by HUPX with FTS via partner arrangements.', rows:[['Venue','EEX-PXE'],['Final settlement','Avg HUPX DA'],['FTS','Week + month, via partner exchange']]}},
+];
+
+const STOR = [
+ /* North America (indicative GW, end-2025) */
+ {panel:'NA', id:'stCAs', gw:9.5, lab:'CAISO S ≈ 9.5 GW', d:{name:'CAISO batteries — SP15 zone', tag:'≈ 9.5 GW · zonal co-location, nodal dispersion', body:'The continent\u2019s densest fleet, sitting zonally inside the SP15 settlement aggregate — and nodally scattered across desert and basin buses whose LMPs routinely split from the TH_SP15 average. The best North American storage story is still a basis position against its own hub.', rows:[['Scale','≈ 9.5 GW (indicative)'],['Hub distance','Inside zone · off the nodes'],['Settlement touch','Indirect, via bids only']]}},
+ {panel:'NA', id:'stCAn', gw:3.5, lab:'', d:{name:'CAISO batteries — NP15 / Moss Landing', tag:'≈ 3.5 GW', body:'The Moss Landing complex is the accidental prototype of at-anchor inventory — grid-scale storage on transmission that feeds the NP15 aggregate directly.', rows:[['Scale','≈ 3.5 GW'],['Hub','NP15 — closest real co-location']]}},
+ {panel:'NA', id:'stTXw', gw:5.5, lab:'W TEXAS ≈ 5.5 GW', d:{name:'ERCOT batteries — West Texas', tag:'≈ 5.5 GW · far-from-hub', body:'Sited where the solar and the cheap interconnection are — and where the congestion is. West Texas storage arbitrages its own local node; its economics reach the North Hub settlement average only through many binding flowgates. This cluster is Point I in one picture.', rows:[['Scale','≈ 5.5 GW (indicative)'],['Hub distance','~300+ km from North Hub buses'],['Settlement touch','Diluted by congestion']]}},
+ {panel:'NA', id:'stTXs', gw:3, lab:'', d:{name:'ERCOT batteries — South Texas', tag:'≈ 3 GW', body:'South-zone siting; same story as the west — local-node economics, off-anchor.', rows:[['Scale','≈ 3 GW']]}},
+ {panel:'NA', id:'stTXh', gw:3.5, lab:'', d:{name:'ERCOT batteries — Houston zone', tag:'≈ 3.5 GW · drifting toward the anchor', body:'The exception forming inside ERCOT: coastal load-pocket batteries near the Houston Hub buses. If ERCOT ever grows an at-hub fleet, it starts here.', rows:[['Scale','≈ 3.5 GW'],['Hub','Houston — genuinely near']]}},
+ {panel:'NA', id:'stAZ', gw:4.5, lab:'AZ ≈ 4.5 GW', d:{name:'Arizona batteries — Palo Verde corridors', tag:'≈ 4.5 GW · the sleeper cluster', body:'APS and SRP are stacking storage on the same 500 kV corridors that made Palo Verde the West\u2019s benchmark. Nobody is designing for settlement coupling — but the physical precondition is assembling by accident.', rows:[['Scale','≈ 4.5 GW (indicative)'],['Hub','Palo Verde — corridor-adjacent']]}},
+ {panel:'NA', id:'stNV', gw:2.5, lab:'', d:{name:'Nevada batteries', tag:'≈ 2.5 GW', body:'Solar-paired desert fleet; relevant to Mead-area flows, far from any settlement anchor.', rows:[['Scale','≈ 2.5 GW']]}},
+ {panel:'NA', id:'stPJM', gw:0.8, lab:'', d:{name:'PJM batteries', tag:'< 1.5 GW market-wide', body:'The deepest futures market on the continent has the least inventory behind it. The PJM Western Hub curve is held together by expectation and margin, nothing else.', rows:[['Scale','≲ 1.5 GW, dispersed'],['Hub','Western Hub — untouched']]}},
+ {panel:'NA', id:'stNY', gw:0.6, lab:'', d:{name:'NYISO batteries', tag:'≈ 0.6 GW', body:'State targets say 6 GW; in-city siting economics keep it away from Zone J\u2019s price-setting buses.', rows:[['Scale','≈ 0.6 GW']]}},
+ {panel:'NA', id:'stNE', gw:0.5, lab:'', d:{name:'ISO-NE batteries', tag:'≈ 0.5 GW', body:'Thin fleet against winter-peaking risk.', rows:[['Scale','≈ 0.5 GW']]}},
+ {panel:'NA', id:'stMISO', gw:1.0, lab:'', d:{name:'MISO batteries', tag:'≈ 1 GW', body:'A rounding error against MISO load; Indiana Hub settlement is untouched by inventory.', rows:[['Scale','≈ 1 GW']]}},
+ {panel:'NA', id:'stAB', gw:1.3, lab:'', d:{name:'Alberta batteries', tag:'≈ 1.3 GW, accelerating', body:'Energy-only scarcity pricing is pulling batteries in fast; pool-price settlement means any at-scale fleet touches the anchor everywhere at once — the single-price shortcut to coupling.', rows:[['Scale','≈ 1.3 GW'],['Note','Single pool price = single anchor']]}},
+ /* Europe */
+ {panel:'EU', id:'stGB', gw:6.5, lab:'GB ≈ 6–7 GW', d:{name:'GB battery fleet', tag:'≈ 6–7 GW · Europe\u2019s largest', body:'Fleet-scale, transmission-connected, in the same bidding zone as a liquid futures curve — the purest natural experiment for the thesis. Contracts stayed cash-settled anyway. Inventory alone does not build the tether; the contract has to reach for it.', rows:[['Scale','≈ 6–7 GW (indicative)'],['Zone','GB — same as futures'],['Coupling','None — cash-settled contracts']]}},
+ {panel:'EU', id:'stDEbtm', gw:7, btm:true, lab:'DE BTM ≈ 30 GWh', d:{name:'German storage — behind the meter', tag:'≈ 30 GWh BTM · distributed', body:'Germany\u2019s storage boom lives in basements and behind inverters — ≈ 30 GWh behind-the-meter against ≈ 34 GWh front-of-meter Europe-wide. Distribution-level inventory never bids into the EPEX auction that forms the Phelix settlement price. Wrong side of the meter, wrong side of the anchor.', rows:[['Scale','≈ 30 GWh BTM (EU-wide ref.)'],['Anchor touch','None — below the auction'],['FTS relevance','Zero']]}},
+ {panel:'EU', id:'stDEfom', gw:2.5, lab:'', d:{name:'German storage — front of meter', tag:'≈ 2.5 GW grid-scale', body:'The utility-scale slice of the German fleet — the only part that can even theoretically encode inventory economics into DE-LU auction bids.', rows:[['Scale','≈ 2.5 GW (indicative)']]}},
+ {panel:'EU', id:'stIT', gw:2.0, lab:'', d:{name:'Italian batteries + MACSE pipeline', tag:'≈ 2 GW, multi-GWh procured', body:'Terna\u2019s MACSE auctions are procuring storage centrally at a scale no merchant market matches — into the one major zone with no FTS scaffolding at all.', rows:[['Scale','≈ 2 GW + auction pipeline'],['FTS','None exists for IT']]}},
+ {panel:'EU', id:'stAlps', gw:15, psh:true, lab:'ALPINE PSH', d:{name:'Alpine pumped hydro', tag:'≈ 15+ GW legacy · 50-to-100-year assets', body:'The true structural analog to gas salt caverns and oil tank farms: mechanical storage with zero chemical degradation and century-scale asset lives. It has existed for decades — uncoupled from every futures settlement in Europe. Legacy inventory proves that plumbing without a contract stays plumbing.', rows:[['Scale','≈ 15+ GW (CH/AT/DE/IT)'],['Asset life','50–100 yr, no degradation'],['Coupling','None, ever']]}},
+ {panel:'EU', id:'stES', gw:1.2, lab:'', d:{name:'Iberian batteries', tag:'≈ 1.2 GW', body:'Duck-curve economics arriving fast; no FTS to couple to.', rows:[['Scale','≈ 1.2 GW']]}},
+ {panel:'EU', id:'stIE', gw:1.0, lab:'', d:{name:'Irish batteries', tag:'≈ 1 GW', body:'System-services-driven fleet on an island grid.', rows:[['Scale','≈ 1 GW']]}},
+ {panel:'EU', id:'stPL', gw:1.0, lab:'', d:{name:'Polish batteries', tag:'≈ 1 GW, capacity-market driven', body:'Capacity-auction awards are pulling in a first grid-scale wave.', rows:[['Scale','≈ 1 GW']]}},
+];
+
+function buildMap(panelKey, svgSel){
+  const P = M[panelKey];
+  const svg = $(svgSel);
+  svg.setAttribute('viewBox', '0 0 ' + P.W + ' ' + P.H);
+  const gLand = el('g', {}, svg);
+  const gStor = el('g', {'data-layer':'stor'}, svg);
+  const gHubs = el('g', {}, svg);
+  const gLab  = el('g', {}, svg);
+  const A = P.anchors;
+  if (panelKey === 'NA') {
+    for (const nm in P.countries) el('path', {d: P.countries[nm], 'class':'st'}, gLand).appendChild(document.createElementNS(SVGNS,'title')).textContent = nm;
+    for (const nm in P.states) {
+      const p = el('path', {d: P.states[nm], 'class':'st' + (NA_MKT.has(nm) ? ' mkt' : '')}, gLand);
+      el('title', {}, p).textContent = nm;
+    }
+    [['EASTERN INTERCONNECTION', A.capUS[0]+40, A.capUS[1]-40],['ERCOT', A.capERCOT[0], A.capERCOT[1]],['CENACE · SIN — NO LIQUID HUB (SEE THE SEAM)', A.capMX[0], A.capMX[1]]].forEach(([t,x,y])=>{ el('text',{x,y,'class':'iclab'},gLab).textContent=t; });
+  } else {
+    for (const nm in P.countries) {
+      const isFts = FTS_ZONES.has(nm);
+      const p = el('path', {d: P.countries[nm], 'class':'st' + (isFts ? ' fts' : ''), 'data-layer': isFts ? 'fts' : ''}, gLand);
+      if (isFts) p.dataset.fts = '1';
+      el('title', {}, p).textContent = nm + (isFts ? ' · FTS zone' : '');
+    }
+    el('text', {x:A.capEU[0], y:A.capEU[1], 'class':'iclab'}, gLab).textContent = 'FTS FOOTPRINT: 12 COUNTRIES · UTILIZATION UNPUBLISHED';
+  }
+  /* storage blobs (draw first, under hubs) */
+  STOR.filter(s => s.panel === panelKey).forEach(s => {
+    const [x,y] = A[s.id];
+    const r = Math.sqrt(s.gw) * (panelKey==='NA'?7:7.5);
+    const layer = s.psh ? 'psh' : 'stor';
+    const g = el('g', {'class':'storc' + (s.psh?' psh':'') + (s.btm?' btm':''), 'data-layer':layer, tabindex:0, role:'button', 'aria-label':s.d.name}, gStor);
+    el('circle', {cx:x, cy:y, r:r, 'class':'blob'}, g);
+    el('circle', {cx:x, cy:y, r:2.2, 'class':'dot'}, g);
+    if (s.lab) el('text', {x:x+r+4, y:y+3}, g).textContent = s.lab;
+    const act = () => { document.querySelectorAll('.storc,.hubc').forEach(n=>n.classList.remove('sel')); g.classList.add('sel'); showDossier(s.d); };
+    g.addEventListener('click', act);
+    g.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();act();} });
+  });
+  /* hubs */
+  HUBS.filter(h => h.panel === panelKey).forEach(h => {
+    const [x,y] = A[h.a];
+    const g = el('g', {'class':'hubc','data-layer':'hubs','data-hub':h.id, tabindex:0, role:'button', 'aria-label':h.d.name}, gHubs);
+    el('circle', {cx:x, cy:y, r:h.r+4, 'class':'ring'}, g);
+    el('circle', {cx:x, cy:y, r:h.r*0.62, 'class':'core'}, g);
+    el('text', {x:x+h.dx, y:y+h.dy}, g).textContent = h.name;
+    const act = () => { document.querySelectorAll('.storc,.hubc').forEach(n=>n.classList.remove('sel')); g.classList.add('sel'); showDossier(h.d); };
+    g.addEventListener('click', act);
+    g.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();act();} });
+  });
+}
+function showDossier(d){
+  const c = $('#dcontent');
+  let html = '<div class="dname">' + d.name + '</div><div class="dtag">' + d.tag + '</div><div class="dbody">' + d.body + '</div>';
+  (d.rows||[]).forEach(r => { html += '<div class="drow"><span class="k">'+r[0]+'</span><span class="v">'+r[1]+'</span></div>'; });
+  c.innerHTML = html;
+}
+buildMap('NA', '#namap');
+buildMap('EU', '#eumap');
+showDossier(HUBS.find(h=>h.id==='de').d);
+document.querySelector('.hubc[data-hub="de"]').classList.add('sel');
+document.querySelectorAll('.lay input').forEach(cb => cb.addEventListener('change', () => {
+  document.querySelectorAll('[data-layer="'+cb.dataset.l+'"]').forEach(n => { n.style.display = cb.checked ? '' : 'none'; });
+}));
+
+/* ---------- tiny chart helpers ---------- */
+function clearSvg(s){ while(s.firstChild) s.removeChild(s.firstChild); }
+function axis(svg, x0, y0, x1, y1){
+  el('line', {x1:x0, y1:y1, x2:x1, y2:y1, stroke:'#2A323D','stroke-width':1}, svg);
+  el('line', {x1:x0, y1:y0, x2:x0, y2:y1, stroke:'#2A323D','stroke-width':1}, svg);
+}
+function ylab(svg, x, y, t, anchor){ const e = el('text', {x, y, fill:'#5E5A4E','font-size':'9','font-family':'JetBrains Mono','text-anchor':anchor||'end'}, svg); e.textContent = t; return e; }
+
+/* ================= TAB II : THE FORMATION ROOM ================= */
+const FS = {mkt:'ercot'};
+const FSLIDERS = [
+ ['fload', v => v + ' GW'], ['fpv', v => v + ' GW'], ['fwd', v => v + ' GW'], ['fth', v => v + ' GW'],
+ ['fgas', v => '$' + Number(v).toFixed(2) + '/MMBtu'], ['fst', v => Number(v).toFixed(1) + ' GW'],
+ ['fsh', v => Number(v).toFixed(1) + ' h'], ['fsp', v => '+$' + v + '/MWh']
+];
+FSLIDERS.forEach(([k,fmt]) => {
+  const inp = $('#s-'+k), out = $('#v-'+k);
+  const upd = () => { FS[k] = Number(inp.value); out.textContent = fmt(inp.value); };
+  inp.addEventListener('input', () => { upd(); runForm(); });
+  upd();
+});
+document.querySelectorAll('#mktseg button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#mktseg button').forEach(x=>x.classList.toggle('on',x===b));
+  FS.mkt = b.dataset.m; runForm();
+}));
+$('#fzero').addEventListener('click', () => { $('#s-fst').value = 0; $('#s-fst').dispatchEvent(new Event('input')); });
+
+const LOADSHAPE = [.62,.58,.56,.55,.56,.60,.68,.76,.82,.85,.87,.88,.89,.90,.92,.95,.98,1.0,.99,.96,.90,.83,.74,.67];
+const PVSHAPE   = [0,0,0,0,0,.02,.12,.3,.52,.7,.84,.93,.97,.95,.87,.74,.55,.32,.12,.02,0,0,0,0];
+const MARG_COL = {base:'#3A4450', cc:'#6E93B5', peak:'#D9A853', scarce:'#C25B4E', storage:'#E39A63'};
+const MARG_NAME = {base:'must-run', cc:'CC gas', peak:'peaker', scarce:'scarcity', storage:'INVENTORY BID'};
+
+function stackPrice(n, st){
+  const total = st.base + st.ccCap + st.pkCap;
+  const ordc = total*0.90;
+  if (n <= st.base) return {p:0, m:'base'};
+  if (n <= st.base+st.ccCap) return {p:st.ccP, m:'cc'};
+  if (n <= ordc) return {p:st.pkP, m:'peak'};
+  const span = total*0.25;
+  const x = Math.min((n-ordc)/span, 1.4);
+  return {p: Math.min(st.pkP + Math.pow(x,1.5)*(st.cap-st.pkP)*0.9, st.cap), m:'scarce'};
+}
+function nTargetFor(offer, st){
+  const total = st.base + st.ccCap + st.pkCap, ordc = total*0.90, span = total*0.25;
+  if (offer <= st.ccP) return st.base;
+  if (offer <= st.pkP) return st.base + st.ccCap;
+  const x = Math.pow(Math.max(offer-st.pkP,0)/((st.cap-st.pkP)*0.9), 2/3);
+  return ordc + x*span;
+}
+function dispatchDay(withStorage){
+  const cap = FS.mkt==='ercot' ? 5000 : 4000;
+  const st = {base: FS.fload*0.30, ccCap: FS.fth*0.65, pkCap: FS.fth*0.35, ccP: 7.4*FS.fgas, pkP: 10.5*FS.fgas, cap: cap};
+  const net = [];
+  for (let h=0;h<24;h++){
+    const load = FS.fload*LOADSHAPE[h];
+    const ren = FS.fpv*PVSHAPE[h] + FS.fwd*0.34;
+    net.push(Math.max(load - ren, 0));
+  }
+  const price0 = net.map(n => stackPrice(n, st).p);
+  if (!withStorage || FS.fst<=0){
+    const marg = net.map(n => stackPrice(n, st).m);
+    return {price:price0.slice(), marg:marg, net:net, st:st};
+  }
+  /* charge the energy budget in the cheapest hours */
+  const E = FS.fst*FS.fsh;
+  const idx = [...Array(24).keys()];
+  const cheap = idx.slice().sort((a,b)=>price0[a]-price0[b]);
+  const charge = new Array(24).fill(0), dis = new Array(24).fill(0);
+  let rem = E; const chargeHrs = [];
+  for (const h of cheap){ if (rem<=0) break; const q=Math.min(FS.fst, rem); charge[h]=q; chargeHrs.push(h); rem-=q; }
+  const avgChg = chargeHrs.length ? chargeHrs.reduce((s,h)=>s+price0[h],0)/chargeHrs.length : 0;
+  const offer = avgChg/0.87 + FS.fsp;                 /* RTE-adjusted opportunity-cost bid */
+  const nT = nTargetFor(offer, st);
+  /* discharge greedily into the richest hours, shaving each down to the offer level */
+  const rich = idx.slice().sort((a,b)=>price0[b]-price0[a]);
+  let remD = E*0.87;
+  for (const h of rich){
+    if (remD<=0) break;
+    if (price0[h] <= offer) break;
+    const q = Math.min(FS.fst, remD, Math.max(0, net[h]-nT));
+    if (q<=0) continue;
+    dis[h]=q; remD-=q;
+  }
+  const price=[], marg=[];
+  for (let h=0;h<24;h++){
+    const n2 = net[h] + charge[h] - dis[h];
+    const r = stackPrice(n2, st);
+    if (dis[h] > 0 && n2 <= nT + 0.02){ price.push(offer); marg.push('storage'); }
+    else { price.push(r.p); marg.push(r.m); }
+  }
+  return {price:price, marg:marg, net:net, st:st, offer:offer, avgChg:avgChg, charge:charge, dis:dis};
+}
+function runForm(){
+  const withS = dispatchDay(true);
+  const noS = dispatchDay(false);
+  const win = FS.mkt==='ercot' ? [...Array(16).keys()].map(i=>i+6) : [...Array(24).keys()]; // HE7-22 vs base
+  const mean = arr => arr.reduce((a,b)=>a+b,0)/arr.length;
+  const settle = mean(win.map(h=>withS.price[h]));
+  const settle0 = mean(win.map(h=>noS.price[h]));
+  const stHrs = win.filter(h=>withS.marg[h]==='storage').length;
+  const share = stHrs/win.length;
+  const sorted = withS.price.slice().sort((a,b)=>b-a);
+  const tb4 = mean(sorted.slice(0,4)) - mean(sorted.slice(-4));
+  const scar = withS.marg.filter(m=>m==='scarce').length;
+  $('#f-settle').textContent = fmt$(settle);
+  $('#f-settled').textContent = FS.mkt==='ercot' ? 'arith. mean, DA SPP North analog, HE7–22' : 'arith. mean, EPEX DA analog, hours 1–24';
+  $('#f-share').textContent = (share*100).toFixed(0) + '%';
+  $('#f-tb4').textContent = fmt$(tb4);
+  const dd = settle - settle0;
+  $('#f-delta').textContent = (dd<=0?'−':'+') + '$' + Math.abs(dd).toFixed(2);
+  $('#f-scar').textContent = scar + ' h';
+  $('#f-verdict').textContent = share>0
+    ? 'DECENTRALIZED DISCOVERY, CENTRALIZED FORMATION — an inventory opportunity-cost bid of ' + fmt$(withS.offer||0) + ' set the price in ' + stHrs + ' of ' + win.length + ' settlement-window hours. Storage is now writing ' + (share*100).toFixed(0) + '% of the anchor the futures cash-settle against.'
+    : (FS.fst>0 && Math.abs(dd)>1)
+    ? 'PRICE-TAKER COMPRESSION — the fleet moved the settlement anchor by ' + (dd<=0?'−':'+') + '$' + Math.abs(dd).toFixed(2) + ' without ever being the marginal offer: power-limited discharge shaved the scarcity hours but fuel still set every price. Inventory economics entered the anchor invisibly — the hardest case for a settlement committee to see.'
+    : 'NO INVENTORY IN THE STACK — every settlement-window hour was priced by fuel or scarcity. The forward curve above this anchor is purely expectational.';
+
+  /* day chart */
+  const svg = $('#c-day'); clearSvg(svg);
+  const L=46,R=930,T=14,B=210;
+  const pmax = Math.max(...withS.price, ...noS.price, 60)*1.08;
+  axis(svg,L,T,R,B);
+  [0,.5,1].forEach(f=>{ const v=pmax*f, y=B-(B-T)*f; ylab(svg,L-6,y+3,'$'+v.toFixed(0)); el('line',{x1:L,y1:y,x2:R,y2:y,stroke:'#1B222B'},svg); });
+  const bw=(R-L)/24;
+  // settlement window shading
+  const w0=Math.min(...win), w1=Math.max(...win);
+  el('rect',{x:L+w0*bw, y:T, width:(w1-w0+1)*bw, height:B-T, fill:'#C97F4E', opacity:.05},svg);
+  for(let h=0;h<24;h++){
+    const y=B-(B-T)*(withS.price[h]/pmax);
+    el('rect',{x:L+h*bw+2, y:y, width:bw-4, height:B-y, fill:MARG_COL[withS.marg[h]], opacity:.85},svg);
+    // no-storage ghost line marker
+    const y0=B-(B-T)*(noS.price[h]/pmax);
+    el('line',{x1:L+h*bw+2, y1:y0, x2:L+(h+1)*bw-2, y2:y0, stroke:'#8E8877','stroke-width':1,'stroke-dasharray':'3 3',opacity:.7},svg);
+    if(h%4===0) ylab(svg,L+h*bw+bw/2,B+13,'HE'+(h+1),'middle');
+  }
+  // settlement line
+  const ys=B-(B-T)*(settle/pmax);
+  el('line',{x1:L,y1:ys,x2:R,y2:ys,stroke:'#E39A63','stroke-width':1.4,'stroke-dasharray':'7 4'},svg);
+  ylab(svg,R,ys-5,'SETTLE '+fmt$(settle),'end').setAttribute('fill','#E39A63');
+  // legend
+  let lx=L+4;
+  Object.keys(MARG_COL).forEach(k=>{
+    el('rect',{x:lx,y:T+2,width:9,height:9,fill:MARG_COL[k]},svg);
+    const t=ylab(svg,lx+13,T+10,MARG_NAME[k],'start'); t.setAttribute('fill','#8E8877');
+    lx+=MARG_NAME[k].length*6+34;
+  });
+  const g=ylab(svg,lx+8,T+10,'– – no-storage day','start'); g.setAttribute('fill','#8E8877');
+
+  /* merit stack at peak hour */
+  const svg2=$('#c-stack'); clearSvg(svg2);
+  const peakH = withS.price.indexOf(Math.max(...withS.price));
+  const L2=44,R2=450,T2=14,B2=190;
+  axis(svg2,L2,T2,R2,B2);
+  const segs=[['base',withS.st.base,0],['cc',withS.st.ccCap,withS.st.ccP],['peak',withS.st.pkCap,withS.st.pkP]];
+  if (FS.fst>0 && withS.offer!==undefined) {
+    // insert storage segment ordered by price
+    segs.push(['storage',FS.fst,withS.offer]);
+    segs.sort((a,b)=>a[2]-b[2]);
+  }
+  const totGW=segs.reduce((s,x)=>s+x[1],0);
+  const pmax2=Math.max(...segs.map(s=>s[2]),withS.price[peakH],40)*1.15;
+  let cx=0;
+  segs.forEach(([k,gw,p])=>{
+    const x=L2+(R2-L2)*(cx/totGW), w=(R2-L2)*(gw/totGW);
+    const y=B2-(B2-T2)*(p/pmax2);
+    el('rect',{x:x,y:y,width:Math.max(w-1,1),height:B2-y,fill:MARG_COL[k],opacity:k==='storage'?.95:.6},svg2);
+    if (w>34) ylab(svg2,x+w/2,y-4,MARG_NAME[k],'middle').setAttribute('fill',MARG_COL[k]);
+    cx+=gw;
+  });
+  const demand=withS.net[peakH]+((withS.charge&&withS.charge[peakH])||0)-((withS.dis&&withS.dis[peakH])||0);
+  const dx=L2+(R2-L2)*Math.min(demand/totGW,1);
+  el('line',{x1:dx,y1:T2,x2:dx,y2:B2,stroke:'#E9E2D5','stroke-width':1.2,'stroke-dasharray':'4 3'},svg2);
+  ylab(svg2,dx+4,T2+10,'NET LOAD · HE'+(peakH+1),'start').setAttribute('fill','#C9C2B2');
+  [0,.5,1].forEach(f=>ylab(svg2,L2-5,B2-(B2-T2)*f+3,'$'+(pmax2*f).toFixed(0)));
+  ylab(svg2,(L2+R2)/2,B2+14,'cumulative offer stack, GW','middle');
+
+  /* waterfall */
+  const wf=$('#wf');
+  const mktName = FS.mkt==='ercot' ? ['North Hub (analog)','Day-Ahead','Settlement Point Price','HE7–22 peak window','Monthly arithmetic average','ERCOT published results','After ERCOT finalizes'] :
+                                     ['DE-LU zone (analog)','EPEX SPOT day-ahead auction','Hourly auction price','All 24 delivery hours','Arithmetic mean over delivery period','EPEX SPOT publication','After auction results final'];
+  const steps=[
+    ['01','Which hub?','', mktName[0]],
+    ['02','Which market?','', mktName[1]],
+    ['03','Which price?','the ISO/auction forms it — participants only discover it', mktName[2]],
+    ['04','Which hours?','the settlement window shaded on the chart', mktName[3]],
+    ['05','Averaged how?','', mktName[4]],
+    ['06','Published by?','', mktName[5]],
+    ['07','Final when?','', mktName[6]],
+    ['08','Final settlement','what open interest cash-settles against', fmt$(settle) + '/MWh', true],
+  ];
+  wf.innerHTML = steps.map(s=>'<div class="wfstep'+(s[4]?' hot':'')+'"><span class="n">'+s[0]+'</span><span class="t">'+s[1]+(s[2]?'<small>'+s[2]+'</small>':'')+'</span><span class="r">'+s[3]+'</span></div>').join('');
+}
+runForm();
+
+/* ================= TAB III : THE TETHER ENGINE ================= */
+let tseed = 42;
+function mkRnd(seed){ let s=seed>>>0; return function(){ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; }
+const TS = {cpl:0};
+const TSLIDERS = [
+ ['tinv', v => v + '% of hub flow'], ['tcar', v => '$' + v + '/MWh·mo'],
+ ['toi', v => v + '× physical'], ['tvol', v => v + '% ann.'], ['tshk', v => v + '% OI exits']
+];
+TSLIDERS.forEach(([k,fmt]) => {
+  const inp=$('#s-'+k), out=$('#v-'+k);
+  const upd=()=>{ TS[k]=Number(inp.value); out.textContent=fmt(inp.value); };
+  inp.addEventListener('input',()=>{ upd(); runTether(); });
+  upd();
+});
+document.querySelectorAll('#cplseg button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#cplseg button').forEach(x=>x.classList.toggle('on',x===b));
+  TS.cpl=Number(b.dataset.c); runTether();
+}));
+$('#treroll').addEventListener('click',()=>{ tseed=(tseed*7919+13)%1e9; runTether(); });
+function setPreset(vals){
+  for (const k in vals){ const inp=$('#s-'+k); inp.value=vals[k]; inp.dispatchEvent(new Event('input')); }
+}
+$('#preset02').addEventListener('click',()=>{ TS.cpl=0; document.querySelectorAll('#cplseg button').forEach((x,i)=>x.classList.toggle('on',i===0)); setPreset({tinv:0,toi:13,tshk:90,tvol:35}); });
+$('#preset02t').addEventListener('click',()=>{ TS.cpl=2; document.querySelectorAll('#cplseg button').forEach((x,i)=>x.classList.toggle('on',i===2)); setPreset({tinv:60,toi:13,tshk:90,tvol:35}); });
+
+function tetherStrength(){
+  const cplF=[0,0.35,1.0][TS.cpl];
+  return (TS.tinv/100)*cplF;           // 0..1
+}
+function runTether(){
+  const rnd=mkRnd(tseed);
+  const nrm=()=>{ let u=0,v=0; while(!u)u=rnd(); while(!v)v=rnd(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+  const N=250, D=60, S0=45;
+  const dvol=(TS.tvol/100)*S0/Math.sqrt(252);
+  const ts=tetherStrength();
+  const band = ts>0 ? TS.tcar/ts : Infinity;
+  const bandShow = ts>0 ? Math.min(band, 400) : null;
+  const shockDay=30, shk=TS.tshk/100;
+  const sigP0=(TS.tvol/30)*10, sigShock=sigP0*(1+2.6*shk*(1-ts));
+  const errs=[], funnel=[];
+  for(let d=0;d<=D;d++) funnel.push([]);
+  let showPath=null;
+  for(let n=0;n<N;n++){
+    let S=S0, prem=(rnd()*2-1)*8;
+    const Sp=[],Fp=[];
+    for(let d=0;d<=D;d++){
+      const tleft=(D-d)/D;
+      const sig = d>=shockDay&&shk>0 ? sigShock : sigP0;
+      prem += -0.10*prem + nrm()*sig*0.28;
+      /* tether: inventory arbitrages continuously inside the band, and hard-defends its edge */
+      if (ts>0){
+        prem *= (1 - 0.30*ts);
+        if (prem >  band) prem =  band + (prem-band)*(1-ts*0.92);
+        if (prem < -band) prem = -band + (prem+band)*(1-ts*0.92);
+      }
+      /* cash settlement pins the very end mechanically, tether or not */
+      if (tleft < 0.05) prem *= 0.55;
+      const F=S+prem;
+      Sp.push(S); Fp.push(F);
+      funnel[d].push(Math.abs(prem));
+      S = Math.max(5, S + (S0-S)*0.03 + nrm()*dvol*3.2);
+    }
+    let te=0; for(let d=D-14; d<=D; d++) te += Math.abs(Fp[d]-Sp[d]);
+    errs.push(te/15);
+    if(n===0) showPath={Sp,Fp};
+  }
+  errs.sort((a,b)=>a-b);
+  const meanErr=errs.reduce((a,b)=>a+b,0)/N, p95=errs[Math.floor(N*0.95)];
+  // liquidity
+  const physOI=1, specOI=TS.toi-1;
+  const retained = physOI*(1-0.62*shk*(1-ts)) + specOI*(1-shk) + specOI*shk*ts*0.9;
+  const liqPct = retained/TS.toi;
+  $('#t-conv').textContent=fmt$(meanErr);
+  $('#t-p95').textContent=fmt$(p95);
+  $('#t-liq').textContent=(liqPct*100).toFixed(0)+'%';
+  $('#t-band').textContent= ts>0 ? '± '+fmt$(band) : '∞ (undefended)';
+  const reg = ts===0 ? 'Expectational' : ts<0.45 ? 'Partially tethered' : 'Inventory-defended';
+  $('#t-reg').textContent=reg;
+  const noteBits=[];
+  if (shk>0 && ts===0) noteBits.push('CREDIT EVENT, NO TETHER — '+(shk*100).toFixed(0)+'% of speculative OI exits and only the physical base ('+(liqPct*100).toFixed(0)+'% of the book) survives. This is the 2002 power outcome: the curve was expectational capital, and the capital left.');
+  else if (shk>0) noteBits.push('CREDIT EVENT, TETHERED — inventory keeps quoting inside ±'+fmt0(band)+'; '+(liqPct*100).toFixed(0)+'% of the book survives. This is why gas curves survived 2002: storage economics kept quoting them when speculative capital fled.');
+  else if (ts===0) noteBits.push('CASH-SETTLED, NO AT-HUB INVENTORY — the curve converges only by settlement mechanics, and nothing defends it in between. Inventory off-settlement is inventory off-curve.');
+  else noteBits.push('TETHERED — cash-and-carry arbitrage bounds the front-month within ±'+fmt0(band)+' of expected spot. Convergence stops being a forecast and becomes a construction.');
+  $('#t-note').textContent=noteBits[0];
+
+  /* path chart */
+  const svg=$('#c-path'); clearSvg(svg);
+  const L=46,R=930,T=14,B=210;
+  const all=showPath.Sp.concat(showPath.Fp);
+  let lo=Math.min(...all), hi=Math.max(...all);
+  if (bandShow){ lo=Math.min(lo,S0-bandShow-5); hi=Math.max(hi,S0+bandShow+5); }
+  const pad=(hi-lo)*0.1; lo-=pad; hi+=pad;
+  const X=d=>L+(R-L)*d/D, Y=v=>B-(B-T)*(v-lo)/(hi-lo);
+  axis(svg,L,T,R,B);
+  [lo,(lo+hi)/2,hi].forEach(v=>{ ylab(svg,L-6,Y(v)+3,'$'+v.toFixed(0)); el('line',{x1:L,y1:Y(v),x2:R,y2:Y(v),stroke:'#1B222B'},svg); });
+  [0,15,30,45,60].forEach(d=>ylab(svg,X(d),B+13,d+'d','middle'));
+  if (bandShow){
+    const bandPts='M'+showPath.Sp.map((s,d)=>X(d)+','+Y(s+bandShow)).join('L')+'L'+showPath.Sp.map((s,d)=>X(D-d)+','+Y(showPath.Sp[D-d]-bandShow)).join('L')+'Z';
+    el('path',{d:bandPts,fill:'#C97F4E',opacity:.08},svg);
+  }
+  if (TS.tshk>0){
+    el('line',{x1:X(shockDay),y1:T,x2:X(shockDay),y2:B,stroke:'#C25B4E','stroke-width':1,'stroke-dasharray':'4 3'},svg);
+    ylab(svg,X(shockDay)+4,T+10,'CREDIT EVENT','start').setAttribute('fill','#C25B4E');
+  }
+  el('path',{d:'M'+showPath.Sp.map((s,d)=>X(d)+','+Y(s)).join('L'),fill:'none',stroke:'#6E93B5','stroke-width':1.6},svg);
+  el('path',{d:'M'+showPath.Fp.map((f,d)=>X(d)+','+Y(f)).join('L'),fill:'none',stroke:'#E39A63','stroke-width':1.6},svg);
+  ylab(svg,R-4,T+10,'— front-month','end').setAttribute('fill','#E39A63');
+  ylab(svg,R-4,T+22,'— spot','end').setAttribute('fill','#6E93B5');
+  if (bandShow){ const t=ylab(svg,R-4,T+34,'▨ carry band ±'+fmt0(bandShow),'end'); t.setAttribute('fill','#C97F4E'); }
+
+  /* funnel */
+  const svg2=$('#c-fun'); clearSvg(svg2);
+  const L2=42,R2=450,T2=14,B2=182;
+  const q=(arr,f)=>{ const a=arr.slice().sort((x,y)=>x-y); return a[Math.min(a.length-1,Math.floor(a.length*f))]; };
+  const p95s=funnel.map(f=>q(f,.95)), p50s=funnel.map(f=>q(f,.5)), p05s=funnel.map(f=>q(f,.05));
+  const fmaxV=Math.max(...p95s,10)*1.1;
+  const X2=d=>L2+(R2-L2)*d/D, Y2=v=>B2-(B2-T2)*v/fmaxV;
+  axis(svg2,L2,T2,R2,B2);
+  [0,.5,1].forEach(f=>ylab(svg2,L2-5,Y2(fmaxV*f)+3,'$'+(fmaxV*f).toFixed(0)));
+  el('path',{d:'M'+p95s.map((v,d)=>X2(d)+','+Y2(v)).join('L')+'L'+p05s.slice().reverse().map((v,i)=>X2(D-i)+','+Y2(v)).join('L')+'Z',fill:'#6E93B5',opacity:.15},svg2);
+  el('path',{d:'M'+p50s.map((v,d)=>X2(d)+','+Y2(v)).join('L'),fill:'none',stroke:'#E39A63','stroke-width':1.6},svg2);
+  ylab(svg2,(L2+R2)/2,B2+14,'days elapsed → expiry','middle');
+  ylab(svg2,R2-4,T2+10,'P5–P95 |basis|','end').setAttribute('fill','#6E93B5');
+
+  /* OI chart */
+  const svg3=$('#c-oi'); clearSvg(svg3);
+  const L3=42,R3=450,T3=14,B3=182;
+  axis(svg3,L3,T3,R3,B3);
+  const oiPath=[];
+  for(let d=0;d<=D;d++){
+    const oi = (TS.tshk>0 && d>=shockDay) ? retained + (TS.toi-retained)*Math.exp(-(d-shockDay)/2.5) : TS.toi;
+    oiPath.push(oi);
+  }
+  const omax=TS.toi*1.1;
+  const X3=d=>L3+(R3-L3)*d/D, Y3=v=>B3-(B3-T3)*v/omax;
+  [0,.5,1].forEach(f=>ylab(svg3,L3-5,Y3(omax*f)+3,(omax*f).toFixed(0)+'×'));
+  el('line',{x1:L3,y1:Y3(1),x2:R3,y2:Y3(1),stroke:'#3A4A32','stroke-width':1,'stroke-dasharray':'3 3'},svg3);
+  ylab(svg3,L3+4,Y3(1)-4,'physical base 1×','start').setAttribute('fill','#7FA66B');
+  el('path',{d:'M'+oiPath.map((v,d)=>X3(d)+','+Y3(v)).join('L'),fill:'none',stroke:'#E39A63','stroke-width':1.8},svg3);
+  if (TS.tshk>0){ el('line',{x1:X3(shockDay),y1:T3,x2:X3(shockDay),y2:B3,stroke:'#C25B4E','stroke-dasharray':'4 3'},svg3); }
+  ylab(svg3,(L3+R3)/2,B3+14,'days · paper:physical multiple','middle');
+}
+runTether();
+
+/* ================= TAB IV : THE SETTLEMENT LEDGER ================= */
+const LEDGER = [
+ {name:'Henry Hub Natural Gas', sub:'NYMEX NG · CME', type:'phys', anchor:'Physical delivery at Henry; daily VWAP marks', amend:'The control case',
+  spec:[['Which hub?','Henry Hub, Erath LA'],['Which market?','Physical delivery via pipeline transfer'],['Which price?','Exchange daily settlement (VWAP window) → delivery'],['Which hours?','n/a — molecules'],['Averaged how?','n/a — expiring positions deliver or EFP out'],['Futures-originated share of hub flow','5–25% (deliveries + expiry EFPs ÷ throughput)'],['Final when?','Post-delivery reconciliation']],
+  amendBody:'Nothing to amend — this is the contract the thesis measures power against. Delivery at expiry is the <b>default</b> unless you exit; convergence is a construction, not a forecast. The forward curve is defensible by anyone with storage capacity and credit, which is why it survived 2002.', sec12:null},
+ {name:'WTI Crude', sub:'NYMEX CL · CME', type:'phys', anchor:'Physical delivery at Cushing', amend:'The control case',
+  spec:[['Which hub?','Cushing OK'],['Which market?','Physical delivery, pipeline/in-tank transfer'],['Which price?','Exchange settlement → delivery invoice'],['Futures-originated share of flow','2–7% flow basis (0.5–3% vs. nameplate capacity — label the denominator)'],['Final when?','Post-delivery']],
+  amendBody:'Second control case. Note the asymmetry the hub table documents: tiny share of <b>paper</b> volume, meaningful share of <b>physical hub flow</b> — small absolute delivery volumes do heavy convergence work. That is exactly the leverage a storage-coupled power settlement would exploit.', sec12:null},
+ {name:'Brent Crude', sub:'ICE B · cash + EFP option', type:'hyb', anchor:'Cash vs. ICE Brent Index (BFOET forwards)', amend:'The third regime',
+  spec:[['Which hub?','Sullom Voe / BFOET complex'],['Which market?','Cash-settled vs. Brent Index, EFP optional'],['Which price?','Index built from cash BFOE forward trading'],['Direct delivery share','≈ 0% — tether runs through the forward market'],['Final when?','Index publication']],
+  amendBody:'Proof that the tether doesn\u2019t have to be delivery itself — it can run through a <b>physically-anchored forward market</b> that the index is computed from. A storage-era power analog: settle futures to an index of storage-backed forward transactions rather than the ISO optimization output.', sec12:null},
+ {name:'PJM Western Hub RT Peak', sub:'Nodal · ICE', type:'cash', anchor:'Avg hourly PJM RT LMP, WH agg, peak hours', amend:'EFP into SOC warrants',
+  spec:[['Which hub?','Western Hub — 111-bus aggregate'],['Which market?','Real-Time (DA variant exists)'],['Which price?','ISO LMP — an optimization output, not a traded price'],['Which hours?','HE8–23 peak, non-holiday weekdays (per spec)'],['Averaged how?','Arithmetic mean over the delivery month'],['Source?','PJM published results'],['Final when?','After PJM finalizes/reruns']],
+  amendBody:'Amendment: an <b>expiry EFP window into registered storage state-of-charge warrants</b> — an LME-style claim on MWh held at qualifying at-hub facilities. Deliveries would be a single-digit share of open interest and still rebuild the convergence math from scratch, exactly as small delivery shares anchor Henry and Cushing. Prerequisite: a storage fleet behind the hub that does not currently exist.', sec12:'SECTION 12 · C2 / H3 FAMILY'},
+ {name:'ERCOT North 345 kV DA', sub:'ICE · Nodal', type:'cash', anchor:'Arith. mean ERCOT DA Hub SPP, North, contract hours', amend:'TB4 physical fulfilment · E3 spread',
+  spec:[['Which hub?','North Hub'],['Which market?','Day-Ahead'],['Which price?','Settlement Point Price — not a resource-node LMP'],['Which hours?','Peak / off-peak / 24h base per contract'],['Averaged how?','Monthly arithmetic average'],['Source?','Official ERCOT published prices'],['Final when?','After ERCOT finalizes market results']],
+  amendBody:'Amendment path one: give the <b>TB4 spread a physical execution mechanism</b> — a battery\u2019s daily cycle is the cash-and-carry that turns a volatility bet into an arbitrage-enforceable instrument. Path two: the <b>E3 SDES calendar spread</b>, physically bridged by charge/discharge, forcing near-month convergence. Both require at-hub fleets; today\u2019s West Texas siting cannot execute either against North Hub SPPs.', sec12:'SECTION 12 · E3 / TB4'},
+ {name:'CAISO SP15 DA Peak', sub:'ICE · Nodal', type:'cash', anchor:'Avg CAISO DA LMP, TH_SP15, peak', amend:'EFP at in-zone storage nodes',
+  spec:[['Which hub?','TH_SP15 zonal aggregate'],['Which market?','Day-Ahead (IFM)'],['Which price?','Aggregated LMP'],['Which hours?','HE7–22 peak buckets'],['Averaged how?','Monthly arithmetic mean'],['Final when?','After CAISO price correction window']],
+  amendBody:'The one North American contract where the inventory already sits <b>inside the settlement aggregate</b>. Amendment: an EFP mechanism deliverable at registered storage nodes within TH_SP15, with the node-to-hub spread priced via existing CRRs — turning zonal co-location into genuine anchor coupling.', sec12:'SECTION 12 · E3 / H3'},
+ {name:'Mid-C DA Peak', sub:'ICE · bilateral underneath', type:'cash', anchor:'Avg Mid-C DA index, contract hours', amend:'Codify the water-value tether',
+  spec:[['Which hub?','Mid-Columbia delivery points'],['Which market?','Bilateral DA physical, index-assessed'],['Which price?','ICE DA index from reported physical trades'],['Averaged how?','Monthly average of daily indices'],['Final when?','Index publication']],
+  amendBody:'Mid-C is the quiet counterexample: the index is built from <b>physical trades</b> quoted by parties holding reservoir inventory — a water-value tether that has always existed informally. Amendment: formalize it. An EFP facility against reservoir storage rights would make explicit what hydro desks already do.', sec12:'SECTION 12 · E4 ANALOG'},
+ {name:'Phelix DE-LU Base', sub:'EEX · FTS opt-in exists', type:'hyb', anchor:'Arith. mean EPEX SPOT DA hourly, delivery period', amend:'THE amendment: FTS as default',
+  spec:[['Which hub?','DE-LU bidding zone'],['Which market?','EPEX SPOT day-ahead auction'],['Which price?','Hourly auction clearing price'],['Which hours?','All hours (base) / peak block'],['Averaged how?','Arithmetic mean over delivery period'],['Cascade','Quarters/years cascade to months — FTS only touches wk/mo'],['FTS today','Opt-in bidding service; no warrant, no inventory claim, utilization unpublished']],
+  amendBody:'This is the contract the whole exhibit points at. The scaffolding exists across twelve countries; the fleet (~81 GWh of batteries and compounding) arrived last year. Amendment: <b>make FTS the default settlement path at expiry for front-month positions, deliverable into registered storage</b> — the "right-to-hold" that Point C says the market lacks. Europe is one contract amendment away; the inventory just has to move to the anchor side of the meter.', sec12:'SECTION 12 · FTS-OBLIGATION'},
+ {name:'EEX French Base', sub:'EEX · FTS wk/mo', type:'hyb', anchor:'Mean EPEX DA, FR zone', amend:'Same amendment, thinner inventory',
+  spec:[['Which hub?','FR bidding zone'],['Which price?','EPEX DA hourly auction'],['Averaged how?','Arithmetic mean, delivery period'],['FTS','Week + month, opt-in']],
+  amendBody:'Identical mechanics to Phelix; the binding constraint is inventory, not plumbing. France\u2019s nuclear-set auction prices give storage the thinnest arbitrage of any major zone — the amendment would arrive before the fleet does.', sec12:'SECTION 12 · FTS-OBLIGATION'},
+ {name:'Nordic System Price', sub:'Nord Pool / EEX · EPADs', type:'hyb', anchor:'Avg DA system price; zonal EPADs on top', amend:'Water-value EFP',
+  spec:[['Which hub?','Synthetic unconstrained system price'],['Which price?','Nord Pool DA auction'],['Averaged how?','Mean over delivery period'],['FTS','Month tenor, Initiation Service only — manual access not offered'],['Inventory','≈ 85 TWh reservoir hydro']],
+  amendBody:'The Nordics already hold the most inventory-per-MWh-of-load of any power market on earth, and reservoir water values already discipline forward quoting informally. Amendment: an <b>EFP against reservoir content rights</b> — the LDES winter-summer spread (E4) in its natural habitat. That the FTS here requires an automation layer tells you how little physical bridging anyone expected.', sec12:'SECTION 12 · E4'},
+ {name:'MISO Indiana Hub DA', sub:'ICE · Nodal', type:'cash', anchor:'Avg MISO DA LMP, Indiana Hub', amend:'Waiting on inventory',
+  spec:[['Which hub?','Indiana Hub aggregate'],['Which market?','Day-Ahead'],['Averaged how?','Monthly arithmetic mean'],['Storage behind it','≈ 1 GW market-wide']],
+  amendBody:'No amendment is meaningful until a fleet exists. Listed as the reminder that most of the continent\u2019s open interest settles against anchors with <b>zero</b> inventory anywhere near them.', sec12:null},
+];
+const PILL = {phys:['phys','PHYSICAL'], cash:['cash','CASH'], hyb:['hyb','CASH + BRIDGE']};
+const ledgerEl = $('#ledger');
+LEDGER.forEach(row => {
+  const div = document.createElement('div');
+  div.className = 'lrow';
+  const p = PILL[row.type];
+  div.innerHTML = '<div class="lhead" role="button" tabindex="0">'
+    + '<div class="c1">'+row.name+'<small>'+row.sub+'</small></div>'
+    + '<div><span class="pill '+p[0]+'">'+p[1]+'</span></div>'
+    + '<div></div>'
+    + '<div class="c3">'+row.anchor+'</div>'
+    + '<div class="c4">'+row.amend+'</div>'
+    + '<div class="car">▶</div></div>'
+    + '<div class="lbody"><div class="spec"><h4>Final-settlement spec — the missing questions</h4>'
+    + row.spec.map(s=>'<div class="drow"><span class="k">'+s[0]+'</span><span class="v">'+s[1]+'</span></div>').join('')
+    + '</div><div><h4 class="amend">Storage-era amendment</h4><div class="amendbox">'+row.amendBody
+    + (row.sec12?'<br><span class="sec12">'+row.sec12+'</span>':'')+'</div></div></div>';
+  const head = div.querySelector('.lhead');
+  const tog = () => div.classList.toggle('open');
+  head.addEventListener('click', tog);
+  head.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();tog();} });
+  ledgerEl.appendChild(div);
+});
+
+/* ================= TAB V : ONE AMENDMENT AWAY ================= */
+const PREQ_EU = [
+ {t:'Published, transparent settlement anchor', s:'EPEX DA auction — the cleanest anchor in the business', v:2},
+ {t:'Clearing, margining & tenor cascade', s:'ECC cascade: years → quarters → months', v:2},
+ {t:'Paper-to-physical scaffolding', s:'FTS across 12 countries — but opt-in, bidding-only, no inventory claim', v:1},
+ {t:'Inventory in the bidding zone', s:'≈ 81 GWh of batteries EU-wide + Alpine PSH — real but fragmented', v:1},
+ {t:'Inventory at the pricing point', s:'BTM-heavy, distribution-level — off the auction, off the anchor', v:0},
+ {t:'Settlement obligation / EFP mechanism', s:'None — FTS carries no obligation, no warrant, no right-to-hold', v:0},
+];
+const PREQ_NA = [
+ {t:'Published, transparent settlement anchor', s:'ERCOT DA/RT SPPs, published and final', v:2},
+ {t:'Clearing, margining & tenor cascade', s:'Nodal / ICE cleared complex', v:2},
+ {t:'Paper-to-physical scaffolding', s:'None — every power future is purely financial; no FTS analog exists', v:0},
+ {t:'Inventory in the market', s:'>10 GW and compounding — the largest merchant fleet anywhere', v:2},
+ {t:'Inventory at the pricing point', s:'West/South siting; only the Houston drift approaches hub buses', v:1},
+ {t:'Settlement obligation / EFP mechanism', s:'None — TB4s and spreads remain paper exercises', v:0},
+];
+function buildPreq(list, mount, dialSel, dvSel, noteSel, noteFn){
+  const m = $(mount);
+  list.forEach((p,i) => {
+    const d = document.createElement('div');
+    d.className='prereq'; d.dataset.s=p.v; d.tabIndex=0; d.setAttribute('role','button');
+    d.innerHTML='<div class="pt">'+p.t+'<small>'+p.s+'</small></div><div class="sc"></div>';
+    const cyc=()=>{ p.v=(p.v+1)%3; d.dataset.s=p.v; paint(); };
+    d.addEventListener('click',cyc);
+    d.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();cyc();} });
+    m.appendChild(d);
+  });
+  const dial=$(dialSel);
+  function paint(){
+    m.querySelectorAll('.prereq').forEach((d,i)=>{ d.querySelector('.sc').textContent=['ABSENT','PARTIAL','IN PLACE'][list[i].v]; d.dataset.s=list[i].v; });
+    const tot=list.reduce((s,p)=>s+p.v,0), max=list.length*2;
+    clearSvg(dial);
+    const cx=110, cy=118, R=92;
+    el('path',{d:describeArc(cx,cy,R,-90,90),fill:'none',stroke:'#2A323D','stroke-width':10,'stroke-linecap':'round'},dial);
+    const ang=-90+180*(tot/max);
+    if(tot>0) el('path',{d:describeArc(cx,cy,R,-90,ang),fill:'none',stroke:tot>=8?'#7FA66B':tot>=5?'#D9A853':'#C25B4E','stroke-width':10,'stroke-linecap':'round'},dial);
+    $(dvSel).textContent=tot;
+    $(noteSel).innerHTML=noteFn(tot,list);
+  }
+  paint();
+}
+function describeArc(cx,cy,r,a0,a1){
+  const rad=a=>(a-90)*Math.PI/180;
+  const x0=cx+r*Math.cos(rad(a0)), y0=cy+r*Math.sin(rad(a0));
+  const x1=cx+r*Math.cos(rad(a1)), y1=cy+r*Math.sin(rad(a1));
+  const large=(a1-a0)>180?1:0;
+  return 'M'+x0+','+y0+' A'+r+','+r+' 0 '+large+' 1 '+x1+','+y1;
+}
+buildPreq(PREQ_EU,'#preqEU','#dialEU','#dvEU','#noteEU',(t,l)=>{
+  if(l[4].v>=1&&l[5].v>=1) return '<b>The coupler is drawn.</b> With inventory sited at the auction side of the meter and an FTS obligation, the Phelix front-month becomes cash-and-carry defensible — the first arbitrage-enforceable power curve in Europe.';
+  if(l[5].v>=1) return 'Obligation without at-anchor inventory: the amendment passes and <b>nothing shows up to deliver.</b> Siting remains the binding constraint — Doug\u2019s point exactly.';
+  if(l[4].v>=1) return 'Inventory has moved to the anchor but FTS stays opt-in: the GB situation, continent-wide. <b>The fleet cohabits the zone and the contract never reaches for it.</b>';
+  return 'Today\u2019s state: scaffolding across twelve countries, inventory on the wrong side of the meter, no obligation. <b>The tether exists on paper and is load-bearing nowhere.</b>';
+});
+buildPreq(PREQ_NA,'#preqNA','#dialNA','#dvNA','#noteNA',(t,l)=>{
+  if(l[2].v>=1&&l[5].v>=1) return '<b>Settlement infrastructure invented and mandated.</b> With an FTS-analog plus an EFP/TB4 fulfilment mechanism, ERCOT\u2019s fleet finally touches the anchor it has been arbitraging around.';
+  if(l[4].v>=2) return 'The fleet has migrated to the hub buses — the Houston drift completed. Now the contracts are the whole gap: <b>one amendment plus one settlement infrastructure away.</b>';
+  return 'Today\u2019s state: the deepest storage fleet in the world, no paper-to-physical plumbing whatsoever. <b>North America has the inventory and not even the scaffolding.</b>';
+});
+const CHAIN = [
+ ['01','Storage builds at scale — the fleet exists (ERCOT, CAISO: done)'],
+ ['02','Siting concentrates at the settlement anchors — the missing step everywhere'],
+ ['03','Contracts couple: FTS obligation in Europe · EFP/SOC-warrant invention in NA'],
+ ['04','Cash-and-carry becomes executable — TB4s and calendar spreads gain a physical leg'],
+ ['05','Convergence becomes a construction, not a forecast — the near-forward tethers'],
+ ['06','Liquidity survives the next credit event — the Enron test finally passes'],
+];
+$('#chain').innerHTML = CHAIN.map(c=>'<div class="chainstep"><span class="n">'+c[0]+'</span><span>'+c[1]+'</span></div>').join('');
+})();
+
+</script>
+</body>
+</html>

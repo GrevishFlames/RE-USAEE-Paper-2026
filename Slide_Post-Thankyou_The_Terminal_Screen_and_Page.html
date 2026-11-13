@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Two Seats — Bid Day at the Western Desk · Paper 5 Companion Exhibit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Geist:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0D1014; --panel:#151A20; --panel2:#1B222B; --panel3:#20293380;
+  --line:#2A323D; --line2:#38424F;
+  --copper:#C97F4E; --copper-hi:#E39A63; --copper-dim:#8A5A3A; --copper-glow:#C97F4E33;
+  --ink:#E9E2D5; --ink2:#C9C2B2; --muted:#8E8877; --faint:#5E5A4E;
+  --good:#7FA66B; --warn:#D9A853; --bad:#C25B4E; --dc:#6E93B5; --new:#9B8EC4;
+  --serif:'Fraunces',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-weight:300;line-height:1.55;-webkit-font-smoothing:antialiased}
+::selection{background:var(--copper);color:var(--bg)}
+
+header{border-bottom:1px solid var(--line);padding:34px 40px 0;background:linear-gradient(180deg,#11151B 0%,var(--bg) 100%)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;color:var(--copper);text-transform:uppercase;font-weight:500}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(30px,4.2vw,46px);letter-spacing:-.01em;margin:10px 0 6px}
+h1 em{font-style:italic;color:var(--copper-hi)}
+.sub{color:var(--muted);font-size:14.5px;max-width:820px;margin-bottom:6px}
+.sub b{color:var(--ink2);font-weight:500}
+.papertag{font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.08em;margin-bottom:22px}
+nav{display:flex;gap:2px;flex-wrap:wrap;margin-top:18px}
+nav button{appearance:none;border:none;background:transparent;color:var(--muted);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:12px 18px 14px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+nav button:hover{color:var(--ink2)}
+nav button.on{color:var(--copper-hi);border-bottom-color:var(--copper)}
+nav button:focus-visible{outline:1px solid var(--copper);outline-offset:-1px}
+nav button .k{color:var(--faint);margin-right:7px}
+nav button.on .k{color:var(--copper-dim)}
+main{padding:30px 40px 60px;max-width:1500px;margin:0 auto}
+section.tab{display:none}
+section.tab.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){section.tab.on{animation:none}}
+.lede{font-family:var(--serif);font-size:19px;font-weight:300;color:var(--ink2);max-width:900px;margin-bottom:26px;line-height:1.5}
+.lede b{color:var(--copper-hi);font-weight:500}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px 22px}
+.ptitle{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:500}
+.hr{height:1px;background:var(--line);margin:16px 0}
+.drow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);font-size:12.5px}
+.drow .k{color:var(--muted)}
+.drow .v{color:var(--ink);text-align:right;font-family:var(--mono);font-size:11.5px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55}
+.note b{color:var(--ink2);font-weight:500}
+.cop{color:var(--copper-hi)}
+.btn{appearance:none;background:var(--panel2);border:1px solid var(--line2);color:var(--ink2);font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;border-radius:7px;cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--copper-hi);border-color:var(--copper-dim)}
+.btn.primary{background:var(--copper-dim);border-color:var(--copper);color:var(--ink)}
+.btn.primary:hover{background:var(--copper)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible{outline:1px solid var(--copper-hi);outline-offset:1px}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--muted)}
+.badge.draft{color:var(--muted)}
+.badge.valid{color:var(--good);border-color:#7FA66B66}
+.badge.reject{color:var(--bad);border-color:#C25B4E66}
+.badge.sub{color:var(--copper-hi);border-color:var(--copper-dim);box-shadow:0 0 8px var(--copper-glow)}
+.ctl{margin-bottom:14px}
+.ctl label{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);margin-bottom:6px}
+.ctl label .val{font-family:var(--mono);color:var(--copper-hi);font-size:12px}
+input[type=range]{width:100%;appearance:none;height:3px;background:var(--line2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--copper);cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--copper-dim)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 2px var(--copper-hi)}
+input[type=number],input[type=text],select{background:var(--panel2);border:1px solid var(--line2);color:var(--ink);font-family:var(--mono);font-size:12px;padding:7px 9px;border-radius:6px;width:100%}
+input[type=number]:focus,input[type=text]:focus,select:focus{outline:1px solid var(--copper-dim)}
+input:invalid{border-color:var(--bad)}
+.ctlgroup{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--line)}
+.ctlgroup:first-child{margin-top:0;padding-top:0;border:none}
+table.dk{width:100%;border-collapse:collapse;font-size:12px}
+table.dk th{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;padding:7px 8px;border-bottom:1px solid var(--line2);font-weight:500}
+table.dk th:first-child,table.dk td:first-child{text-align:left}
+table.dk td{padding:6px 8px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--ink2);text-align:right}
+table.dk td input{width:76px;text-align:right;padding:5px 7px}
+table.dk tr.mit td{color:var(--copper-hi)}
+table.dk tr.tot td{color:var(--ink);border-top:1px solid var(--line2);font-weight:500}
+table.dk td.neg{color:var(--bad)}
+table.dk td.pos{color:var(--good)}
+.valbox{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-top:12px;font-family:var(--mono);font-size:11px;line-height:1.7}
+.valbox .e{color:var(--bad)}
+.valbox .w{color:var(--warn)}
+.valbox .i{color:var(--muted)}
+.valbox .g{color:var(--good)}
+.seatgrid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.deskgrid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:22px;align-items:start}
+.deskgrid .stick{position:sticky;top:16px;display:flex;flex-direction:column;gap:16px}
+.wide2{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+.seatcard{border-left:3px solid var(--copper-dim);padding-left:16px;margin-bottom:8px}
+.seatcard .who{font-family:var(--serif);font-size:20px;color:var(--ink);font-weight:500}
+.seatcard .role{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);margin:2px 0 8px}
+svg text{font-family:var(--mono)}
+.axlab{font-size:9.5px;fill:#6B6555;letter-spacing:.08em}
+.chartnote{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em;margin-top:8px}
+.h24{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-top:6px}
+.h24 .cell{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:5px 4px;text-align:center}
+.h24 .cell .he{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+.h24 .cell input{width:100%;border:none;background:transparent;color:var(--ink);font-family:var(--mono);font-size:11px;text-align:center;padding:2px 0}
+.h24 .cell input:focus{outline:1px solid var(--copper-dim);border-radius:3px}
+.h24 .cell.derate{border-color:#D9A85366}
+.h24 .cell.derate .he{color:var(--warn)}
+.flag{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);cursor:pointer;user-select:none}
+.flag input{accent-color:var(--copper);width:14px;height:14px}
+footer{border-top:1px solid var(--line);margin-top:50px;padding:22px 40px 40px;color:var(--faint);font-size:11.5px;line-height:1.7;max-width:1500px}
+footer b{color:var(--muted);font-weight:500}
+@media(max-width:1000px){.seatgrid,.deskgrid,.wide2{grid-template-columns:1fr}.deskgrid .stick{position:static}header,main{padding-left:20px;padding-right:20px}.h24{grid-template-columns:repeat(6,1fr)}}
+
+/* rentbook additions */
+.posgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.adeq{height:14px;background:var(--panel2);border:1px solid var(--line2);border-radius:7px;overflow:hidden;margin-top:8px}
+.adeq div{height:100%;background:linear-gradient(90deg,var(--good),var(--warn) 78%,var(--bad));transition:width .3s}
+.gauge{height:16px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;overflow:hidden;position:relative;margin:10px 0 4px}
+.gauge .fill{height:100%;background:var(--copper-dim);transition:width .3s}
+.gauge .cap{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink2)}
+.mcall{border:1px solid var(--bad);background:#C25B4E14;border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:11px;color:var(--bad);letter-spacing:.06em;margin-top:12px}
+.srs{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em}
+.tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:2px 8px;border-radius:12px;border:1px solid var(--line2);color:var(--muted);text-transform:uppercase}
+.tag.cf{color:var(--new);border-color:#9B8EC466}
+.tag.srsx{color:var(--dc);border-color:#6E93B566}
+
+/* terminal additions */
+.prodlist{display:flex;flex-direction:column;gap:4px}
+.prodlist button{appearance:none;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink2);font-family:var(--mono);font-size:11px;padding:9px 12px;border-radius:7px;cursor:pointer;letter-spacing:.04em}
+.prodlist button:hover{border-color:var(--copper-dim);color:var(--copper-hi)}
+.prodlist button.on{border-color:var(--copper);color:var(--copper-hi);background:#20293380}
+.prodlist .sub2{color:var(--faint);font-size:9.5px;display:block;margin-top:2px}
+table.grid{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px}
+table.grid th{font-size:9px;letter-spacing:.1em;color:var(--muted);text-align:right;padding:6px 7px;border-bottom:1px solid var(--line2);text-transform:uppercase;font-weight:500}
+table.grid th:first-child,table.grid td:first-child{text-align:left}
+table.grid td{padding:5px 7px;border-bottom:1px solid var(--line);color:var(--ink2);text-align:right;cursor:pointer}
+table.grid tr:hover td{background:#20293360}
+table.grid tr.on td{background:#20293390;color:var(--copper-hi)}
+.up{color:var(--good)!important}.dn{color:var(--bad)!important}
+.ladder{display:grid;grid-template-columns:1fr 1fr;gap:0;font-family:var(--mono);font-size:11px}
+.ladder .lh{font-size:9px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;padding:4px 8px;border-bottom:1px solid var(--line2);text-align:center}
+.lrow{display:grid;grid-template-columns:52px 1fr;padding:3px 8px;position:relative}
+.lrow .sz{color:var(--muted);z-index:1}.lrow .px{text-align:right;z-index:1}
+.lrow.b .px{color:var(--good)}.lrow.a .px{color:var(--bad)}
+.lrow .bar{position:absolute;top:2px;bottom:2px;opacity:.14;border-radius:2px}
+.lrow.b .bar{right:0;background:var(--good)}.lrow.a .bar{left:0;background:var(--bad)}
+.lrow .imp{position:absolute;left:2px;top:4px;font-size:8px;color:var(--dc)}
+.tape2{font-family:var(--mono);font-size:10.5px;max-height:238px;overflow:auto}
+.tape2 .tr3{display:grid;grid-template-columns:52px 1fr 52px 40px;padding:3px 8px;border-bottom:1px solid var(--line);color:var(--ink2)}
+.tape2 .tr3 .sd{text-align:right}
+.pgsec{font-family:var(--serif);font-size:20px;color:var(--ink);font-weight:500;margin:4px 0 2px}
+.pgsub{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--copper);text-transform:uppercase;margin-bottom:10px}
+.assess td:first-child{color:var(--ink)}
+.mocline{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.05em;margin-top:8px;line-height:1.7}
+
+.lay2{display:grid;grid-template-columns:170px 1fr;gap:16px;align-items:start;padding:16px 0;border-top:1px solid var(--line)}
+.lay2:first-of-type{border-top:none;padding-top:0}
+.lay2 .ln{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);line-height:1.7}
+.lay2 .ln .sub3{display:block;color:var(--faint);letter-spacing:.06em;margin-top:3px;text-transform:none}
+.vend{margin-bottom:10px}
+.vend .vn{font-family:var(--serif);font-size:15.5px;color:var(--ink);font-weight:500}
+.vend .vp{font-size:12.5px;color:var(--ink2);line-height:1.55}
+.vend .vp b{color:var(--copper-hi);font-weight:500}
+.vend .vp i{color:var(--muted)}
+.deskrow{border-left:2px solid var(--line2);padding-left:12px;margin-bottom:12px}
+.deskrow .dn2{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.deskrow .ds2{font-size:12px;color:var(--muted);line-height:1.55;margin-top:2px}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Paper 5 · Companion Exhibit · Stylized replica — simulated data — no affiliation with ICE or S&amp;P Global</div>
+  <h1>The Terminal: <em>The Screen and The Page</em></h1>
+  <p class="sub">The two subscriptions every energy desk pays for, rebuilt from the outside with simulated data. <b>The Screen</b> is the exchange front-end: a live order book, an implied engine, a tape, and candles that close on the settle. <b>The Page</b> is the price reporter’s daily assessment sheet: midpoints, ranges, deal counts, and the methodology fine print doing the real work. The third tab says what you are actually paying each of them for — and why, in power, one of the two invoices nearly vanishes.</p>
+  <p class="papertag">DAVIS · RE+ / USAEE / NAPE 2026 · ALL PRICES SIMULATED · TRADE DATE FRI 08/07/2026 · CANDLES CLOSE ON SETTLE, NOT LAST</p>
+  <nav id="tabs">
+    <button data-t="scr" class="on"><span class="k">I</span>The Screen</button>
+    <button data-t="pg"><span class="k">II</span>The Page</button>
+    <button data-t="rent"><span class="k">III</span>What You Pay For</button>
+    <button data-t="stack"><span class="k">IV</span>The Stack</button>
+  </nav>
+</header>
+<main>
+
+<!-- ===== TAB I ===== -->
+<section class="tab on" id="tab-scr">
+  <p class="lede">This is the anatomy of an exchange screen, not the screen: <b>market grid → depth → tape</b>. The candles are the least proprietary object here — what the subscription sells is the middle column: live resting orders, and the implied engine turning spread markets into synthetic outright liquidity. Click a contract month; regenerate the day; watch the settle print the candle close.</p>
+  <div class="deskgrid">
+    <div class="stick">
+      <div class="panel">
+        <div class="ptitle">Markets</div>
+        <div class="prodlist" id="prods"></div>
+        <div class="hr"></div>
+        <button class="btn" id="regen">Regenerate session</button>
+        <div class="note" style="margin-top:10px">Basis markets quote as a differential to the anchor contract — the screen shows −/+ prices and means it. Power trades in blocks: on-peak is 6×16, and a monthly lot is MW × block hours.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <div class="panel">
+        <div class="ptitle" id="griptitle">Strip · —</div>
+        <table class="grid" id="strip"><thead><tr><th>Month</th><th>Bid</th><th>Offer</th><th>Last</th><th>Chg</th><th>Settle</th><th>Vol</th><th>OI</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="panel">
+        <div class="ptitle" id="chtitle">Daily candles · —</div>
+        <svg id="candles" viewBox="0 0 900 320" role="img" aria-label="Daily open high low settle candles with volume"></svg>
+        <div class="chartnote">90 SESSIONS · BODY = OPEN→SETTLE · WICK = HIGH/LOW · BOTTOM STRIP = VOLUME · LAST CANDLE IS TODAY, STILL TRADING</div>
+      </div>
+      <div class="seatgrid">
+        <div class="panel">
+          <div class="ptitle" id="ladtitle">Depth · —</div>
+          <div class="ladder" id="ladder"></div>
+          <div class="chartnote" style="margin-top:8px">IMP = IMPLIED FROM SPREAD MARKETS — THE ENGINE THAT MAKES ENERGY STRIPS TRADEABLE</div>
+        </div>
+        <div class="panel">
+          <div class="ptitle">Time &amp; sales</div>
+          <div class="tape2" id="tape"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TAB II ===== -->
+<section class="tab" id="tab-pg">
+  <p class="lede">The assessment page is not a data feed; it is an <b>editorial product with a methodology</b> — which numbers count, which window, which units of proof. Read the columns, then read the fine print under each table, because the fine print is the product. <b>Note what the power section admits about itself.</b></p>
+  <div class="wide2">
+    <div style="display:flex;flex-direction:column;gap:26px">
+      <div class="panel">
+        <div class="pgsec">Daily Spot Gas — Flow Date Sat 08/08/2026</div>
+        <div class="pgsub">Volume-weighted assessments of fixed-price, next-day physical deals · $/MMBtu</div>
+        <table class="grid assess" id="gastab"><thead><tr><th>Hub</th><th>Midpoint</th><th>Chg</th><th>Absolute range</th><th>Common range</th><th>Deals</th><th>Vol BBtu</th></tr></thead><tbody></tbody></table>
+        <div class="mocline">METHODOLOGY: MIDPOINT IS THE VOLUME-WEIGHTED AVERAGE OF QUALIFYING NEXT-DAY FIXED-PRICE TRANSACTIONS DURING THE TRADING WINDOW. ABSOLUTE = FULL DEAL RANGE; COMMON = RANGE COVERING THE CENTRAL BULK OF VOLUME. INDEX DEALS (NYMEX±, INDEX±) DO NOT SET THE ASSESSMENT — THE THIN FIXED-PRICE LAYER DOES THE DISCOVERY FOR EVERYONE PRICING AT INDEX.</div>
+      </div>
+      <div class="panel">
+        <div class="pgsec">Crude Assessments — 08/07/2026</div>
+        <div class="pgsub">Market-on-close · $/bbl · differentials as stated</div>
+        <table class="grid assess" id="oiltab"><thead><tr><th>Assessment</th><th>Price</th><th>Chg</th><th>Basis of quote</th></tr></thead><tbody></tbody></table>
+        <div class="mocline">METHODOLOGY: NORTH SEA ASSESSED THROUGH THE 16:30 LONDON MOC WINDOW — NAMED FIRMS, PUBLISHED BIDS/OFFERS/TRADES, EDITORIAL JUDGMENT WHERE THE WINDOW IS THIN. US GRADES QUOTED AS DIFFERENTIALS TO THE EXCHANGE COMPLEX (CASH WTI / CMA), I.E. THE PAGE PRICES THE <b>WEDGE</b>, THE SCREEN PRICES THE ANCHOR.</div>
+      </div>
+      <div class="panel">
+        <div class="pgsec">Day-Ahead Power Indices — Delivery Mon 08/10/2026</div>
+        <div class="pgsub">Bilateral on-peak (6×16) unless noted · $/MWh</div>
+        <table class="grid assess" id="pwrtab"><thead><tr><th>Hub</th><th>On-peak index</th><th>Chg</th><th>Range</th><th>Off-peak</th><th>Deals</th><th>Vol MWh</th></tr></thead><tbody></tbody></table>
+        <div class="mocline">METHODOLOGY: INDICES DERIVED PREDOMINANTLY FROM EXCHANGE-SCREEN TRADES IN BILATERAL DAY-AHEAD BLOCKS. NOTE THE ASYMMETRY THIS PAGE CANNOT HIDE: THE ISO PUBLISHES ITS OWN DAY-AHEAD LMPs, FREE, AS AN OUTPUT OF THE MARKET ITSELF — THE ASSESSMENT LAYER IN POWER IS THIN, DERIVATIVE, AND OPTIONAL IN A WAY THE GAS AND OIL PAGES ARE NOT. TAB III SAYS WHY THAT MATTERS.</div>
+      </div>
+    </div>
+    <div class="stick" style="position:sticky;top:16px;display:flex;flex-direction:column;gap:16px">
+      <div class="panel">
+        <div class="ptitle">How to read a gas line</div>
+        <div class="note">Waha printing <b>negative</b> is not a typo: it is a molecule with no exit paying for disposal — takeaway constraints turning a price into a congestion signal. The common range narrower than the absolute range tells you two lonely deals printed away from the herd. Deal count and BBtu are the units of proof: an assessment on 9 deals is a different epistemic object than one on 94.</div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">The three prices, again</div>
+        <div class="note">Keep the taxonomy from the research design: <b>traded price</b> (the tape, Tab I), <b>exchange settlement</b> (the candle close), <b>assessment</b> (this page). Physical delivery connects them; nothing makes them identical. The page’s gas midpoint and the screen’s settle can disagree all month — that wedge is the index-vs-settle market, and it trades.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TAB III ===== -->
+<section class="tab" id="tab-rent">
+  <p class="lede">Two invoices, two different products. Neither subscription sells numbers — numbers are cheap. <b>The screen sells a place where anonymous orders can rest; the page sells a methodology that turns scattered bilateral deals into a benchmark.</b> Decentralized price discovery, centralized price formation — one aphorism, two business models.</p>
+  <div class="seatgrid">
+    <div class="panel">
+      <div class="ptitle">What the exchange screen actually sells</div>
+      <div class="drow"><span class="k">The book</span><span class="v">Anonymous resting liquidity + firm prices</span></div>
+      <div class="drow"><span class="k">The implieds</span><span class="v">Spread markets synthesizing outright depth</span></div>
+      <div class="drow"><span class="k">The settle</span><span class="v">A formula price the whole complex margins on</span></div>
+      <div class="drow"><span class="k">The clearinghouse</span><span class="v">Credit anonymity — trade anyone, face the CCP</span></div>
+      <div class="hr"></div>
+      <div class="note">Strip out the data and the venue still has value; strip out the venue and the data is worthless. The candle chart is the receipt, not the product.</div>
+    </div>
+    <div class="panel">
+      <div class="ptitle">What the assessment page actually sells</div>
+      <div class="drow"><span class="k">The window</span><span class="v">Which deals count, and when</span></div>
+      <div class="drow"><span class="k">The curation</span><span class="v">Named counterparties · outlier judgment</span></div>
+      <div class="drow"><span class="k">The contract hook</span><span class="v">Billions of physical volume priced "at index"</span></div>
+      <div class="drow"><span class="k">The wedge</span><span class="v">Differentials to the screen’s anchor</span></div>
+      <div class="hr"></div>
+      <div class="note">The page’s moat is not information — it is <b>incumbency in contracts</b>. Everyone prices at the index because everyone prices at the index. A benchmark is a network good wearing a methodology.</div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:22px">
+    <div class="ptitle">The power anomaly — the conference point</div>
+    <div class="note">Run the two invoices through power and one nearly vanishes. The ISO is simultaneously the venue, the clearinghouse, the settlement formula, <b>and the free publisher of the prices</b> — so the assessment layer survives only at the bilateral margins the ISO doesn’t touch. There is no independent physical benchmark for a PRA to assess, because there is no physical market outside the ISO’s optimization to observe. That is the same finding as the missing index-vs-settle market and the missing delivery seat, seen from the subscription desk: <b>power collapsed discovery, formation, settlement, and publication into one institution.</b> Storage-backed physical settlement is what re-separates them — it creates transactions <i>outside</i> the optimization worth assessing, and therefore, for the first time, something in power for a price reporter to independently report. When the exhibit audience asks "so what would change?", the answer is: this page grows a real power section.</div>
+  </div>
+</section>
+
+<!-- ===== TAB IV : THE STACK ===== -->
+<section class="tab" id="tab-stack">
+  <p class="lede">The full vendor stack of a gas &amp; power trading floor, layer by layer — with your three names corrected first, because getting the names right <b>is</b> the handshake. Four layers: where trades execute, where prices get assessed, where the physical world gets watched, and the free layer underneath that power makes unusually large. The last panel seats you in the room.</p>
+  <div class="wide2">
+    <div style="display:flex;flex-direction:column;gap:22px">
+      <div class="panel">
+        <div class="ptitle">First, the corrections — say these right</div>
+        <div class="vend"><div class="vn">"ICE Energy OTC" → just ICE now</div><div class="vp">That was the original 2000-era identity — the OTC energy platform that grew up beside NYMEX. In <b>2012 ICE converted its cleared OTC energy swaps into futures</b> (Dodd-Frank arbitrage), so today the bilateral and futures markets live on one platform. Say "the ICE energy complex"; saying "ICE OTC" dates you to 2011.</div></div>
+        <div class="vend"><div class="vn">"ICEBlock" → ICE Block, a reporting tool</div><div class="vp">Not a venue: it’s the facility for reporting <b>privately negotiated block trades</b> into the exchange for clearing — the regulated descendant of the broker phone deal. The trade happens off-screen; ICE Block is how it becomes a cleared position. Adjacent: <b>ICE eConfirm</b> for OTC confirmations.</div></div>
+        <div class="vend"><div class="vn">"WebICE" → still right, one nuance</div><div class="vp">WebICE remains the execution front-end, launched from the ICE Launcher alongside <b>ICE Chat</b> (the ex-YellowJacket IM where broker markets stream with quote-recognition) and <b>ICE Options Analytics</b>. The data/charting terminal is a separate product, <b>ICE Connect</b>. Execution and analytics are two subscriptions, not one.</div></div>
+        <div class="vend"><div class="vn">"WoodMac’s Genscape" → correct, with a date</div><div class="vp">Genscape was acquired in <b>2019</b> (Verisk, folded into Wood Mackenzie; WoodMac itself was later sold to Veritas). The sensor network survives inside WoodMac’s short-term analytics and <b>PowerRT</b>; older traders still say "Genscape" for the monitors the way they say "Kleenex."</div></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">Layer 1 — venues &amp; execution</div>
+        <div class="lay2"><div class="ln">ICE<span class="sub3">the energy complex</span></div><div>
+          <div class="vend"><div class="vp"><b>WebICE</b> execution front-end · <b>ICE Chat</b> broker/IM markets with trade-recognition · <b>ICE Block</b> block reporting · <b>ICE eConfirm</b> OTC confirms · <b>ICE Connect</b> data/analytics desktop · <b>ICE Clear</b> CCPs · <b>ICE NGX</b> — the one desks forget: <i>physically-delivered</i> North American gas &amp; power with clearing, the Canadian hubs’ home. For your thesis: ICE NGX is proof an exchange can clear physical energy delivery.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">CME / NYMEX<span class="sub3">the legacy anchor</span></div><div>
+          <div class="vend"><div class="vp"><b>Globex</b> screen · <b>ClearPort</b> — the block/EFRP submission gateway where broker-negotiated energy deals become cleared NYMEX positions · the HH and WTI settles the whole cash market keys off.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">Nodal Exchange<span class="sub3">power specialist · EEX group</span></div><div>
+          <div class="vend"><div class="vp">Futures on <b>hundreds of US power hubs and nodes</b> plus environmental products, with <b>Nodal Clear</b>. The largest OI in US power futures lives here, not CME — a Sempra power director will expect you to know that. Everything cash-settles; the delivery-seat gap applies here too.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">Brokers<span class="sub3">the voice layer</span></div><div>
+          <div class="vend"><div class="vp"><b>OTC Global Holdings, Amerex, Evolution, TP ICAP/ICAP Energy, Tullett</b> — blocks, basis, structure, and anything illiquid; prints land via ICE Block/ClearPort. <b>Trayport Joule</b> is the broker-aggregation screen (dominant in Europe, present in NA gas). This is the running-room layer of your storage argument.</div></div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">Layer 2 — assessment &amp; benchmarks</div>
+        <div class="lay2"><div class="ln">Platts<span class="sub3">S&amp;P Global Commodity Insights</span></div><div>
+          <div class="vend"><div class="vp">Delivery: <b>Platts Connect / Dimensions Pro</b> · Publications: <b>Gas Daily</b>, <b>Inside FERC</b> (bidweek), <b>Megawatt Daily</b>, <b>Crude Oil Marketwire</b>, LNG assessments (JKM) · <b>eWindow</b> — the MOC tool, which <i>runs on ICE technology</i>: the PRA’s formation window literally rides the exchange’s plumbing. Post-IHS merger, the <b>PointLogic</b> gas flow analytics live here too.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">Argus<span class="sub3">the independent</span></div><div>
+          <div class="vend"><div class="vp">Delivery: <b>Argus Direct</b> · <b>Argus Natural Gas Americas</b> (daily + bidweek indices — many contracts dual-quote Platts/Argus), <b>Argus US Electricity</b>, <b>Argus Crude</b> incl. the <b>ASCI</b> sour index Saudi Aramco adopted for US-bound pricing — the canonical proof a challenger PRA can capture a benchmark.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">NGI &amp; OPIS<span class="sub3">the ones the West runs on</span></div><div>
+          <div class="vend"><div class="vp"><b>NGI</b> (Natural Gas Intelligence): Daily GPI, Bidweek, Forward Look — <b>Western desks and CPUC filings lean NGI</b>; SoCal Citygate conversation at Sempra will quote it. <b>OPIS</b> (Dow Jones since 2022): refined products and NGLs. Newer: <b>General Index</b>, algorithmic challenger.</div></div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">Layer 3 — physical observability (the information pipe, sold)</div>
+        <div class="lay2"><div class="ln">Wood Mackenzie<span class="sub3">ex-Genscape</span></div><div>
+          <div class="vend"><div class="vp">The private in-field sensor network: transmission-line monitors inferring <b>plant-by-plant generation in near-real-time (PowerRT)</b>, infrared cameras on LNG trains (they caught Cameron’s full trip ~12 hours before pipeline data confirmed), the famous <b>weekly Cushing storage measurement</b> by aerial/IR survey, gas nom scrapes · plus <b>Lens</b> and Lens Direct API for the fundamentals layer. Thesis hook: this whole business is <b>The Seat’s information pipe, commoditized</b> — selling observability of physical positions to people who don’t hold them.</div></div>
+        </div></div>
+        <div class="lay2"><div class="ln">ISO data shops<span class="sub3">power aggregation</span></div><div>
+          <div class="vend"><div class="vp"><b>Yes Energy</b> (PowerSignals/QuickSignals — the de facto power-trader screen for ISO data, congestion, and CRR/FTR analytics) · <b>Enverus</b> (MarketView curves + fundamentals) · <b>Hitachi Energy Velocity Suite</b> (the analyst’s asset database). Satellite/alt-data: Kayrros, Ursa on storage and flaring.</div></div>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">Layer 4 — the free layer (unusually large in power)</div>
+        <div class="lay2"><div class="ln">Public<span class="sub3">what costs nothing</span></div><div>
+          <div class="vend"><div class="vp"><b>CAISO OASIS</b> (every LMP, load, constraint — free) · <b>EIA</b> (weekly gas storage — the number that moves your Tab I screen every Thursday 10:30 ET) · <b>FERC EQR</b> — the sleeper: every jurisdictional wholesale power transaction, counterparties and prices, filed quarterly and public. Power has a <i>free transaction census</i>; gas and oil never did — one more reason the paid assessment layer in power is thin. · <b>Pipeline EBBs</b>: capacities, noms, and OFOs posted free by tariff — including <b>SoCalGas Envoy</b>. You already run one of these professionally; in the trading room, say so.</div></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="stick" style="position:sticky;top:16px;display:flex;flex-direction:column;gap:16px">
+      <div class="panel">
+        <div class="ptitle">The room, seat by seat</div>
+        <div class="deskrow"><div class="dn2">Gas scheduler</div><div class="ds2">Envoy + other EBBs · nom cycles against the Tab I clock · NGI/Platts for imbalance pricing · ICE Chat for intraday odd lots.</div></div>
+        <div class="deskrow"><div class="dn2">Gas trader (basis &amp; term)</div><div class="ds2">WebICE + ICE Chat · CME settles · Gas Daily / Inside FERC / NGI triangulated · PointLogic or WoodMac flows · broker lines for structure.</div></div>
+        <div class="deskrow"><div class="dn2">Power trader</div><div class="ds2">Yes Energy front and center · Nodal + ICE for hedges · CAISO OASIS/CMRI · WoodMac PowerRT for unit trips · Megawatt Daily as the bilateral memory.</div></div>
+        <div class="deskrow"><div class="dn2">Fundamentals analyst</div><div class="ds2">Velocity Suite or Enverus · Lens · EIA/EQR pulls · builds the house curve everyone argues with.</div></div>
+        <div class="deskrow"><div class="dn2">Risk / mid-office</div><div class="ds2">ICE eConfirm · settlement files · the ETRM (Allegro/RightAngle/Endur class) nobody mentions until it breaks.</div></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle">The stack, read as your thesis</div>
+        <div class="note">Gas and oil needed four paid layers because discovery, formation, settlement, and observation are <b>separate businesses run by separate parties</b>. Power’s stack is top-light and bottom-heavy: the ISO absorbed the venue, the formula, and the publication, and the free layer (OASIS, EQR) does work that costs five figures a seat elsewhere. What survives commercially in power is exactly what the ISO doesn’t produce: bilateral memory (Megawatt Daily), congestion tooling (Yes Energy), and physical observability (PowerRT). A storage-backed physically-settled instrument would regrow the missing middle layers — a real formation window, an independent assessment, a delivery seat to observe. <b>The stack itself is your exhibit: hold it up and ask why power’s version has holes in it.</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <b>The Terminal — Paper 5 companion exhibit.</b> A stylized, unbranded replica of two categories of commercial product — an exchange trading front-end and a price-reporting agency’s daily assessment page — built for conference discussion of market microstructure. All prices, ranges, deal counts, volumes, order-book levels, and trades are simulated; no live, delayed, or historical proprietary data from any exchange or price-reporting agency is reproduced; layouts are generic and no affiliation with, or endorsement by, ICE, S&amp;P Global Commodity Insights, or any other venue or publisher is implied or exists. Methodology descriptions are paraphrased at the level of public documentation. Vendor and product names in Tab IV are referenced nominatively for educational market-structure discussion; all remain trademarks of their respective owners, descriptions are paraphrased from public materials, and no affiliation or endorsement is implied. Nothing here is a price assessment, market data, or investment advice. · M. Davis · RE+ / USAEE / NAPE 2026
+</footer>
+
+<script>
+(function(){
+"use strict";
+const $=q=>document.querySelector(q);
+const SVGNS='http://www.w3.org/2000/svg';
+const el=(t,a,p)=>{const e=document.createElementNS(SVGNS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const mulberry=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+const gauss=r=>{let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('section.tab').forEach(sec=>sec.classList.toggle('on',sec.id==='tab-'+b.dataset.t));
+}));
+
+/* ============ PRODUCTS ============ */
+const MONS=['Sep26','Oct26','Nov26','Dec26','Jan27','Feb27','Mar27','Apr27','May27','Jun27','Jul27','Aug27'];
+const PRODS={
+ hh:{name:'Henry Hub Nat Gas',sub:'Futures · $/MMBtu · 10,000 MMBtu',px:3.82,vol:0.028,tick:0.001,dp:3,
+     curve:[0,.09,.28,.52,.61,.55,.31,-.02,-.06,-.03,.02,.05],lot:'lots'},
+ brn:{name:'Brent Crude',sub:'Futures · $/bbl · 1,000 bbl',px:78.40,vol:0.016,tick:0.01,dp:2,
+     curve:[0,-.28,-.55,-.80,-1.02,-1.22,-1.40,-1.55,-1.68,-1.80,-1.90,-1.98],lot:'lots'},
+ sp15:{name:'SP15 On-Peak',sub:'Financial · $/MWh · 6×16 block',px:61.75,vol:0.035,tick:0.05,dp:2,
+     curve:[0,-3.1,-9.4,-6.2,2.8,1.4,-6.8,-12.3,-15.1,-9.6,4.2,6.9],lot:'MW'},
+ waha:{name:'Waha Basis',sub:'Basis vs Henry · $/MMBtu',px:-0.86,vol:0.16,tick:0.0025,dp:4,
+     curve:[0,.03,.10,.16,.19,.17,.09,-.04,-.08,-.10,-.07,-.05],lot:'lots'},
+ scg:{name:'SoCal Citygate Basis',sub:'Basis vs Henry · $/MMBtu',px:1.18,vol:0.09,tick:0.0025,dp:4,
+     curve:[0,.06,.31,.58,.72,.66,.34,-.12,-.19,-.16,-.02,.08],lot:'lots'}
+};
+let CUR='hh',SEED=20260807;
+
+function candlesFor(k){
+  const P=PRODS[k],rng=mulberry(SEED+k.length*7919+k.charCodeAt(0)*31);
+  const out=[];let s=P.px*(1-P.vol*3.5*gauss(rng)*0.3)- (k==='hh'?0.25:k==='brn'?3.2:k==='sp15'?4:0);
+  if(k==='waha')s=P.px-0.3;if(k==='scg')s=P.px-0.35;
+  for(let i=0;i<90;i++){
+    const drift=(P.px-s)*0.045;
+    const o=s+gauss(rng)*P.vol*Math.abs(P.px)*0.25;
+    const c=s+drift+gauss(rng)*P.vol*Math.abs(P.px);
+    const hi=Math.max(o,c)+Math.abs(gauss(rng))*P.vol*Math.abs(P.px)*0.6;
+    const lo=Math.min(o,c)-Math.abs(gauss(rng))*P.vol*Math.abs(P.px)*0.6;
+    const v=Math.round(2200+rng()*5200+(i>82?2600:0));
+    out.push({o,h:hi,l:lo,s:c,v});s=c;
+  }
+  return out;
+}
+function stripFor(k){
+  const P=PRODS[k],rng=mulberry(SEED+99+k.charCodeAt(1)*13);
+  const cd=candlesFor(k),last=cd[89].s,prev=cd[88].s;
+  return MONS.map((m,i)=>{
+    const mid=last+P.curve[i]+(i?gauss(rng)*P.tick*3:0);
+    const sp=P.tick*(2+Math.round(rng()*3)+i*0.6);
+    const chg=i===0?last-prev:gauss(rng)*P.vol*Math.abs(P.px)*0.5;
+    return {m,bid:mid-sp/2,off:mid+sp/2,last:mid-sp/2+Math.round(rng()*2)*sp/2,chg,
+      set:mid-chg*0.4,vol:Math.round((12000/(1+i*0.9))*(0.6+rng())),oi:Math.round((90000/(1+i*0.5))*(0.7+rng()))};
+  });
+}
+const f=(v,dp)=>v.toFixed(dp);
+function renderStrip(){
+  const P=PRODS[CUR],rows=stripFor(CUR);
+  $('#griptitle').textContent='Strip · '+P.name+' · '+P.sub;
+  const tb=$('#strip tbody');tb.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr');if(i===SEL)tr.className='on';
+    tr.innerHTML=`<td>${r.m}</td><td class="up">${f(r.bid,P.dp)}</td><td class="dn">${f(r.off,P.dp)}</td><td>${f(r.last,P.dp)}</td>`+
+     `<td class="${r.chg>=0?'up':'dn'}">${r.chg>=0?'+':''}${f(r.chg,P.dp)}</td><td>${f(r.set,P.dp)}</td>`+
+     `<td>${r.vol.toLocaleString()}</td><td>${r.oi.toLocaleString()}</td>`;
+    tr.addEventListener('click',()=>{SEL=i;renderAll();});
+    tb.appendChild(tr);
+  });
+  return rows;
+}
+let SEL=0;
+function renderCandles(){
+  const P=PRODS[CUR],cd=candlesFor(CUR);
+  $('#chtitle').textContent='Daily candles · '+P.name+' · '+MONS[SEL]+' (front-month history shown)';
+  const svg=$('#candles');svg.innerHTML='';
+  const W=900,H=320,PAD=58,VH=44;
+  const lo=Math.min(...cd.map(c=>c.l)),hi=Math.max(...cd.map(c=>c.h));
+  const vmax=Math.max(...cd.map(c=>c.v));
+  const x=i=>PAD+i*(W-PAD-16)/89;
+  const y=v=>14+(hi-v)/(hi-lo)*(H-40-VH-14);
+  [lo,(lo+hi)/2,hi].forEach(v=>{const t=el('text',{x:PAD-8,y:y(v)+3,'class':'axlab','text-anchor':'end'},svg);t.textContent=f(v,P.dp);});
+  [0,30,60,89].forEach(i=>{const t=el('text',{x:x(i),y:H-8,'class':'axlab','text-anchor':'middle'},svg);t.textContent=['MAY','JUN','JUL','AUG 7'][ [0,30,60,89].indexOf(i)];});
+  const bw=(x(1)-x(0))*0.62;
+  cd.forEach((c,i)=>{
+    const up=c.s>=c.o,col=up?'#7FA66B':'#C25B4E';
+    el('line',{x1:x(i),y1:y(c.h),x2:x(i),y2:y(c.l),stroke:col,'stroke-width':1},svg);
+    el('rect',{x:x(i)-bw/2,y:y(Math.max(c.o,c.s)),width:bw,height:Math.max(1,Math.abs(y(c.o)-y(c.s))),fill:col,opacity:up?.9:.95},svg);
+    el('rect',{x:x(i)-bw/2,y:H-24-VH+(1-c.v/vmax)*VH,width:bw,height:c.v/vmax*VH,fill:'#38424F'},svg);
+  });
+  const lastC=cd[89];
+  el('line',{x1:PAD,y1:y(lastC.s),x2:W-14,y2:y(lastC.s),stroke:'#C97F4E','stroke-dasharray':'3 4','stroke-width':1},svg);
+  const t=el('text',{x:W-14,y:y(lastC.s)-5,'class':'axlab','text-anchor':'end',fill:'#E39A63'},svg);t.textContent='SETTLE '+f(lastC.s,P.dp);
+}
+function renderLadder(rows){
+  const P=PRODS[CUR],r=rows[SEL],rng=mulberry(SEED+SEL*101+CUR.charCodeAt(0));
+  $('#ladtitle').textContent='Depth · '+P.name+' '+r.m;
+  const g=$('#ladder');g.innerHTML='';
+  const hB=document.createElement('div');hB.className='lh';hB.textContent='BIDS · SIZE ('+P.lot+')';
+  const hA=document.createElement('div');hA.className='lh';hA.textContent='OFFERS · SIZE';
+  g.appendChild(hB);g.appendChild(hA);
+  const colB=document.createElement('div'),colA=document.createElement('div');
+  let maxs=0;const bids=[],asks=[];
+  for(let i=0;i<6;i++){
+    const sb=Math.round(3+rng()*40+(i===0?8:0)),sa=Math.round(3+rng()*40+(i===0?8:0));
+    maxs=Math.max(maxs,sb,sa);
+    bids.push({p:r.bid-i*P.tick*(1+Math.round(rng()*2)),s:sb,imp:i===1&&rng()<0.8});
+    asks.push({p:r.off+i*P.tick*(1+Math.round(rng()*2)),s:sa,imp:i===2&&rng()<0.8});
+  }
+  bids.forEach(b=>{const d=document.createElement('div');d.className='lrow b';
+    d.innerHTML=`<span class="sz">${b.s}</span><span class="px">${f(b.p,P.dp)}</span><span class="bar" style="width:${b.s/maxs*88}%"></span>${b.imp?'<span class="imp">IMP</span>':''}`;colB.appendChild(d);});
+  asks.forEach(a=>{const d=document.createElement('div');d.className='lrow a';
+    d.innerHTML=`<span class="sz">${a.s}</span><span class="px">${f(a.p,P.dp)}</span><span class="bar" style="width:${a.s/maxs*88}%"></span>${a.imp?'<span class="imp">IMP</span>':''}`;colA.appendChild(d);});
+  g.appendChild(colB);g.appendChild(colA);
+}
+function renderTape(rows){
+  const P=PRODS[CUR],r=rows[SEL],rng=mulberry(SEED+7+SEL*17);
+  const g=$('#tape');g.innerHTML='';
+  let t=14*3600+31*60+2;
+  const prints=[];
+  for(let i=0;i<16;i++){
+    t-=Math.round(2+rng()*95);
+    const side=rng()<0.5;
+    prints.push({t,p:side?r.off-Math.round(rng()*1)*P.tick:r.bid+Math.round(rng()*1)*P.tick,s:Math.round(1+rng()*22),side});
+  }
+  prints.forEach(pr=>{
+    const hh=String(Math.floor(pr.t/3600)).padStart(2,'0'),mm=String(Math.floor(pr.t%3600/60)).padStart(2,'0'),ss=String(pr.t%60).padStart(2,'0');
+    const d=document.createElement('div');d.className='tr3';
+    d.innerHTML=`<span>${hh}:${mm}:${ss}</span><span class="${pr.side?'dn':'up'}" style="text-align:right">${f(pr.p,P.dp)}</span><span class="sd">${pr.s}</span><span class="sd" style="color:var(--faint)">${pr.side?'SELL':'BUY'}</span>`;
+    g.appendChild(d);
+  });
+}
+function renderAll(){const rows=renderStrip();renderCandles();renderLadder(rows);renderTape(rows);}
+(function prodList(){
+  const g=$('#prods');
+  Object.entries(PRODS).forEach(([k,P])=>{
+    const b=document.createElement('button');if(k===CUR)b.className='on';
+    b.innerHTML=P.name+'<span class="sub2">'+P.sub+'</span>';
+    b.addEventListener('click',()=>{CUR=k;SEL=0;document.querySelectorAll('#prods button').forEach(x=>x.classList.toggle('on',x===b));renderAll();});
+    g.appendChild(b);
+  });
+})();
+$('#regen').addEventListener('click',()=>{SEED+=1;renderAll();});
+renderAll();
+
+/* ============ TAB II : THE PAGE ============ */
+(function page(){
+  const rng=mulberry(80726);
+  const chg=()=>(rng()-0.48)*0.3;
+  const gas=[
+    ['Henry Hub',3.79,0.07,[3.72,3.86],[3.76,3.82],61,412],
+    ['Waha',-0.14,-0.22,[-0.65,0.18],[-0.31,0.02],38,296],
+    ['SoCal Citygate',5.04,0.31,[4.82,5.30],[4.95,5.14],44,187],
+    ['Chicago Citygates',3.61,0.05,[3.55,3.68],[3.58,3.64],29,158],
+    ['Algonquin Citygates',1.94,-0.09,[1.78,2.12],[1.86,2.01],17,74],
+    ['SoCal Border Avg',4.71,0.27,[4.52,4.94],[4.62,4.81],23,121]
+  ];
+  const tb=$('#gastab tbody');
+  gas.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td>${r[1].toFixed(2)}</td><td class="${r[2]>=0?'up':'dn'}">${r[2]>=0?'+':''}${r[2].toFixed(2)}</td>`+
+     `<td>${r[3][0].toFixed(2)} – ${r[3][1].toFixed(2)}</td><td>${r[4][0].toFixed(2)} – ${r[4][1].toFixed(2)}</td><td>${r[5]}</td><td>${r[6]}</td>`;
+    tb.appendChild(tr);
+  });
+  const oil=[
+    ['Dated Brent',78.605,0.415,'MOC 16:30 London · BFOET basket'],
+    ['Cash WTI (Cushing)',74.28,0.35,'CMA Nymex + 0.22'],
+    ['WTI Midland',75.43,0.38,'Cash WTI + 1.15 · Brent-deliverable grade'],
+    ['MEH (Houston)',76.13,0.41,'Cash WTI + 1.85 · export parity pull'],
+    ['Mars',72.63,0.29,'Cash WTI − 1.65 · sour disc'],
+    ['LLS',75.98,0.36,'Cash WTI + 1.70']
+  ];
+  const ob=$('#oiltab tbody');
+  oil.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td>${r[1].toFixed(r[0]==='Dated Brent'?3:2)}</td><td class="up">+${r[2].toFixed(2)}</td><td style="text-align:left;color:var(--muted)">${r[3]}</td>`;
+    ob.appendChild(tr);
+  });
+  const pwr=[
+    ['Mid-Columbia',48.30,-1.85,[46.75,50.25],27.10,31,9600],
+    ['Palo Verde',58.75,2.40,[56.50,61.00],22.85,44,14400],
+    ['SP15',62.10,2.05,[60.25,64.00],24.60,52,17600],
+    ['Mead',60.40,2.15,[58.75,62.25],23.90,18,5600],
+    ['PJM West Hub',44.15,0.60,[43.25,45.10],31.40,63,25600],
+    ['Mass Hub',41.90,-0.35,[40.80,42.85],29.75,26,8000]
+  ];
+  const pb=$('#pwrtab tbody');
+  pwr.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${r[0]}</td><td>${r[1].toFixed(2)}</td><td class="${r[2]>=0?'up':'dn'}">${r[2]>=0?'+':''}${r[2].toFixed(2)}</td>`+
+     `<td>${r[3][0].toFixed(2)} – ${r[3][1].toFixed(2)}</td><td>${r[4].toFixed(2)}</td><td>${r[5]}</td><td>${r[6].toLocaleString()}</td>`;
+    pb.appendChild(tr);
+  });
+})();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kirchhoff's Laws & Near-Field Poynting Wave Physics — 3 Power Grid Simulators</title>
+<style>
+  :root {
+    --bg: #070b14;
+    --panel: #0e1626;
+    --panel-alt: #131f35;
+    --border: #223556;
+    --gold: #d9a853;
+    --copper: #e39a63;
+    --cyan: #38bdf8;
+    --green: #10b981;
+    --red: #f43f5e;
+    --purple: #a855f7;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    --sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header & Global Physics Layer Controls */
+  header {
+    background: linear-gradient(90deg, #091120 0%, #132546 55%, #091120 100%);
+    border-bottom: 2px solid var(--gold);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.65);
+  }
+
+  .title-group h1 {
+    font-size: 1.32rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    color: #fff;
+  }
+  .title-group p {
+    font-size: 0.83rem;
+    color: #cbd5e1;
+    margin-top: 3px;
+  }
+
+  .top-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    background: #162644;
+    color: #e2e8f0;
+    border: 1px solid #2d4978;
+    padding: 8px 13px;
+    border-radius: 6px;
+    font-size: 0.79rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    font-family: var(--sans);
+  }
+  .btn:hover { background: #213a67; border-color: #4c78c2; }
+  .btn.active {
+    background: var(--gold);
+    color: #070b14;
+    border-color: #f3c677;
+    font-weight: 700;
+  }
+  .btn.purple.active {
+    background: var(--purple);
+    color: #fff;
+    border-color: #d8b4fe;
+    box-shadow: 0 0 12px rgba(168,85,247,0.5);
+  }
+  .btn.danger {
+    background: rgba(244, 63, 94, 0.16);
+    border-color: var(--red);
+    color: #fda4af;
+  }
+  .btn.danger.active {
+    background: var(--red);
+    color: #fff;
+  }
+
+  /* Navigation Tabs */
+  .sim-nav {
+    background: #0a101d;
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tab-list {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent;
+    color: var(--muted);
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 13px 18px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: #fff; }
+  .tab-btn.active {
+    color: var(--gold);
+    border-bottom-color: var(--gold);
+    background: rgba(217, 168, 83, 0.07);
+  }
+
+  /* Main Container */
+  main {
+    padding: 22px 28px 40px;
+    max-width: 1880px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .sim-section {
+    display: none;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+  }
+  .sim-section.active { display: flex; flex-direction: column; }
+  body.show-all .sim-section { display: flex; flex-direction: column; }
+
+  .sim-header {
+    background: var(--panel-alt);
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .sim-title {
+    font-size: 1.14rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .law-badge {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid var(--cyan);
+    color: #bae6fd;
+  }
+
+  /* Equation Banner */
+  .eq-banner {
+    background: #060a12;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: var(--mono);
+  }
+  .eq-formula {
+    font-size: 1.0rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pill {
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .pill-cyan { background: rgba(56,189,248,0.16); border: 1px solid var(--cyan); color: #bae6fd; }
+  .pill-amber { background: rgba(217,168,83,0.18); border: 1px solid var(--gold); color: #fde68a; }
+  .pill-green { background: rgba(16,185,129,0.16); border: 1px solid var(--green); color: #a7f3d0; }
+  .pill-red { background: rgba(244,63,94,0.18); border: 1px solid var(--red); color: #fda4af; }
+  .pill-purple { background: rgba(168,85,247,0.2); border: 1px solid var(--purple); color: #e9d5ff; }
+
+  /* Simulator Body Grid */
+  .sim-body {
+    display: grid;
+    grid-template-columns: 355px 1fr;
+    gap: 20px;
+    padding: 20px 22px;
+    align-items: stretch;
+  }
+
+  .controls-col {
+    background: #09101d;
+    border: 1px solid #1a2b49;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .control-group-title {
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    border-bottom: 1px solid #1c2d4d;
+    padding-bottom: 6px;
+  }
+
+  .slider-box {
+    background: #0d1628;
+    border: 1px solid #192a48;
+    border-radius: 8px;
+    padding: 9px 11px;
+  }
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .slider-val {
+    font-family: var(--mono);
+    color: var(--cyan);
+  }
+  .slider-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  input[type=range] {
+    width: 100%;
+    height: 5px;
+    accent-color: var(--gold);
+    cursor: pointer;
+  }
+
+  .explainer-box {
+    background: rgba(217, 168, 83, 0.07);
+    border-left: 3px solid var(--gold);
+    padding: 10px 12px;
+    border-radius: 4px;
+    font-size: 0.77rem;
+    color: #cbd5e1;
+    line-height: 1.48;
+    margin-top: auto;
+  }
+
+  /* Canvas Stage Column */
+  .stage-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .canvas-card {
+    background: #050911;
+    border: 1px solid #1c3154;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    height: 455px;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.7);
+  }
+  .canvas-card canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .physics-legend-bar {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    right: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .legend-chip {
+    background: rgba(6, 11, 21, 0.9);
+    border: 1px solid #263e66;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.73rem;
+    color: #e2e8f0;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .legend-dot {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .kpi-card {
+    background: #09101d;
+    border: 1px solid #1a2b49;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .kpi-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .kpi-val {
+    font-family: var(--mono);
+    font-size: 1.18rem;
+    font-weight: 800;
+    margin-top: 3px;
+    color: #fff;
+  }
+  .kpi-sub {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  footer {
+    background: #09101d;
+    border-top: 1px solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted);
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+  }
+
+  @media (max-width: 1200px) {
+    .sim-body { grid-template-columns: 1fr; }
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-group">
+    <h1>Kirchhoff's Laws & Near-Field Wave Physics on the Power Grid (V = I · R)</h1>
+    <p>Inner Conductor Core: 60 Hz Oscillating Electrons (e⁻ Drift ≈ 0) · Outer Near-Field Dielectric: Unidirectional Poynting Energy Flux (S = E × H at ~98% c)</p>
+  </div>
+  <div class="top-controls">
+    <button class="btn active" id="layerBoth" onclick="setPhysicsLayer('both')">🔬 Show Both: Core e⁻ Oscillation + Near-Field S=E×H</button>
+    <button class="btn" id="layerField" onclick="setPhysicsLayer('field')">🌊 Near-Field Poynting Energy (S=E×H) Only</button>
+    <button class="btn" id="layerElectrons" onclick="setPhysicsLayer('electrons')">⚛️ Wire Core Oscillating Electrons (e⁻) Only</button>
+    <button class="btn" id="pauseBtn" onclick="togglePause()">⏸ Pause Physics</button>
+  </div>
+</header>
+
+<div class="sim-nav">
+  <div class="tab-list">
+    <button class="tab-btn active" onclick="selectTab(1)">SIMULATOR I: Ohm's Law (V = IR) & KVL Transmission Loop</button>
+    <button class="tab-btn" onclick="selectTab(2)">SIMULATOR II: KCL Substation Node (∑ I_in = ∑ I_out & Storage)</button>
+    <button class="tab-btn" onclick="selectTab(3)">SIMULATOR III: Parallel Loop Flow (KCL + KVL Meshed Grid)</button>
+  </div>
+  <div style="padding: 8px 0;">
+    <button class="btn" id="viewAllBtn" onclick="toggleViewAll()">🖥️ View Mode: Single Stage Tab</button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ===================================================================== -->
+  <!-- SIMULATOR 1: OHM'S LAW (V = IR) & KVL RADIAL TRANSMISSION CORRIDOR    -->
+  <!-- ===================================================================== -->
+  <section class="sim-section active" id="sim1">
+    <div class="sim-header">
+      <div class="sim-title">
+        <span>Simulator I: Ohm's Law ($V = I \cdot R$) & Kirchhoff's Voltage Law (KVL) on a Radial Grid Corridor</span>
+      </div>
+      <span class="law-badge">KVL: ∑ V_loop = V_source − I·R_line − V_load = 0</span>
+    </div>
+
+    <div class="eq-banner">
+      <div class="eq-formula">
+        <span>KVL Loop Identity:</span>
+        <span class="pill pill-cyan" id="s1EqVsrc">V_source = 345.0 kV</span>
+        <span>−</span>
+        <span class="pill pill-red" id="s1EqVdrop">V_line_drop (I·R_line) = 45.0 kV</span>
+        <span>−</span>
+        <span class="pill pill-green" id="s1EqVload">V_load (I·R_load) = 300.0 kV</span>
+        <span>=</span>
+        <span class="pill pill-amber">0.0 kV (Exact Loop Balance)</span>
+      </div>
+      <div style="font-size:0.82rem; color:var(--muted);">
+        Loop Current: <strong id="s1EqI" style="color:#fff;">I = V_source / (R_line + R_load) = 3.00 kA</strong>
+      </div>
+    </div>
+
+    <div class="sim-body">
+      <div class="controls-col">
+        <div class="control-group-title">1. Grid Circuit Parameters</div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Generator Bus Voltage (V_source)</span>
+            <span class="slider-val" id="s1ValVsrc">345 kV</span>
+          </div>
+          <div class="slider-sub">Sets radial near-field E-field width leaving generator</div>
+          <input type="range" id="s1Vsrc" min="115" max="765" step="5" value="345" oninput="updateSim1()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Transmission Line Impedance (R_line)</span>
+            <span class="slider-val" id="s1ValRline" style="color:var(--red);">15 Ω</span>
+          </div>
+          <div class="slider-sub">Conductor lattice drag attenuating near-field voltage</div>
+          <input type="range" id="s1Rline" min="2" max="60" step="1" value="15" oninput="updateSim1()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>City Load Center Resistance (R_load)</span>
+            <span class="slider-val" id="s1ValRload" style="color:var(--green);">100 Ω</span>
+          </div>
+          <div class="slider-sub">Lower R_load = stronger e⁻ oscillation & higher current I</div>
+          <input type="range" id="s1Rload" min="25" max="250" step="5" value="100" oninput="updateSim1()">
+        </div>
+
+        <div class="control-group-title">2. Quick Grid Scenarios</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button class="btn" onclick="presetSim1('nominal')">✓ Nominal 345kV</button>
+          <button class="btn danger" onclick="presetSim1('sag')">⚠ Heatwave Sag</button>
+          <button class="btn" onclick="presetSim1('765kv')">⚡ 765kV EHV Upgrade</button>
+          <button class="btn" onclick="presetSim1('light')">🌙 Light Night Load</button>
+        </div>
+
+        <div class="explainer-box">
+          <strong>Core Electrons vs. Near-Field Energy:</strong><br>
+          • <strong>Inside the Wire Core:</strong> Gold electrons ($e^-$) oscillate back and forth at 60 Hz across the entire loop (including the $0\text{ kV}$ neutral return) with zero net forward travel.<br>
+          • <strong>Outside in the Near-Field:</strong> Cyan Poynting energy waves ($\mathbf{S} = \mathbf{E} \times \mathbf{H}$) travel <strong>strictly one-way</strong> from Generator to City Load, tapering in height as $\Delta V = I \cdot R_{\text{line}}$ is lost to conductor heat!
+        </div>
+      </div>
+
+      <div class="stage-col">
+        <div class="canvas-card">
+          <canvas id="canvasSim1"></canvas>
+          <div class="physics-legend-bar">
+            <div class="legend-chip">
+              <span><i class="legend-dot" style="background:#fde047;"></i><strong>Wire Core (Inside):</strong> 60 Hz Oscillating Electrons ($e^-$ back & forth, $\Delta x_{\text{net}} = 0$)</span>
+              <span><i class="legend-dot" style="background:#38bdf8;"></i><strong>Near-Field (Outside Wire):</strong> Forward Poynting Energy Flux ($\mathbf{S} = \mathbf{E} \times \mathbf{H} \to \text{Load}$)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-strip">
+          <div class="kpi-card">
+            <div class="kpi-label">Loop Current (e⁻ Oscillation Intensity)</div>
+            <div class="kpi-val" id="s1KpiI" style="color:var(--gold);">3.00 kA</div>
+            <div class="kpi-sub">Identical in phase & neutral return</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">City Load Near-Field Voltage (V_load)</div>
+            <div class="kpi-val" id="s1KpiVload" style="color:var(--green);">300.0 kV (87.0%)</div>
+            <div class="kpi-sub" id="s1KpiVstatus">Healthy Citygate Field</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Delivered Poynting Power (V_load · I)</div>
+            <div class="kpi-val" id="s1KpiPload" style="color:var(--cyan);">900.0 MW</div>
+            <div class="kpi-sub">Guided by near-field into city load</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Line Lattice Heat Loss (I² · R_line)</div>
+            <div class="kpi-val" id="s1KpiPloss" style="color:var(--red);">135.0 MW (13.0%)</div>
+            <div class="kpi-sub">Field energy lost to e⁻ collisions</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SIMULATOR 2: KIRCHHOFF'S CURRENT LAW (KCL) AT A SUBSTATION BUS        -->
+  <!-- ===================================================================== -->
+  <section class="sim-section" id="sim2">
+    <div class="sim-header">
+      <div class="sim-title">
+        <span>Simulator II: Kirchhoff's Current Law (KCL) at a Zero-Buffer Substation Node</span>
+      </div>
+      <span class="law-badge">KCL: ∑ I_in(t) − ∑ I_out(t) = dq/dt = 0 (Zero Wire Inventory)</span>
+    </div>
+
+    <div class="eq-banner">
+      <div class="eq-formula">
+        <span>Substation Bus KCL:</span>
+        <span class="pill pill-cyan" id="s2EqIn">I_gen1 (2.4kA) + I_wind (1.6kA)</span>
+        <span id="s2EqStorSign">+</span>
+        <span class="pill pill-purple" id="s2EqStor">I_storage (0.0kA)</span>
+        <span>=</span>
+        <span class="pill pill-amber" id="s2EqOut">I_city (2.5kA) + I_ind (1.5kA)</span>
+      </div>
+      <div style="font-size:0.82rem; color:var(--muted);">
+        Charge Continuity: <strong style="color:#a7f3d0;">Electrons cannot pile up at the busbar (dq/dt = 0) & near-field energy cannot wait in copper!</strong>
+      </div>
+    </div>
+
+    <div class="sim-body">
+      <div class="controls-col">
+        <div class="control-group-title">1. Incoming Generation Corridors (I_in)</div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Gen 1: Thermal Baseload Source (I_1)</span>
+            <span class="slider-val" id="s2ValI1">2.40 kA</span>
+          </div>
+          <div class="slider-sub">Steady AC electron drive & incoming Poynting flux</div>
+          <input type="range" id="s2I1" min="0.5" max="5.0" step="0.1" value="2.4" oninput="updateSim2()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Gen 2: Wind / Solar Corridor (I_2)</span>
+            <span class="slider-val" id="s2ValI2">1.60 kA</span>
+          </div>
+          <div class="slider-sub">Weather-driven incoming wave flux</div>
+          <input type="range" id="s2I2" min="0.0" max="4.0" step="0.1" value="1.6" oninput="updateSim2()">
+        </div>
+
+        <div class="control-group-title">2. Outgoing Load Impedance Split (I_out)</div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Feeder A: Metro Citygate Impedance</span>
+            <span class="slider-val" id="s2ValR3" style="color:var(--green);">30 Ω</span>
+          </div>
+          <div class="slider-sub">Lower Ω = stronger outgoing e⁻ slosh & Poynting flux</div>
+          <input type="range" id="s2R3" min="10" max="100" step="5" value="30" oninput="updateSim2()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Feeder B: Industrial Steel Mill Load</span>
+            <span class="slider-val" id="s2ValR4" style="color:var(--gold);">50 Ω</span>
+          </div>
+          <div class="slider-sub">Parallel outgoing load branch from substation</div>
+          <input type="range" id="s2R4" min="10" max="100" step="5" value="50" oninput="updateSim2()">
+        </div>
+
+        <div class="control-group-title">3. Storage Hub & Cloud Shock Toggles</div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button class="btn purple" id="s2BtnStorage" onclick="toggleSim2Storage()">🔋 Storage Hub (Branch 5): OFF (Zero Buffer)</button>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button class="btn danger" id="s2BtnCloud" onclick="triggerSim2Cloud()">☁️ Drop Wind (I_2 → 0.2kA)</button>
+            <button class="btn" onclick="resetSim2()">↺ Reset Nominal</button>
+          </div>
+        </div>
+
+        <div class="explainer-box">
+          <strong>Why KCL Requires Instantaneous Balance:</strong><br>
+          Because electrons are nearly incompressible inside the metal lattice ($\frac{dq}{dt}=0$), every oscillating push into the busbar must instantaneously push out into the load feeders. If Wind ($I_2$) drops while Storage is OFF, the near-field voltage aura ($V_{\text{bus}}$) collapses across all feeders at $98\%\ c$.
+        </div>
+      </div>
+
+      <div class="stage-col">
+        <div class="canvas-card">
+          <canvas id="canvasSim2"></canvas>
+          <div class="physics-legend-bar">
+            <div class="legend-chip">
+              <span><i class="legend-dot" style="background:#fde047;"></i><strong>Wire Core:</strong> Synchronized 60 Hz e⁻ Slosh ($\sum I_{\text{in}} = \sum I_{\text{out}}$)</span>
+              <span><i class="legend-dot" style="background:#10b981;"></i><strong>Near-Field Aura:</strong> Unidirectional Poynting Energy ($\mathbf{S} = \mathbf{E} \times \mathbf{H}$)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-strip">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Current Entering Bus</div>
+            <div class="kpi-val" id="s2KpiIn" style="color:var(--cyan);">4.00 kA</div>
+            <div class="kpi-sub">∑ I_in = I_gen1 + I_wind + I_storage</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Substation Near-Field Voltage (V_bus)</div>
+            <div class="kpi-val" id="s2KpiVbus" style="color:var(--green);">75.0 kV</div>
+            <div class="kpi-sub">V_bus = I_total · (R_A ∥ R_B)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Metro Feeder A Current (I_A)</div>
+            <div class="kpi-val" id="s2KpiIA" style="color:var(--gold);">2.50 kA (62.5%)</div>
+            <div class="kpi-sub">I_A = V_bus / R_A</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Industrial Feeder B Current (I_B)</div>
+            <div class="kpi-val" id="s2KpiIB" style="color:var(--purple);">1.50 kA (37.5%)</div>
+            <div class="kpi-sub">I_B = V_bus / R_B</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SIMULATOR 3: PARALLEL LOOP FLOW (KCL + KVL COMBINED MESHED GRID)      -->
+  <!-- ===================================================================== -->
+  <section class="sim-section" id="sim3">
+    <div class="sim-header">
+      <div class="sim-title">
+        <span>Simulator III: Parallel Loop Flow — Combining KCL & KVL on a 3-Corridor Meshed Grid</span>
+      </div>
+      <span class="law-badge">KVL Loop: I₁·R₁ = I₂·R₂ = I₃·R₃ = ΔV_AB  |  KCL: I_total = I₁ + I₂ + I₃</span>
+    </div>
+
+    <div class="eq-banner">
+      <div class="eq-formula">
+        <span>Kirchhoff Current Split:</span>
+        <span class="pill pill-cyan" id="s3EqP1">Path 1 (500kV): 50.0%</span>
+        <span>+</span>
+        <span class="pill pill-green" id="s3EqP2">Path 2 (345kV): 33.3%</span>
+        <span>+</span>
+        <span class="pill pill-red" id="s3EqP3">Path 3 (Seam 230kV): 16.7%</span>
+        <span>=</span>
+        <span class="pill pill-amber" id="s3EqTot">ΔV_AB = 60.0 kV Across All Closed Paths</span>
+      </div>
+      <div style="font-size:0.82rem; color:var(--muted);">
+        Physics Rule: <strong style="color:#fff;">Near-field Poynting flux & core e⁻ oscillation divide inversely to impedance (I_k = ΔV_AB / R_k)!</strong>
+      </div>
+    </div>
+
+    <div class="sim-body">
+      <div class="controls-col">
+        <div class="control-group-title">1. Total Power Injection & Path Impedances</div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Gen Hub A → Load Hub B Total Current</span>
+            <span class="slider-val" id="s3ValItot">6.00 kA</span>
+          </div>
+          <div class="slider-sub">Total current injected at Bus A</div>
+          <input type="range" id="s3Itot" min="2.0" max="12.0" step="0.2" value="6.0" oninput="updateSim3()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Path 1: Direct 500 kV Line (R_1)</span>
+            <span class="slider-val" id="s3ValR1" style="color:var(--cyan);">20 Ω</span>
+          </div>
+          <div class="slider-sub">Thermal Limit: 4.50 kA | Low-impedance backbone</div>
+          <input type="range" id="s3R1" min="10" max="80" step="2" value="20" oninput="updateSim3()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Path 2: Contracted 345 kV Line (R_2)</span>
+            <span class="slider-val" id="s3ValR2" style="color:var(--green);">30 Ω</span>
+          </div>
+          <div class="slider-sub">Thermal Limit: 3.50 kA | Bilateral "contract path"</div>
+          <input type="range" id="s3R2" min="10" max="80" step="2" value="30" oninput="updateSim3()">
+        </div>
+
+        <div class="slider-box">
+          <div class="slider-top">
+            <span>Path 3: Neighboring 230 kV Seam (R_3)</span>
+            <span class="slider-val" id="s3ValR3" style="color:var(--red);">60 Ω</span>
+          </div>
+          <div class="slider-sub">Thermal Limit: 1.50 kA | Vulnerable to unscheduled loop flow!</div>
+          <input type="range" id="s3R3" min="15" max="100" step="5" value="60" oninput="updateSim3()">
+        </div>
+
+        <div class="control-group-title">2. N-1 Breakers & Loop-Flow Relief Toggles</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <button class="btn danger" id="s3Brk1" onclick="toggleSim3Breaker(1)">⚡ Trip Path 1 (N-1)</button>
+          <button class="btn danger" id="s3Brk2" onclick="toggleSim3Breaker(2)">⚡ Trip Path 2 (N-1)</button>
+        </div>
+        <button class="btn purple" id="s3BtnStorage" onclick="toggleSim3Storage()">🔋 Bus B Storage / Phase-Shifter Relief: OFF</button>
+
+        <div class="explainer-box">
+          <strong>Why Loop Flow Happens:</strong><br>
+          Notice that when you trip <strong>Path 1 (N-1 Outage)</strong>, the electrons inside Path 1 stop oscillating ($I_1 = 0$), and the voltage difference $\Delta V_{AB}$ across Bus A and Bus B jumps higher—instantly forcing violent electron oscillation and excessive near-field Poynting flux onto the neighboring 230 kV seam (Path 3)!
+        </div>
+      </div>
+
+      <div class="stage-col">
+        <div class="canvas-card">
+          <canvas id="canvasSim3"></canvas>
+          <div class="physics-legend-bar">
+            <div class="legend-chip">
+              <span><i class="legend-dot" style="background:#fde047;"></i><strong>Wire Core:</strong> e⁻ Oscillation Excursion $\propto I_k = \Delta V_{AB} / R_k$</span>
+              <span><i class="legend-dot" style="background:#38bdf8;"></i><strong>Near-Field Aura:</strong> Forward Poynting Flux ($\mathbf{S}_k = \mathbf{E} \times \mathbf{H}_k$)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-strip">
+          <div class="kpi-card">
+            <div class="kpi-label">Common Bus Voltage Drop (ΔV_AB)</div>
+            <div class="kpi-val" id="s3KpiVdrop" style="color:var(--gold);">60.0 kV</div>
+            <div class="kpi-sub">Identical across all closed parallel paths</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Path 1 Flow (I₁ = ΔV / R₁)</div>
+            <div class="kpi-val" id="s3KpiI1" style="color:var(--cyan);">3.00 / 4.50 kA</div>
+            <div class="kpi-sub" id="s3KpiS1">67% Loading (Normal)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Path 2 Flow (I₂ = ΔV / R₂)</div>
+            <div class="kpi-val" id="s3KpiI2" style="color:var(--green);">2.00 / 3.50 kA</div>
+            <div class="kpi-sub" id="s3KpiS2">57% Loading (Normal)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Path 3 Loop Flow (I₃ = ΔV / R₃)</div>
+            <div class="kpi-val" id="s3KpiI3" style="color:var(--red);">1.00 / 1.50 kA</div>
+            <div class="kpi-sub" id="s3KpiS3">67% Loading (Normal)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div><strong>Kirchhoff's Grid Wave Suite:</strong> Electrons ($e^-$) oscillate locally back & forth inside the conductor core ($\Delta x_{\text{net}} = 0$), while electromagnetic energy ($\mathbf{S} = \mathbf{E} \times \mathbf{H}$) propagates forward through the near-field dielectric outside the wire.</div>
+  <div>Mat Davis · University of Tulsa · RE+ & USAEE 2026 Presentation Suite</div>
+</footer>
+
+<script>
+  // Global Animation & Physics Layer State
+  let physicsLayer = 'both'; // 'both' | 'field' | 'electrons'
+  let isPaused = false;
+  let showAll = false;
+  let activeTab = 1;
+  let simTime = 0;
+  let lastFrame = performance.now();
+
+  // Simulator 2 specific state
+  let s2StorageOn = false;
+  let s2NominalBusV = 75.0;
+
+  // Simulator 3 specific state
+  let s3Breaker1Closed = true;
+  let s3Breaker2Closed = true;
+  let s3StorageRelief = false;
+
+  const c1 = document.getElementById('canvasSim1');
+  const c2 = document.getElementById('canvasSim2');
+  const c3 = document.getElementById('canvasSim3');
+
+  function resizeCanvases() {
+    [c1, c2, c3].forEach(c => {
+      if (!c) return;
+      const rect = c.parentElement.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        c.width = rect.width * window.devicePixelRatio;
+        c.height = rect.height * window.devicePixelRatio;
+      }
+    });
+  }
+  window.addEventListener('resize', resizeCanvases);
+
+  function setPhysicsLayer(layer) {
+    physicsLayer = layer;
+    document.getElementById('layerBoth').classList.toggle('active', layer === 'both');
+    document.getElementById('layerField').classList.toggle('active', layer === 'field');
+    document.getElementById('layerElectrons').classList.toggle('active', layer === 'electrons');
+  }
+
+  function togglePause() {
+    isPaused = !isPaused;
+    document.getElementById('pauseBtn').textContent = isPaused ? '▶ Resume Physics' : '⏸ Pause Physics';
+  }
+
+  function selectTab(num) {
+    activeTab = num;
+    document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i + 1 === num));
+    document.querySelectorAll('.sim-section').forEach((s, i) => s.classList.toggle('active', i + 1 === num));
+    setTimeout(resizeCanvases, 30);
+  }
+
+  function toggleViewAll() {
+    showAll = !showAll;
+    document.body.classList.toggle('show-all', showAll);
+    const btn = document.getElementById('viewAllBtn');
+    btn.textContent = showAll ? '🖥️ View Mode: All 3 Simulators Stacked' : '🖥️ View Mode: Single Stage Tab';
+    btn.classList.toggle('active', showAll);
+    setTimeout(resizeCanvases, 50);
+  }
+
+  /**
+   * CORE TWO-LAYER ELECTROMAGNETIC CONDUCTOR RENDERER:
+   * 1. OUTER NEAR-FIELD DIELECTRIC (Outside the wire):
+   *    - Unidirectional forward-propagating Poynting Energy Flux (S = E x H) from (x1,y1) -> (x2,y2).
+   *    - Radial E-field envelope tapers from ampStartPx to ampEndPx (showing V(x) = V_start - I*R(x)).
+   * 2. INNER METALLIC CONDUCTOR CORE (Inside the wire):
+   *    - Free electrons (e-) oscillating back and forth IN PLACE longitudinally along the wire axis:
+   *      x_e(t) = x_home + ux * A_e * sin(omega * t)
+   *    - Zero net forward drift; oscillation amplitude A_e scales with branch current I (currentKA).
+   */
+  function drawConductorWithNearField(ctx, x1, y1, x2, y2, ampStartPx, ampEndPx, freqCycles, timeSec, colorHex, currentKA, s, isZeroVoltageNeutral = false) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy);
+    if (len < 1) return;
+    const ux = dx / len; // unit vector along wire (direction of Poynting vector S)
+    const uy = dy / len;
+    const nx = -uy;      // unit normal perpendicular to wire (direction of radial E-field)
+    const ny = ux;
+
+    const coreHalfWidth = 5.2 * s; // Radius of metallic conductor core
+
+    // =========================================================================
+    // LAYER 1: OUTER NEAR-FIELD DIELECTRIC POYNTING ENERGY FLUX (S = E x H)
+    // =========================================================================
+    if ((physicsLayer === 'both' || physicsLayer === 'field') && !isZeroVoltageNeutral && currentKA > 0.01) {
+      const forwardSpeed = 4.2 + Math.min(4.0, currentKA * 0.45);
+      const forwardPhase = timeSec * forwardSpeed;
+      const steps = 100;
+
+      ctx.save();
+
+      // 1A. Shaded Near-Field Dielectric Aura (Upper & Lower Outer Field Corridors)
+      for (const side of [1, -1]) {
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const u = i / steps;
+          const bx = x1 + dx * u;
+          const by = y1 + dy * u;
+          const outerEnv = coreHalfWidth + 2 * s + (ampStartPx + (ampEndPx - ampStartPx) * u);
+          const waveMod = 1.0 + 0.18 * Math.sin(u * freqCycles * Math.PI * 2 - forwardPhase);
+          const rDist = coreHalfWidth + (outerEnv - coreHalfWidth) * waveMod;
+          const px = bx + nx * side * rDist;
+          const py = by + ny * side * rDist;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        for (let i = steps; i >= 0; i--) {
+          const u = i / steps;
+          const bx = x1 + dx * u + nx * side * (coreHalfWidth + 1.5 * s);
+          const by = y1 + dy * u + ny * side * (coreHalfWidth + 1.5 * s);
+          ctx.lineTo(bx, by);
+        }
+        ctx.closePath();
+        ctx.fillStyle = colorHex + '24';
+        ctx.fill();
+
+        // Outer Near-Field Envelope Boundary Line (shows V_start -> V_end attenuation)
+        ctx.beginPath();
+        for (let i = 0; i <= steps; i++) {
+          const u = i / steps;
+          const bx = x1 + dx * u;
+          const by = y1 + dy * u;
+          const outerEnv = coreHalfWidth + 2 * s + (ampStartPx + (ampEndPx - ampStartPx) * u);
+          const waveMod = 1.0 + 0.22 * Math.sin(u * freqCycles * Math.PI * 2 - forwardPhase);
+          const rDist = coreHalfWidth + (outerEnv - coreHalfWidth) * waveMod;
+          const px = bx + nx * side * rDist;
+          const py = by + ny * side * rDist;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = colorHex;
+        ctx.lineWidth = 2.0 * s;
+        ctx.shadowColor = colorHex;
+        ctx.shadowBlur = 8 * s;
+        ctx.stroke();
+      }
+
+      // 1B. Forward-Moving Poynting Flux Wavefronts (S = E x H Crests in the Near-Field Outside the Wire)
+      const numCrests = Math.max(5, Math.round(len / (42 * s)));
+      for (let c = 0; c < numCrests; c++) {
+        const u = ((forwardPhase / (Math.PI * 2)) * 0.25 + c / numCrests) % 1.0;
+        const posU = u < 0 ? u + 1 : u;
+        const bx = x1 + dx * posU;
+        const by = y1 + dy * posU;
+        const localEnv = ampStartPx + (ampEndPx - ampStartPx) * posU;
+
+        if (localEnv > 3 * s) {
+          for (const side of [1, -1]) {
+            const rInner = coreHalfWidth + 3 * s;
+            const rOuter = coreHalfWidth + localEnv;
+            const rMid = (rInner + rOuter) * 0.52;
+
+            // Radial E-field line + Forward Poynting Chevron (>) in the near-field space
+            ctx.strokeStyle = '#ffffffcc';
+            ctx.lineWidth = 1.8 * s;
+            ctx.beginPath();
+            const tipX = bx + nx * side * rMid + ux * 5.5 * s;
+            const tipY = by + ny * side * rMid + uy * 5.5 * s;
+            ctx.moveTo(bx + nx * side * rInner - ux * 3.5 * s, by + ny * side * rInner - uy * 3.5 * s);
+            ctx.lineTo(tipX, tipY);
+            ctx.lineTo(bx + nx * side * rOuter - ux * 3.5 * s, by + ny * side * rOuter - uy * 3.5 * s);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.restore();
+    }
+
+    // =========================================================================
+    // LAYER 2: METALLIC CONDUCTOR CORE & 60 Hz OSCILLATING ELECTRONS (INSIDE WIRE)
+    // =========================================================================
+    ctx.save();
+
+    // 2A. Metallic Conductor Tube Casing
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = (coreHalfWidth * 2);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Metallic Outer Rails of the Wire Core
+    ctx.strokeStyle = isZeroVoltageNeutral ? '#475569' : '#64748b';
+    ctx.lineWidth = 1.2 * s;
+    for (const side of [1, -1]) {
+      ctx.beginPath();
+      ctx.moveTo(x1 + nx * side * coreHalfWidth, y1 + ny * side * coreHalfWidth);
+      ctx.lineTo(x2 + nx * side * coreHalfWidth, y2 + ny * side * coreHalfWidth);
+      ctx.stroke();
+    }
+
+    // 2B. Locally Oscillating Free Electrons (e-) Inside the Conductor Lattice
+    if (physicsLayer === 'both' || physicsLayer === 'electrons') {
+      const spacingPx = 22 * s;
+      const numElectrons = Math.max(4, Math.floor((len - 24 * s) / spacingPx));
+      // AC angular frequency (scaled so the 60 Hz back-and-forth slosh is crystal-clear to human eyes)
+      const acOmega = 7.5;
+      // Longitudinal excursion amplitude scales with branch current I (0 if breaker open!)
+      const maxExcursion = currentKA > 0.01
+        ? Math.min(9.5 * s, (3.0 + currentKA * 1.45) * s)
+        : 0;
+      const oscOffset = Math.sin(timeSec * acOmega) * maxExcursion;
+
+      for (let k = 0; k < numElectrons; k++) {
+        const uHome = (k + 0.5) / numElectrons;
+        const hx = x1 + dx * uHome;
+        const hy = y1 + dy * uHome;
+
+        // Electron oscillates strictly back & forth around its fixed lattice home (hx, hy)!
+        const ex = hx + ux * oscOffset;
+        const ey = hy + uy * oscOffset;
+
+        // Subtle lattice home tick
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+        ctx.beginPath();
+        ctx.arc(hx, hy, 1.3 * s, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Glowing Electron Charge Carrier (e-)
+        ctx.fillStyle = currentKA > 0.01 ? '#fde047' : '#64748b';
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = currentKA > 0.01 ? 6 * s : 0;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 2.9 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // ===========================================================================
+  // SIMULATOR 1 LOGIC & RENDERING (OHM'S LAW V = IR & KVL RADIAL LOOP)
+  // ===========================================================================
+  function getSim1State() {
+    const Vsrc = parseFloat(document.getElementById('s1Vsrc').value);
+    const Rline = parseFloat(document.getElementById('s1Rline').value);
+    const Rload = parseFloat(document.getElementById('s1Rload').value);
+    const Rtot = Rline + Rload;
+    const I = Vsrc / Rtot; // kA
+    const Vdrop = I * Rline;
+    const Vload = I * Rload;
+    const Pload = Vload * I; // MW
+    const Ploss = Vdrop * I; // MW
+    const eff = (Vload / Vsrc) * 100;
+    return { Vsrc, Rline, Rload, Rtot, I, Vdrop, Vload, Pload, Ploss, eff };
+  }
+
+  function updateSim1() {
+    const st = getSim1State();
+    document.getElementById('s1ValVsrc').textContent = `${st.Vsrc.toFixed(0)} kV`;
+    document.getElementById('s1ValRline').textContent = `${st.Rline.toFixed(0)} Ω`;
+    document.getElementById('s1ValRload').textContent = `${st.Rload.toFixed(0)} Ω`;
+
+    document.getElementById('s1EqVsrc').textContent = `V_source = ${st.Vsrc.toFixed(1)} kV`;
+    document.getElementById('s1EqVdrop').textContent = `V_line_drop (I·R_line) = ${st.Vdrop.toFixed(1)} kV`;
+    document.getElementById('s1EqVload').textContent = `V_load (I·R_load) = ${st.Vload.toFixed(1)} kV`;
+    document.getElementById('s1EqI').textContent = `I = ${st.Vsrc.toFixed(0)}kV / (${st.Rline}+${st.Rload})Ω = ${st.I.toFixed(2)} kA`;
+
+    document.getElementById('s1KpiI').textContent = `${st.I.toFixed(2)} kA`;
+    document.getElementById('s1KpiVload').textContent = `${st.Vload.toFixed(1)} kV (${st.eff.toFixed(1)}%)`;
+    document.getElementById('s1KpiVload').style.color = st.eff < 78 ? 'var(--red)' : (st.eff < 88 ? 'var(--gold)' : 'var(--green)');
+    document.getElementById('s1KpiVstatus').textContent = st.eff < 78 ? '⚠ Severe Near-Field Sag!' : 'Healthy Citygate Field';
+    document.getElementById('s1KpiPload').textContent = `${st.Pload.toFixed(1)} MW`;
+    document.getElementById('s1KpiPloss').textContent = `${st.Ploss.toFixed(1)} MW (${(100 - st.eff).toFixed(1)}%)`;
+  }
+
+  function presetSim1(mode) {
+    if (mode === 'nominal') {
+      document.getElementById('s1Vsrc').value = 345;
+      document.getElementById('s1Rline').value = 15;
+      document.getElementById('s1Rload').value = 100;
+    } else if (mode === 'sag') {
+      document.getElementById('s1Vsrc').value = 345;
+      document.getElementById('s1Rline').value = 38;
+      document.getElementById('s1Rload').value = 45;
+    } else if (mode === '765kv') {
+      document.getElementById('s1Vsrc').value = 765;
+      document.getElementById('s1Rline').value = 6;
+      document.getElementById('s1Rload').value = 120;
+    } else if (mode === 'light') {
+      document.getElementById('s1Vsrc').value = 345;
+      document.getElementById('s1Rline').value = 12;
+      document.getElementById('s1Rload').value = 220;
+    }
+    updateSim1();
+  }
+
+  function drawSim1(ctx, w, h, s) {
+    ctx.clearRect(0, 0, w, h);
+    const st = getSim1State();
+
+    // Subtle Grid Background
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.05)';
+    ctx.lineWidth = 1;
+    const step = 32 * s;
+    for (let x = 0; x < w; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    const leftX = w * 0.14;
+    const rightX = w * 0.86;
+    const topY = h * 0.28;
+    const botY = h * 0.56;
+
+    // Near-field radial width scaled to Voltage
+    const maxAmp = 34 * s;
+    const ampSource = Math.max(9 * s, (st.Vsrc / 765) * maxAmp);
+    const ampLoad   = Math.max(4 * s, (st.Vload / 765) * maxAmp);
+
+    // 1. Top High-Voltage Phase Conductor:
+    //    - Inner Core: Electrons oscillate back & forth at 60 Hz
+    //    - Outer Near-Field: Poynting flux (S = E x H) flows Left -> Right, tapering from V_source to V_load
+    drawConductorWithNearField(ctx, leftX, topY, rightX, topY, ampSource, ampLoad, 6.0, simTime, '#38bdf8', st.I, s, false);
+
+    // 2. Right Branch (City Load Absorption): Near-field tapers from V_load -> 0 kV Ground
+    drawConductorWithNearField(ctx, rightX, topY, rightX, botY, ampLoad, 1 * s, 3.0, simTime, '#10b981', st.I, s, false);
+
+    // 3. Bottom Neutral / Ground Return (0 kV Reference):
+    //    - Inner Core: Electrons STILL oscillate back & forth with full current I!
+    //    - Outer Near-Field: ZERO Poynting energy aura (V = 0 kV -> E = 0 -> S = E x H = 0)
+    drawConductorWithNearField(ctx, rightX, botY, leftX, botY, 0, 0, 6.0, simTime, '#64748b', st.I, s, true);
+
+    // 4. Left Branch (Generator Step-Up Excitation): Builds near-field from 0 kV -> +V_source
+    drawConductorWithNearField(ctx, leftX, botY, leftX, topY, 1 * s, ampSource, 3.0, simTime, '#d9a853', st.I, s, false);
+
+    // Annotation for Top Phase Conductor vs Bottom Neutral Conductor
+    const midX = (leftX + rightX) * 0.5;
+    const lossIntensity = Math.min(1, st.Ploss / 400);
+    ctx.save();
+    ctx.fillStyle = `rgba(244, 63, 94, ${0.14 + lossIntensity * 0.32})`;
+    ctx.strokeStyle = '#f43f5e';
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath();
+    ctx.roundRect(midX - 155 * s, topY - 58 * s, 310 * s, 24 * s, 6 * s);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fda4af';
+    ctx.font = `bold ${9.5 * s}px Courier New`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`HV PHASE LINE: R_line=${st.Rline}Ω | Near-Field Drop ΔV = -${st.Vdrop.toFixed(1)}kV`, midX, topY - 42 * s);
+
+    // Label on Bottom Neutral Return
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.strokeStyle = '#475569';
+    ctx.beginPath();
+    ctx.roundRect(midX - 175 * s, botY + 12 * s, 350 * s, 22 * s, 5 * s);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = `${9.2 * s}px Segoe UI`;
+    ctx.fillText(`0 kV NEUTRAL RETURN: Core e⁻ oscillate at ${st.I.toFixed(2)} kA, but Near-Field S = E×H = 0!`, midX, botY + 26 * s);
+    ctx.restore();
+
+    // Generator Station Badge (Left)
+    ctx.save();
+    ctx.fillStyle = '#0c182c';
+    ctx.strokeStyle = '#d9a853';
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.roundRect(leftX - 78 * s, (topY + botY) / 2 - 32 * s, 156 * s, 64 * s, 8 * s);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fde68a';
+    ctx.font = `bold ${10.5 * s}px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.fillText('⚡ GENERATOR BUS', leftX, (topY + botY) / 2 - 12 * s);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${12 * s}px Courier New`;
+    ctx.fillText(`+${st.Vsrc.toFixed(0)} kV Field`, leftX, (topY + botY) / 2 + 6 * s);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `${9.2 * s}px Segoe UI`;
+    ctx.fillText(`Injecting ${(st.Pload + st.Ploss).toFixed(0)} MW`, leftX, (topY + botY) / 2 + 22 * s);
+    ctx.restore();
+
+    // City Load Substation Badge (Right)
+    ctx.save();
+    ctx.fillStyle = '#0c182c';
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2 * s;
+    ctx.beginPath();
+    ctx.roundRect(rightX - 80 * s, (topY + botY) / 2 - 32 * s, 160 * s, 64 * s, 8 * s);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#6ee7b7';
+    ctx.font = `bold ${10.5 * s}px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.fillText('🏙️ CITY LOAD BUS', rightX, (topY + botY) / 2 - 12 * s);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${12 * s}px Courier New`;
+    ctx.fillText(`V_load = ${st.Vload.toFixed(1)} kV`, rightX, (topY + botY) / 2 + 6 * s);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `${9.2 * s}px Segoe UI`;
+    ctx.fillText(`Absorbing ${st.Pload.toFixed(0)} MW`, rightX, (topY + botY) / 2 + 22 * s);
+    ctx.restore();
+
+    // Lower KVL Potential Elevation Chart
+    const chartTop = h * 0.70;
+    const chartBot = h * 0.93;
+    const chartH = chartBot - chartTop;
+
+    ctx.save();
+    ctx.strokeStyle = '#223556';
+    ctx.lineWidth = 1.5 * s;
+    ctx.beginPath();
+    ctx.moveTo(leftX, chartBot);
+    ctx.lineTo(rightX, chartBot);
+    ctx.stroke();
+
+    const yVsrc  = chartBot - (st.Vsrc / 765) * chartH;
+    const yVload = chartBot - (st.Vload / 765) * chartH;
+
+    ctx.beginPath();
+    ctx.moveTo(leftX, chartBot);
+    ctx.lineTo(leftX, yVsrc);
+    ctx.lineTo(rightX, yVload);
+    ctx.lineTo(rightX, chartBot);
+    ctx.closePath();
+    const grad = ctx.createLinearGradient(leftX, chartTop, rightX, chartBot);
+    grad.addColorStop(0, 'rgba(56, 189, 248, 0.28)');
+    grad.addColorStop(1, 'rgba(16, 185, 129, 0.22)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2.6 * s;
+    ctx.beginPath();
+    ctx.moveTo(leftX, chartBot);
+    ctx.lineTo(leftX, yVsrc);
+    ctx.lineTo(rightX, yVload);
+    ctx.lineTo(rightX, chartBot);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fde68a';
+    ctx.font = `bold ${9.8 * s}px Segoe UI`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`KVL NEAR-FIELD POTENTIAL PROFILE: +${st.Vsrc.toFixed(0)}kV (Source)  −  ${st.Vdrop.toFixed(1)}kV (Line I·R Drop)  −  ${st.Vload.toFixed(1)}kV (Load Drop)  =  0.0 kV`, leftX, chartTop - 6 * s);
+    ctx.restore();
+  }
+
+  // ===========================================================================
+  // SIMULATOR 2 LOGIC & RENDERING (KCL SUBSTATION NODE BALANCE)
+  // ===========================================================================
+  function getSim2State() {
+    const I1 = parseFloat(document.getElementById('s2I1').value);
+    const I2 = parseFloat(document.getElementById('s2I2').value);
+    const R3 = parseFloat(document.getElementById('s2R3').value);
+    const R4 = parseFloat(document.getElementById('s2R4').value);
+
+    const Req = (R3 * R4) / (R3 + R4);
+    const rawIn = I1 + I2;
+    const targetTotalI = s2NominalBusV / Req;
+    let Istor = 0.0;
+    if (s2StorageOn) {
+      Istor = targetTotalI - rawIn;
+    }
+
+    const Itotal = Math.max(0.2, rawIn + Istor);
+    const Vbus = Itotal * Req;
+    const IA = Vbus / R3;
+    const IB = Vbus / R4;
+
+    return { I1, I2, R3, R4, Req, Istor, Itotal, Vbus, IA, IB };
+  }
+
+  function updateSim2() {
+    const st = getSim2State();
+    document.getElementById('s2ValI1').textContent = `${st.I1.toFixed(2)} kA`;
+    document.getElementById('s2ValI2').textContent = `${st.I2.toFixed(2)} kA`;
+    document.getElementById('s2ValR3').textContent = `${st.R3.toFixed(0)} Ω`;
+    document.getElementById('s2ValR4').textContent = `${st.R4.toFixed(0)} Ω`;
+
+    document.getElementById('s2EqIn').textContent = `I_gen1 (${st.I1.toFixed(2)}kA) + I_wind (${st.I2.toFixed(2)}kA)`;
+    document.getElementById('s2EqStorSign').textContent = st.Istor >= 0 ? '+' : '−';
+    document.getElementById('s2EqStor').textContent = `I_storage (${Math.abs(st.Istor).toFixed(2)}kA ${st.Istor > 0.02 ? 'Discharging' : (st.Istor < -0.02 ? 'Charging' : 'Idle')})`;
+    document.getElementById('s2EqOut').textContent = `I_city (${st.IA.toFixed(2)}kA) + I_ind (${st.IB.toFixed(2)}kA)`;
+
+    document.getElementById('s2KpiIn').textContent = `${st.Itotal.toFixed(2)} kA`;
+    document.getElementById('s2KpiVbus').textContent = `${st.Vbus.toFixed(1)} kV`;
+    document.getElementById('s2KpiVbus').style.color = Math.abs(st.Vbus - 75) > 12 ? 'var(--red)' : 'var(--green)';
+    const shareA = (st.IA / st.Itotal) * 100;
+    const shareB = (st.IB / st.Itotal) * 100;
+    document.getElementById('s2KpiIA').textContent = `${st.IA.toFixed(2)} kA (${shareA.toFixed(1)}%)`;
+    document.getElementById('s2KpiIB').textContent = `${st.IB.toFixed(2)} kA (${shareB.toFixed(1)}%)`;
+  }
+
+  function toggleSim2Storage() {
+    s2StorageOn = !s2StorageOn;
+    const btn = document.getElementById('s2BtnStorage');
+    btn.classList.toggle('active', s2StorageOn);
+    btn.textContent = s2StorageOn
+      ? '🔋 Storage Hub (Branch 5): ON (Stabilizing Node KCL!)'
+      : '🔋 Storage Hub (Branch 5): OFF (Zero Buffer)';
+    updateSim2();
+  }
+
+  function triggerSim2Cloud() {
+    document.getElementById('s2I2').value = 0.2;
+    updateSim2();
+  }
+
+  function resetSim2() {
+    document.getElementById('s2I1').value = 2.4;
+    document.getElementById('s2I2').value = 1.6;
+    document.getElementById('s2R3').value = 30;
+    document.getElementById('s2R4').value = 50;
+    updateSim2();
+  }
+
+  function drawSim2(ctx, w, h, s) {
+    ctx.clearRect(0, 0, w, h);
+    const st = getSim2State();
+
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.05)';
+    ctx.lineWidth = 1;
+    const step = 32 * s;
+    for (let x = 0; x < w; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    const cx = w * 0.50;
+    const cy = h * 0.48;
+
+    const gen1Pt  = { x: w * 0.15, y: h * 0.24 };
+    const gen2Pt  = { x: w * 0.15, y: h * 0.72 };
+    const loadAPt = { x: w * 0.85, y: h * 0.24 };
+    const loadBPt = { x: w * 0.85, y: h * 0.72 };
+    const storPt  = { x: w * 0.50, y: h * 0.88 };
+
+    const scaleField = kA => Math.min(28 * s, Math.max(4 * s, kA * 7.5 * s));
+
+    // Incoming Corridor 1: Thermal Gen 1 -> Substation Bus
+    drawConductorWithNearField(ctx, gen1Pt.x, gen1Pt.y, cx, cy, scaleField(st.I1), scaleField(st.I1), 4.0, simTime, '#38bdf8', st.I1, s, false);
+
+    // Incoming Corridor 2: Wind/Solar Gen 2 -> Substation Bus
+    drawConductorWithNearField(ctx, gen2Pt.x, gen2Pt.y, cx, cy, scaleField(st.I2), scaleField(st.I2), 4.0, simTime, '#06b6d4', st.I2, s, false);
+
+    // Outgoing Feeder A: Substation Bus -> Metro Load
+    drawConductorWithNearField(ctx, cx, cy, loadAPt.x, loadAPt.y, scaleField(st.IA), scaleField(st.IA) * 0.75, 4.0, simTime, '#10b981', st.IA, s, false);
+
+    // Outgoing Feeder B: Substation Bus -> Industrial Load
+    drawConductorWithNearField(ctx, cx, cy, loadBPt.x, loadBPt.y, scaleField(st.IB), scaleField(st.IB) * 0.75, 4.0, simTime, '#d9a853', st.IB, s, false);
+
+    // Branch 5: Storage Hub Corridor
+    if (s2StorageOn && Math.abs(st.Istor) > 0.03) {
+      if (st.Istor > 0) {
+        drawConductorWithNearField(ctx, storPt.x, storPt.y, cx, cy, scaleField(st.Istor), scaleField(st.Istor), 3.0, simTime, '#a855f7', st.Istor, s, false);
+      } else {
+        drawConductorWithNearField(ctx, cx, cy, storPt.x, storPt.y, scaleField(-st.Istor), scaleField(-st.Istor), 3.0, simTime, '#a855f7', -st.Istor, s, false);
+      }
+    } else {
+      drawConductorWithNearField(ctx, storPt.x, storPt.y, cx, cy, 0, 0, 3.0, simTime, '#475569', 0, s, true);
+    }
+
+    // Central Substation Busbar Node
+    ctx.save();
+    ctx.fillStyle = '#091326';
+    ctx.strokeStyle = s2StorageOn ? '#c084fc' : '#f8fafc';
+    ctx.lineWidth = 3 * s;
+    ctx.shadowColor = s2StorageOn ? '#a855f7' : '#38bdf8';
+    ctx.shadowBlur = 18 * s;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 48 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${10.5 * s}px Segoe UI`;
+    ctx.textAlign = 'center';
+    ctx.fillText('SUBSTATION BUS', cx, cy - 14 * s);
+    ctx.fillStyle = '#fde68a';
+    ctx.font = `bold ${12.5 * s}px Courier New`;
+    ctx.fillText(`V = ${st.Vbus.toFixed(1)} kV`, cx, cy + 4 * s);
+    ctx.fillStyle = '#a7f3d0';
+    ctx.font = `bold ${9.2 * s}px Courier New`;
+    ctx.fillText('dq/dt = 0 MWh', cx, cy + 20 * s);
+    ctx.restore();
+
+    function drawTermCard(pt, title, valTxt, subTxt, col) {
+      ctx.save();
+      ctx.fillStyle = '#0b1528';
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 1.8 * s;
+      ctx.beginPath();
+      ctx.roundRect(pt.x - 84 * s, pt.y - 26 * s, 168 * s, 52 * s, 7 * s);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.font = `bold ${9.8 * s}px Segoe UI`;
+      ctx.textAlign = 'center';
+      ctx.fillText(title, pt.x, pt.y - 8 * s);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${11.2 * s}px Courier New`;
+      ctx.fillText(valTxt, pt.x, pt.y + 8 * s);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${8.6 * s}px Segoe UI`;
+      ctx.fillText(subTxt, pt.x, pt.y + 21 * s);
+      ctx.restore();
+    }
+
+    drawTermCard(gen1Pt, 'GEN 1: THERMAL IN', `I₁ = ${st.I1.toFixed(2)} kA`, 'e⁻ Osc + Forward S₁ Flux', '#38bdf8');
+    drawTermCard(gen2Pt, 'GEN 2: WIND/SOLAR IN', `I₂ = ${st.I2.toFixed(2)} kA`, 'Variable S₂ Near-Field', '#06b6d4');
+    drawTermCard(loadAPt, 'FEEDER A: METRO LOAD', `I_A = ${st.IA.toFixed(2)} kA`, `R_A = ${st.R3} Ω (V_bus / R_A)`, '#10b981');
+    drawTermCard(loadBPt, 'FEEDER B: INDUSTRIAL', `I_B = ${st.IB.toFixed(2)} kA`, `R_B = ${st.R4} Ω (V_bus / R_B)`, '#d9a853');
+    drawTermCard(
+      storPt,
+      'BRANCH 5: BESS / LDES HUB',
+      s2StorageOn ? `I_stor = ${st.Istor >= 0 ? '+' : ''}${st.Istor.toFixed(2)} kA` : 'OFFLINE (0.00 kA)',
+      s2StorageOn ? 'Active KCL Node Stabilizer' : 'Click Purple Button to Enable',
+      s2StorageOn ? '#c084fc' : '#64748b'
+    );
+  }
+
+  // ===========================================================================
+  // SIMULATOR 3 LOGIC & RENDERING (PARALLEL LOOP FLOW: KCL + KVL MESH)
+  // ===========================================================================
+  function getSim3State() {
+    const ItotRaw = parseFloat(document.getElementById('s3Itot').value);
+    const R1 = parseFloat(document.getElementById('s3R1').value);
+    const R2 = parseFloat(document.getElementById('s3R2').value);
+    const R3 = parseFloat(document.getElementById('s3R3').value);
+
+    const G1 = s3Breaker1Closed ? (1 / R1) : 0;
+    const G2 = s3Breaker2Closed ? (1 / R2) : 0;
+    const G3 = 1 / R3;
+    const Gsum = G1 + G2 + G3;
+
+    const Itot = s3StorageRelief ? ItotRaw * 0.72 : ItotRaw;
+    const dV = Itot / Gsum;
+
+    const I1 = dV * G1;
+    const I2 = dV * G2;
+    const I3 = dV * G3;
+
+    const lim1 = 4.50, lim2 = 3.50, lim3 = 1.50;
+    return { ItotRaw, Itot, R1, R2, R3, dV, I1, I2, I3, lim1, lim2, lim3 };
+  }
+
+  function updateSim3() {
+    const st = getSim3State();
+    document.getElementById('s3ValItot').textContent = `${st.ItotRaw.toFixed(2)} kA`;
+    document.getElementById('s3ValR1').textContent = s3Breaker1Closed ? `${st.R1} Ω` : 'OPEN (∞ Ω)';
+    document.getElementById('s3ValR2').textContent = s3Breaker2Closed ? `${st.R2} Ω` : 'OPEN (∞ Ω)';
+    document.getElementById('s3ValR3').textContent = `${st.R3} Ω`;
+
+    const p1 = (st.I1 / st.Itot) * 100;
+    const p2 = (st.I2 / st.Itot) * 100;
+    const p3 = (st.I3 / st.Itot) * 100;
+
+    document.getElementById('s3EqP1').textContent = `Path 1 (500kV): ${p1.toFixed(1)}% (${st.I1.toFixed(2)}kA)`;
+    document.getElementById('s3EqP2').textContent = `Path 2 (345kV): ${p2.toFixed(1)}% (${st.I2.toFixed(2)}kA)`;
+    document.getElementById('s3EqP3').textContent = `Path 3 (Seam 230kV): ${p3.toFixed(1)}% (${st.I3.toFixed(2)}kA)`;
+    document.getElementById('s3EqTot').textContent = `ΔV_AB = ${st.dV.toFixed(1)} kV Across All Closed Paths`;
+
+    document.getElementById('s3KpiVdrop').textContent = `${st.dV.toFixed(1)} kV`;
+
+    function setPathKpi(idx, I, lim, open) {
+      const valEl = document.getElementById('s3KpiI' + idx);
+      const subEl = document.getElementById('s3KpiS' + idx);
+      if (open) {
+        valEl.textContent = '0.00 kA (TRIPPED)';
+        valEl.style.color = '#64748b';
+        subEl.textContent = 'N-1 Breaker Open (e⁻ Static)';
+        return;
+      }
+      const pct = (I / lim) * 100;
+      valEl.textContent = `${I.toFixed(2)} / ${lim.toFixed(2)} kA`;
+      if (pct > 100) {
+        valEl.style.color = 'var(--red)';
+        subEl.textContent = `⚠ OVERLOAD: ${pct.toFixed(0)}% of Thermal Limit!`;
+        subEl.style.color = '#fda4af';
+      } else {
+        valEl.style.color = idx === 1 ? 'var(--cyan)' : (idx === 2 ? 'var(--green)' : 'var(--gold)');
+        subEl.textContent = `${pct.toFixed(0)}% Loading (Within Limit)`;
+        subEl.style.color = 'var(--muted)';
+      }
+    }
+
+    setPathKpi(1, st.I1, st.lim1, !s3Breaker1Closed);
+    setPathKpi(2, st.I2, st.lim2, !s3Breaker2Closed);
+    setPathKpi(3, st.I3, st.lim3, false);
+  }
+
+  function toggleSim3Breaker(num) {
+    if (num === 1) {
+      s3Breaker1Closed = !s3Breaker1Closed;
+      const b = document.getElementById('s3Brk1');
+      b.classList.toggle('active', !s3Breaker1Closed);
+      b.textContent = s3Breaker1Closed ? '⚡ Trip Path 1 (N-1)' : '✓ Close Path 1 Breaker';
+    } else {
+      s3Breaker2Closed = !s3Breaker2Closed;
+      const b = document.getElementById('s3Brk2');
+      b.classList.toggle('active', !s3Breaker2Closed);
+      b.textContent = s3Breaker2Closed ? '⚡ Trip Path 2 (N-1)' : '✓ Close Path 2 Breaker';
+    }
+    updateSim3();
+  }
+
+  function toggleSim3Storage() {
+    s3StorageRelief = !s3StorageRelief;
+    const b = document.getElementById('s3BtnStorage');
+    b.classList.toggle('active', s3StorageRelief);
+    b.textContent = s3StorageRelief
+      ? '🔋 Bus B Storage Relief: ON (Relieving Loop Overload!)'
+      : '🔋 Bus B Storage / Phase-Shifter Relief: OFF';
+    updateSim3();
+  }
+
+  function drawSim3(ctx, w, h, s) {
+    ctx.clearRect(0, 0, w, h);
+    const st = getSim3State();
+
+    ctx.strokeStyle = 'rgba(217, 168, 83, 0.05)';
+    ctx.lineWidth = 1;
+    const step = 32 * s;
+    for (let x = 0; x < w; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+    for (let y = 0; y < h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+    const busAX = w * 0.16;
+    const busBX = w * 0.84;
+    const y1 = h * 0.25;
+    const y2 = h * 0.52;
+    const y3 = h * 0.79;
+
+    const ampScale = kA => Math.min(30 * s, Math.max(4 * s, kA * 7.2 * s));
+
+    const paths = [
+      { y: y1, I: st.I1, R: st.R1, lim: st.lim1, closed: s3Breaker1Closed, col: '#38bdf8', name: 'PATH 1: 500 kV BACKBONE' },
+      { y: y2, I: st.I2, R: st.R2, lim: st.lim2, closed: s3Breaker2Closed, col: '#10b981', name: 'PATH 2: 345 kV CONTRACT PATH' },
+      { y: y3, I: st.I3, R: st.R3, lim: st.lim3, closed: true,             col: '#f59e0b', name: 'PATH 3: 230 kV NEIGHBORING SEAM (LOOP FLOW)' }
+    ];
+
+    paths.forEach(p => {
+      const isOver = p.closed && p.I > p.lim;
+      const drawCol = !p.closed ? '#475569' : (isOver ? '#f43f5e' : p.col);
+
+      if (p.closed) {
+        drawConductorWithNearField(ctx, busAX + 16 * s, p.y, busBX - 16 * s, p.y, ampScale(p.I), ampScale(p.I) * 0.65, 5.5, simTime, drawCol, p.I, s, false);
+      } else {
+        drawConductorWithNearField(ctx, busAX + 16 * s, p.y, busBX - 16 * s, p.y, 0, 0, 5.5, simTime, '#475569', 0, s, true);
+      }
+
+      const midX = (busAX + busBX) * 0.5;
+      ctx.save();
+      ctx.fillStyle = 'rgba(7, 12, 24, 0.92)';
+      ctx.strokeStyle = drawCol;
+      ctx.lineWidth = 1.5 * s;
+      ctx.beginPath();
+      ctx.roundRect(midX - 175 * s, p.y - 46 * s, 350 * s, 23 * s, 5 * s);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = isOver ? '#fda4af' : '#f1f5f9';
+      ctx.font = `bold ${9.6 * s}px Courier New`;
+      ctx.textAlign = 'center';
+      const statusTxt = !p.closed
+        ? `${p.name} — N-1 BREAKER OPEN (e⁻ Static, S=0)`
+        : `${p.name}: R=${p.R}Ω | I=${p.I.toFixed(2)}kA (${((p.I/st.Itot)*100).toFixed(0)}%) ${isOver ? '⚠ OVERLOAD!' : ''}`;
+      ctx.fillText(statusTxt, midX, p.y - 31 * s);
+      ctx.restore();
+    });
+
+    // Draw Bus A & Bus B Vertical Substation Bars on top of line ends
+    [
+      { x: busAX, title: 'BUS A: GEN HUB', sub: `Injecting ${st.Itot.toFixed(2)} kA`, col: '#38bdf8' },
+      { x: busBX, title: 'BUS B: LOAD CENTER', sub: `ΔV_AB = -${st.dV.toFixed(1)} kV`, col: s3StorageRelief ? '#c084fc' : '#10b981' }
+    ].forEach(bus => {
+      ctx.save();
+      ctx.fillStyle = '#0d182c';
+      ctx.strokeStyle = bus.col;
+      ctx.lineWidth = 3 * s;
+      ctx.beginPath();
+      ctx.roundRect(bus.x - 16 * s, y1 - 30 * s, 32 * s, (y3 - y1) + 60 * s, 8 * s);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${10.5 * s}px Segoe UI`;
+      ctx.textAlign = 'center';
+      ctx.fillText(bus.title, bus.x, y1 - 46 * s);
+      ctx.fillStyle = bus.col;
+      ctx.font = `bold ${10 * s}px Courier New`;
+      ctx.fillText(bus.sub, bus.x, y1 - 33 * s);
+      ctx.restore();
+    });
+  }
+
+  // Main Animation Loop
+  function animate(now) {
+    const dt = (now - lastFrame) / 1000;
+    lastFrame = now;
+    if (!isPaused) simTime += dt;
+
+    if (showAll || activeTab === 1) drawSim1(c1.getContext('2d'), c1.width, c1.height, window.devicePixelRatio);
+    if (showAll || activeTab === 2) drawSim2(c2.getContext('2d'), c2.width, c2.height, window.devicePixelRatio);
+    if (showAll || activeTab === 3) drawSim3(c3.getContext('2d'), c3.width, c3.height, window.devicePixelRatio);
+
+    requestAnimationFrame(animate);
+  }
+
+  resizeCanvases();
+  updateSim1();
+  updateSim2();
+  updateSim3();
+  requestAnimationFrame(animate);
+</script>
+</body>
+</html>

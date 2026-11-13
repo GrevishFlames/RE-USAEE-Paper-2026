@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The Trading Floor · Desk Systems Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   THE TRADING FLOOR — Desk Systems Simulator
+   Companion to Davis (2026). Docket design system.
+   Five desks, one market engine.
+   ============================================================ */
+
+:root {
+  --bg-deep:#0a0d12; --bg-base:#0e1218; --bg-card:#141821; --bg-card-hover:#181c26;
+  --bg-elev:#1c2230; --bg-input:#0c0f15;
+  --border:#232934; --border-strong:#303747; --border-accent:#3e4658;
+  --text-primary:#e8e4dc; --text-body:#c4c0b6; --text-muted:#8a93a3; --text-faint:#5d6675;
+  --copper:#e0a96d; --copper-dim:#b5824e; --copper-bright:#f0c290;
+  --teal:#6db5b5; --sage:#8db573; --rose:#cf7878; --slate-blue:#7d97c4;
+  --positive:#7fb069; --negative:#d4756b; --warning:#e0a96d; --critical:#e85d75;
+  --bid:#5b8fb9; --ask:#c4756b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 4px 12px rgba(0,0,0,.5); --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+  --font-display:"Fraunces","Iowan Old Style",Georgia,serif;
+  --font-body:"Geist","Inter",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg-deep);color:var(--text-body);font-family:var(--font-body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(224,169,109,.04),transparent 70%),radial-gradient(ellipse 60% 80% at 100% 100%,rgba(109,181,181,.02),transparent 60%),var(--bg-deep);background-attachment:fixed;min-height:100vh}
+::selection{background:rgba(224,169,109,.25);color:var(--text-primary)}
+:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+
+/* ====== Masthead ====== */
+.masthead{border-bottom:1px solid var(--border);padding:26px 36px 0 36px;background:linear-gradient(180deg,rgba(20,24,33,.4) 0%,transparent 100%);position:relative}
+.masthead::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent 0%,var(--copper) 20%,var(--copper-bright) 50%,var(--copper) 80%,transparent 100%);opacity:.7}
+.masthead-grid{display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;max-width:1780px;margin:0 auto}
+.kicker{font-family:var(--font-mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--copper);margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.kicker::before{content:'';width:24px;height:1px;background:var(--copper)}
+.kicker::after{content:'◆';color:var(--copper-dim);font-size:8px}
+.masthead h1{font-family:var(--font-display);font-weight:350;font-size:clamp(30px,3.4vw,46px);line-height:1;color:var(--text-primary);letter-spacing:-.02em;margin-bottom:14px;font-variation-settings:"opsz" 144,"SOFT" 30}
+.masthead h1 em{font-style:italic;font-variation-settings:"opsz" 144,"SOFT" 100;color:var(--copper)}
+.masthead .lede{font-family:var(--font-display);font-weight:300;font-style:italic;font-size:16px;color:var(--text-muted);max-width:760px;line-height:1.45}
+.masthead .citation{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-top:14px;letter-spacing:.04em}
+.masthead .citation strong{color:var(--text-muted);font-weight:500}
+.status-cluster{display:flex;flex-direction:column;align-items:flex-end;gap:7px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint)}
+.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--positive);box-shadow:0 0 8px rgba(127,176,105,.6);margin-right:8px;animation:pulse 2s ease-in-out infinite}
+.live-dot.halted{background:var(--text-faint);box-shadow:none;animation:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ====== Desk tabs ====== */
+.desk-nav{display:flex;gap:2px;max-width:1780px;margin:22px auto 0 auto;overflow-x:auto}
+.desk-tab{background:transparent;border:1px solid transparent;border-bottom:none;color:var(--text-faint);font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;padding:11px 18px;cursor:pointer;white-space:nowrap;transition:color .15s,background .15s;position:relative;top:1px}
+.desk-tab:hover{color:var(--text-muted);background:rgba(255,255,255,.02)}
+.desk-tab[aria-selected="true"]{color:var(--copper);background:var(--bg-base);border-color:var(--border);border-bottom:1px solid var(--bg-base)}
+.desk-tab .tab-idx{color:var(--border-accent);margin-right:8px}
+.desk-tab[aria-selected="true"] .tab-idx{color:var(--copper-dim)}
+.desk-tab .vendor{display:block;font-size:8.5px;letter-spacing:.06em;color:var(--text-faint);text-transform:none;margin-top:3px;opacity:.75}
+
+/* ====== Layout ====== */
+.floor{max-width:1780px;margin:0 auto;padding:24px 36px 70px 36px}
+.desk-panel{display:none}
+.desk-panel.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.desk-head{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:start;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.desk-head h2{font-family:var(--font-display);font-weight:400;font-size:24px;color:var(--text-primary);letter-spacing:-.01em;margin-bottom:6px}
+.desk-head .sub{font-size:13px;color:var(--text-muted);max-width:820px;line-height:1.5}
+.desk-head .sub b{color:var(--copper);font-weight:500}
+.desk-chrome{font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;text-align:right;line-height:1.7;white-space:nowrap}
+.desk-chrome b{color:var(--text-muted);font-weight:500}
+
+/* ====== Cards ====== */
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:2px;box-shadow:var(--shadow-sm)}
+.card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.012)}
+.card-head h3{font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted);font-weight:500}
+.card-head .meta{font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);letter-spacing:.05em}
+.card-body{padding:14px}
+.card-body.flush{padding:0}
+
+/* ====== Buttons / inputs ====== */
+button{font-family:var(--font-body);cursor:pointer}
+.btn{background:var(--bg-elev);border:1px solid var(--border-strong);color:var(--text-body);font-family:var(--font-mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;padding:8px 14px;border-radius:2px;transition:all .15s}
+.btn:hover{background:var(--bg-card-hover);border-color:var(--border-accent);color:var(--text-primary)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.copper{background:rgba(224,169,109,.12);border-color:var(--copper-dim);color:var(--copper-bright)}
+.btn.copper:hover{background:rgba(224,169,109,.2)}
+.btn.buy{background:rgba(91,143,185,.14);border-color:#3f6a8d;color:#9dc4e0}
+.btn.buy:hover{background:rgba(91,143,185,.26)}
+.btn.sell{background:rgba(196,117,107,.14);border-color:#8d4f47;color:#e0a29a}
+.btn.sell:hover{background:rgba(196,117,107,.26)}
+.btn.tiny{padding:5px 9px;font-size:9px}
+select,input[type=text],input[type=number]{background:var(--bg-input);border:1px solid var(--border-strong);color:var(--text-primary);font-family:var(--font-mono);font-size:12px;padding:7px 9px;border-radius:2px;width:100%}
+input[type=range]{width:100%;accent-color:var(--copper);background:transparent}
+label.fld{display:block;font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);margin-bottom:5px}
+.seg{display:flex;border:1px solid var(--border-strong);border-radius:2px;overflow:hidden}
+.seg button{flex:1;background:var(--bg-input);border:none;color:var(--text-faint);font-family:var(--font-mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:7px 4px;transition:all .12s}
+.seg button[aria-pressed="true"]{background:var(--bg-elev);color:var(--copper)}
+.seg button:hover{color:var(--text-body)}
+
+/* ====== Tables ====== */
+table.grid{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11px}
+table.grid th{text-align:left;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--text-faint);font-weight:500;padding:7px 10px;border-bottom:1px solid var(--border-strong);background:rgba(255,255,255,.015);position:sticky;top:0;z-index:2}
+table.grid td{padding:6px 10px;border-bottom:1px solid rgba(35,41,52,.6);color:var(--text-body)}
+table.grid tr:hover td{background:rgba(255,255,255,.02)}
+table.grid td.num,table.grid th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pos{color:var(--positive)} .neg{color:var(--negative)} .mut{color:var(--text-faint)}
+.empty-row{padding:22px 12px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.08em}
+
+/* ====== Ladder (DOM) ====== */
+.ladder-wrap{max-height:474px;overflow-y:auto;background:var(--bg-input);border:1px solid var(--border)}
+.ladder{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.ladder th{font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--border-strong);background:var(--bg-card);position:sticky;top:0;z-index:3}
+.ladder td{padding:0;height:22px;border-bottom:1px solid rgba(35,41,52,.35);text-align:center;cursor:pointer;position:relative;transition:background .1s}
+.ladder td.px{color:var(--text-primary);font-weight:500;background:rgba(255,255,255,.02);cursor:default;width:82px;letter-spacing:.02em}
+.ladder tr.at-bid td.px{color:var(--bid)} .ladder tr.at-ask td.px{color:var(--ask)}
+.ladder tr.last td.px{background:rgba(224,169,109,.16);color:var(--copper-bright)}
+.ladder td.bidq{color:var(--bid)} .ladder td.askq{color:var(--ask)}
+.ladder td .depthbar{position:absolute;top:2px;bottom:2px;opacity:.16}
+.ladder td.bidq .depthbar{right:0;background:var(--bid)} .ladder td.askq .depthbar{left:0;background:var(--ask)}
+.ladder td .q{position:relative;z-index:1}
+.ladder td.bidq:hover{background:rgba(91,143,185,.2);box-shadow:inset 0 0 0 1px var(--bid)}
+.ladder td.askq:hover{background:rgba(196,117,107,.2);box-shadow:inset 0 0 0 1px var(--ask)}
+.ladder td.mine{font-weight:700}
+.ladder td.mine::after{content:'';position:absolute;top:3px;bottom:3px;width:3px;background:var(--copper);left:2px;z-index:2}
+.ladder td.askq.mine::after{left:auto;right:2px}
+.ladder td.wk{color:var(--copper-bright);font-size:10px;width:44px;cursor:default;background:rgba(224,169,109,.05)}
+
+/* ====== Blotter tape ====== */
+.tape{max-height:180px;overflow-y:auto;font-family:var(--font-mono);font-size:10.5px}
+.tape-row{display:grid;grid-template-columns:56px 40px 44px 1fr auto;gap:8px;padding:4px 12px;border-bottom:1px solid rgba(35,41,52,.5);align-items:center}
+.tape-row:hover{background:rgba(255,255,255,.02)}
+.tape-row .t{color:var(--text-faint)}
+.tape-row .s.b{color:var(--bid)} .tape-row .s.s{color:var(--ask)}
+.tape-row .oi{font-size:9px;letter-spacing:.06em;padding:1px 6px;border-radius:2px;border:1px solid}
+.oi-up{color:var(--sage);border-color:rgba(141,181,115,.35);background:rgba(141,181,115,.08)}
+.oi-flat{color:var(--text-faint);border-color:var(--border);background:rgba(255,255,255,.02)}
+.oi-dn{color:var(--rose);border-color:rgba(207,120,120,.35);background:rgba(207,120,120,.08)}
+
+/* ====== Stat readouts ====== */
+.stats{display:grid;gap:1px;background:var(--border)}
+.stats.c2{grid-template-columns:1fr 1fr} .stats.c3{grid-template-columns:repeat(3,1fr)} .stats.c4{grid-template-columns:repeat(4,1fr)}
+.stat{background:var(--bg-card);padding:11px 13px}
+.stat .k{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:5px}
+.stat .v{font-family:var(--font-mono);font-size:17px;color:var(--text-primary);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.stat .v.sm{font-size:14px}
+.stat .n{font-size:9.5px;color:var(--text-faint);margin-top:3px;font-family:var(--font-mono)}
+
+/* ====== Teaching notes ====== */
+.note{border-left:2px solid var(--copper-dim);background:rgba(224,169,109,.045);padding:11px 14px;font-size:12.5px;line-height:1.55;color:var(--text-body)}
+.note b{color:var(--copper-bright);font-weight:500}
+.note .hd{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper);margin-bottom:6px}
+.note.teal{border-color:var(--teal);background:rgba(109,181,181,.05)} .note.teal .hd{color:var(--teal)} .note.teal b{color:var(--teal)}
+.note.rose{border-color:var(--rose);background:rgba(207,120,120,.05)} .note.rose .hd{color:var(--rose)} .note.rose b{color:var(--rose)}
+
+/* ====== Misc ====== */
+.pill{display:inline-block;font-family:var(--font-mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;border:1px solid var(--border-strong);color:var(--text-faint)}
+.pill.phys{color:var(--sage);border-color:rgba(141,181,115,.4);background:rgba(141,181,115,.07)}
+.pill.cash{color:var(--slate-blue);border-color:rgba(125,151,196,.4);background:rgba(125,151,196,.07)}
+.pill.live{color:var(--copper);border-color:var(--copper-dim);background:rgba(224,169,109,.08)}
+.rowsplit{display:grid;gap:16px}
+.hint{font-size:11px;color:var(--text-faint);line-height:1.5;font-style:italic}
+hr.rule{border:none;border-top:1px solid var(--border);margin:14px 0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--bg-elev);border:1px solid var(--copper-dim);color:var(--copper-bright);font-family:var(--font-mono);font-size:11px;padding:10px 18px;border-radius:2px;box-shadow:var(--shadow-lg);z-index:99;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
+.toast.err{border-color:var(--critical);color:var(--critical)}
+svg text{font-family:var(--font-mono)}
+
+/* ====== Responsive ====== */
+.exec-grid{display:grid;grid-template-columns:262px 340px 1fr;gap:16px;align-items:start}
+.clr-grid{display:grid;grid-template-columns:1fr 380px;gap:16px;align-items:start}
+.risk-grid{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start}
+.sched-grid{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start}
+@media(max-width:1400px){.exec-grid{grid-template-columns:250px 320px 1fr}}
+@media(max-width:1200px){.exec-grid,.clr-grid,.risk-grid,.sched-grid{grid-template-columns:1fr}.stats.c4{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.floor{padding:16px 14px 50px 14px}.masthead{padding:20px 16px 0 16px}.desk-head{grid-template-columns:1fr}.desk-chrome{text-align:left}.stats.c3,.stats.c4{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="masthead">
+  <div class="masthead-grid">
+    <div>
+      <div class="kicker">Desk Systems Simulator · Exhibit T</div>
+      <h1>The <em>Trading Floor</em></h1>
+      <div class="lede">The five screens a physical commodity firm actually runs — execution, clearing, risk, scheduling, and the settlement tape — rebuilt from public exchange rulebooks. One market engine underneath: a fill on the ladder propagates to margin, to VaR, to the pipeline nomination.</div>
+      <div class="citation">Companion to <strong>Davis (2026)</strong> · Grid-Scale Storage: Enforcing Convergence Between the Near-Forward Curve and Spot Price · University of Tulsa</div>
+    </div>
+    <div class="status-cluster">
+      <div><span class="live-dot" id="sessionDot"></span><span id="sessionState">Session Open</span></div>
+      <div id="clockRead">D+0 · 09:30 CT</div>
+      <div id="venueRead">CME Globex · NYMEX</div>
+    </div>
+  </div>
+  <nav class="desk-nav" role="tablist" aria-label="Desk">
+    <button class="desk-tab" role="tab" aria-selected="true" data-desk="exec"><span class="tab-idx">01</span>Execution<span class="vendor">WebICE · CQG · Globex front-end</span></button>
+    <button class="desk-tab" role="tab" aria-selected="false" data-desk="clear"><span class="tab-idx">02</span>Clearing &amp; Margin<span class="vendor">CME Clearing · ECC · FCM back office</span></button>
+    <button class="desk-tab" role="tab" aria-selected="false" data-desk="risk"><span class="tab-idx">03</span>Risk Book<span class="vendor">ION Endur · Openlink · middle office</span></button>
+    <button class="desk-tab" role="tab" aria-selected="false" data-desk="sched"><span class="tab-idx">04</span>Scheduling<span class="vendor">Pipeline EBB · CAISO SIBR · EEX FTS</span></button>
+    <button class="desk-tab" role="tab" aria-selected="false" data-desk="tape"><span class="tab-idx">05</span>The Tether Tape<span class="vendor">OI lifecycle · physical vs. cash</span></button>
+  </nav>
+</div>
+
+<main class="floor">
+
+<!-- ══════════════════════════ DESK 1 — EXECUTION ══════════════════════════ -->
+<section class="desk-panel active" id="desk-exec" role="tabpanel">
+  <div class="desk-head">
+    <div>
+      <h2>Execution — the price ladder</h2>
+      <div class="sub">This is the screen. A depth-of-market ladder, an order ticket, a fills tape, a position line. Click a quantity cell to work a limit order at that price; hit the bid or lift the offer to trade now. <b>Note what is not on the ticket: there is no open/close field.</b> You never tell the exchange your intent — it is inferred downstream from your clearing account's net position, which is why open interest is a T+1 number and not a live one.</div>
+    </div>
+    <div class="desk-chrome">
+      Trader <b>MDAVIS</b> · Acct <b>SEMP-01</b><br>
+      Clearing FCM <b>MACQUARIE FUTURES</b><br>
+      Entitlements <b>NYMEX · ICE · NODAL</b>
+    </div>
+  </div>
+
+  <div class="exec-grid">
+    <!-- Left: instrument + ticket -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Instrument</h3><span class="meta" id="instPill"></span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:11px">
+          <div>
+            <label class="fld" for="instSel">Contract</label>
+            <select id="instSel"></select>
+          </div>
+          <div id="instMeta" style="font-family:var(--font-mono);font-size:10px;color:var(--text-faint);line-height:1.9"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Order Ticket</h3><span class="meta">F1 · New</span></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:11px">
+          <div>
+            <label class="fld">Side</label>
+            <div class="seg" id="segSide">
+              <button data-v="B" aria-pressed="true">Buy</button>
+              <button data-v="S" aria-pressed="false">Sell</button>
+            </div>
+          </div>
+          <div>
+            <label class="fld">Type</label>
+            <div class="seg" id="segType">
+              <button data-v="LMT" aria-pressed="true">Limit</button>
+              <button data-v="MKT" aria-pressed="false">Market</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+            <div><label class="fld" for="qtyIn">Qty (lots)</label><input type="number" id="qtyIn" value="5" min="1" max="500"/></div>
+            <div><label class="fld" for="pxIn">Limit price</label><input type="text" id="pxIn" value=""/></div>
+          </div>
+          <div>
+            <label class="fld">Time in force</label>
+            <div class="seg" id="segTif">
+              <button data-v="DAY" aria-pressed="true">Day</button>
+              <button data-v="GTC" aria-pressed="false">GTC</button>
+              <button data-v="IOC" aria-pressed="false">IOC</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:2px">
+            <button class="btn buy" id="btnBuy">Buy</button>
+            <button class="btn sell" id="btnSell">Sell</button>
+          </div>
+          <button class="btn tiny" id="btnCxlAll">Cancel all working</button>
+          <div class="hint">There is no “open” or “close” on this ticket. Real ones don't have it either.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Session</h3></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:9px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+            <button class="btn tiny" id="btnPause">Pause tape</button>
+            <button class="btn tiny copper" id="btnEod">Run close →</button>
+          </div>
+          <div class="hint">“Run close” fires the settlement window, computes VWAP, posts variation margin, and publishes open interest. Watch desks 02 and 03 change.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Middle: ladder -->
+    <div class="card">
+      <div class="card-head">
+        <h3>Depth of Market</h3>
+        <span class="meta" id="ladderMeta">—</span>
+      </div>
+      <div class="card-body flush">
+        <div class="ladder-wrap" id="ladderWrap">
+          <table class="ladder">
+            <thead><tr><th style="width:44px">Wkg</th><th>Bid</th><th style="width:82px">Price</th><th>Ask</th><th style="width:44px">Wkg</th></tr></thead>
+            <tbody id="ladderBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: position, fills, working -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Position &amp; P&amp;L</h3><span class="meta" id="posMeta">intraday</span></div>
+        <div class="card-body flush">
+          <div class="stats c4">
+            <div class="stat"><div class="k">Net position</div><div class="v" id="stNet">0</div><div class="n" id="stNetN">flat</div></div>
+            <div class="stat"><div class="k">Avg price</div><div class="v sm" id="stAvg">—</div><div class="n">weighted</div></div>
+            <div class="stat"><div class="k">Open P&amp;L</div><div class="v sm" id="stOpen">$0</div><div class="n" id="stOpenN">vs last</div></div>
+            <div class="stat"><div class="k">Realized</div><div class="v sm" id="stReal">$0</div><div class="n">round turns</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Working Orders</h3><span class="meta" id="wkMeta">0 live</span></div>
+        <div class="card-body flush" style="max-height:150px;overflow-y:auto">
+          <table class="grid">
+            <thead><tr><th>Ord</th><th>Side</th><th class="num">Qty</th><th class="num">Px</th><th>TIF</th><th></th></tr></thead>
+            <tbody id="wkBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Your Fills</h3><span class="meta">intent inferred by clearing →</span></div>
+        <div class="card-body flush">
+          <div class="tape" id="fillsTape"><div class="empty-row">No fills yet. Hit a bid or lift an offer.</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Time &amp; Sales — all market</h3><span class="meta">every print, every account</span></div>
+        <div class="card-body flush">
+          <div class="tape" id="tsTape"></div>
+        </div>
+      </div>
+
+      <div class="note">
+        <div class="hd">The mechanic you were missing</div>
+        Every print has a buyer and a seller. But each side is independently <b>opening</b> or <b>closing</b>. Open×Open creates a contract (<b>+1 OI</b>). Open×Close transfers it (<b>0</b>). Close×Close extinguishes it (<b>−1</b>). That is why 500,000 lots of volume can move OI up, down, or not at all — and why volume and OI are different animals. The tag on each print above is what the clearinghouse derives overnight; on a live screen you would never see it.
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ══════════════════════════ DESK 2 — CLEARING ══════════════════════════ -->
+<section class="desk-panel" id="desk-clear" role="tabpanel">
+  <div class="desk-head">
+    <div>
+      <h2>Clearing &amp; margin — where open interest is actually made</h2>
+      <div class="sub">The trader's screen ends at the fill. This is the next room. The clearinghouse novates every trade, becomes buyer to every seller, then at the close computes one official settlement price, moves cash, and — only then — counts contracts. <b>Open interest is a byproduct of position reports, not a market datum.</b> It is published preliminary the next morning and finalised after.</div>
+    </div>
+    <div class="desk-chrome">
+      Clearing member <b>MACQUARIE FUTURES USA</b><br>
+      Model <b>CME SPAN 2 (illustrative)</b><br>
+      Cycle <b>T+1 · prelim 08:00 ET</b>
+    </div>
+  </div>
+
+  <div class="clr-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Open interest ledger — every account in the book</h3><span class="meta" id="oiLedgerMeta"></span></div>
+        <div class="card-body flush" style="max-height:300px;overflow-y:auto">
+          <table class="grid">
+            <thead><tr><th>Time</th><th>Buyer</th><th>Buy intent</th><th>Seller</th><th>Sell intent</th><th class="num">Qty</th><th class="num">Px</th><th class="num">ΔOI</th><th class="num">OI</th></tr></thead>
+            <tbody id="oiLedgerBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Settlement window &amp; variation margin</h3><span class="meta" id="setlMeta">not yet run</span></div>
+        <div class="card-body">
+          <div class="stats c4" style="margin-bottom:14px">
+            <div class="stat"><div class="k">Settlement px</div><div class="v" id="stSetl">—</div><div class="n" id="stSetlN">VWAP 14:28–14:30</div></div>
+            <div class="stat"><div class="k">Prior settle</div><div class="v sm" id="stPrior">—</div><div class="n">yesterday's mark</div></div>
+            <div class="stat"><div class="k">Variation margin</div><div class="v sm" id="stVm">$0</div><div class="n">cash moved overnight</div></div>
+            <div class="stat"><div class="k">Initial margin</div><div class="v sm" id="stIm">$0</div><div class="n">held, not spent</div></div>
+          </div>
+          <div id="setlDetail" style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted);line-height:1.85;background:var(--bg-input);border:1px solid var(--border);padding:12px"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Cash ledger — your account</h3><span class="meta">variation is real money, daily</span></div>
+        <div class="card-body flush" style="max-height:220px;overflow-y:auto">
+          <table class="grid">
+            <thead><tr><th>Day</th><th class="num">Settle</th><th class="num">Δ Settle</th><th class="num">Position</th><th class="num">Variation</th><th class="num">Balance</th></tr></thead>
+            <tbody id="cashBody"><tr><td colspan="6" class="empty-row">Run a close on desk 01 to post the first day.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Settlement methodology</h3><span class="meta">why it isn't the last trade</span></div>
+        <div class="card-body">
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <label class="fld">Fallback cascade — click to force a tier</label>
+            <div id="setlTiers" style="display:flex;flex-direction:column;gap:5px"></div>
+          </div>
+          <hr class="rule">
+          <div class="hint">Exchanges walk this ladder in order. Tier 1 fires in liquid months; the deferred 2031 strip in your book almost always settles on tier 3 or 4, which is exactly why a long-dated power curve is an artifact of a committee, not of trading.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Initial margin — SPAN scan</h3><span class="meta">illustrative</span></div>
+        <div class="card-body flush">
+          <div id="spanScan"></div>
+        </div>
+      </div>
+
+      <div class="note teal">
+        <div class="hd">The thing to carry into a conversation</div>
+        A desk person's day is governed by the <b>variation margin call</b>, not by the P&amp;L on the screen. You can be right about the trade and still get carried out because the mark moved against you before it moved for you, and the cash left the account overnight. Enron's counterparties didn't fail on a view; they failed on a margin cycle. That's the mechanism under Point C on your slide 2.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ DESK 3 — RISK ══════════════════════════ -->
+<section class="desk-panel" id="desk-risk" role="tabpanel">
+  <div class="desk-head">
+    <div>
+      <h2>Risk book — what the middle office sends up at 07:00</h2>
+      <div class="sub">This is the ETRM output: position by tenor, mark-to-market against the forward curve, VaR, and a stress grid. <b>You will be asked to explain a VaR number, not to compute one.</b> The four things that matter: which method, which confidence, which horizon, and what it excludes.</div>
+    </div>
+    <div class="desk-chrome">
+      System <b>ETRM · position + risk</b><br>
+      Book <b>SEMP-01 · WEST GAS/POWER</b><br>
+      COB <b id="riskCob">D+0</b>
+    </div>
+  </div>
+
+  <div class="risk-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>VaR parameters</h3></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div><label class="fld">Method</label>
+            <div class="seg" id="segVar">
+              <button data-v="param" aria-pressed="true">Parametric</button>
+              <button data-v="hist" aria-pressed="false">Historical</button>
+              <button data-v="mc" aria-pressed="false">Monte Carlo</button>
+            </div>
+          </div>
+          <div><label class="fld">Confidence</label>
+            <div class="seg" id="segConf">
+              <button data-v="95" aria-pressed="true">95%</button>
+              <button data-v="99" aria-pressed="false">99%</button>
+            </div>
+          </div>
+          <div><label class="fld" for="horizIn">Horizon <span id="horizLbl">1 day</span></label><input type="range" id="horizIn" min="1" max="10" value="1"/></div>
+          <div><label class="fld" for="volIn">Annualised vol <span id="volLbl">—</span></label><input type="range" id="volIn" min="20" max="220" value="65"/></div>
+          <hr class="rule">
+          <div class="hint">Power vol lives at the top of that slider. Gas sits mid. That single fact is why a power book of the same notional eats several times the risk limit — and why nobody warehouses it.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Limits</h3></div>
+        <div class="card-body flush"><div id="limitBars"></div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Value at Risk</h3><span class="meta" id="varMeta"></span></div>
+        <div class="card-body flush">
+          <div class="stats c3">
+            <div class="stat"><div class="k">VaR</div><div class="v" id="stVar">$0</div><div class="n" id="stVarN"></div></div>
+            <div class="stat"><div class="k">Expected shortfall</div><div class="v sm" id="stEs">$0</div><div class="n">mean loss beyond VaR</div></div>
+            <div class="stat"><div class="k">Notional</div><div class="v sm" id="stNotional">$0</div><div class="n">absolute exposure</div></div>
+          </div>
+          <div style="padding:14px"><div id="varChart"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Position by tenor — the curve you're actually short</h3><span class="meta">1 lot = contract unit</span></div>
+        <div class="card-body flush"><div style="padding:14px"><div id="tenorChart"></div></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Stress grid</h3><span class="meta">P&amp;L under scenario, $</span></div>
+        <div class="card-body flush" style="overflow-x:auto"><div id="stressGrid"></div></div>
+      </div>
+
+      <div class="note rose">
+        <div class="hd">What VaR does not see</div>
+        Every number above assumes you can get out. <b>VaR is a liquidity-blind measure</b> — it prices the move, not the exit. In a market with no inventory holders standing on the other side, the exit is the whole risk. That is the gap between a gas book and a power book of identical VaR, and no ETRM screen in the industry displays it.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ DESK 4 — SCHEDULING ══════════════════════════ -->
+<section class="desk-panel" id="desk-sched" role="tabpanel">
+  <div class="desk-head">
+    <div>
+      <h2>Scheduling — where paper becomes molecules, or doesn't</h2>
+      <div class="sub">The commercial desk trades; the scheduling desk delivers. This screen has three modes because the three markets do it three different ways: gas nominates onto a pipeline, US power self-schedules into an ISO, European power opts into EEX's Future-to-Spot bid conversion. <b>Compare what each one actually hands you at the end.</b></div>
+    </div>
+    <div class="desk-chrome">
+      Mode <b id="schedModeRead">GAS · EBB</b><br>
+      Cycle <b id="schedCycleRead">TIMELY</b><br>
+      Op day <b id="schedDayRead">D+1</b>
+    </div>
+  </div>
+
+  <div class="sched-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Market</h3></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+          <div class="seg" id="segSched" style="flex-direction:column">
+            <button data-v="gas" aria-pressed="true">Gas — pipeline EBB nomination</button>
+            <button data-v="power" aria-pressed="false">US power — ISO self-schedule</button>
+            <button data-v="fts" aria-pressed="false">EU power — EEX Future-to-Spot</button>
+          </div>
+          <div id="schedTicket" style="display:flex;flex-direction:column;gap:11px"></div>
+          <button class="btn copper" id="btnNom">Submit</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Cycle clock</h3><span class="meta">NAESB / ISO deadlines</span></div>
+        <div class="card-body flush"><div id="cycleClock"></div></div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-head"><h3>Confirmation &amp; scheduled quantity</h3><span class="meta" id="confMeta">awaiting nomination</span></div>
+        <div class="card-body flush"><div id="confPanel"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>What you end up holding</h3><span class="meta">the tether test</span></div>
+        <div class="card-body flush"><div id="tetherTest"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════ DESK 5 — TAPE ══════════════════════════ -->
+<section class="desk-panel" id="desk-tape" role="tabpanel">
+  <div class="desk-head">
+    <div>
+      <h2>The tether tape — open interest into expiry</h2>
+      <div class="sub">Run a contract from listing to last trading day and watch the open interest curve. Physically-settled contracts <b>cliff</b> into expiry, because holding past first notice day means pipeline nominations and terminal scheduling, and almost nobody wants that. Cash-settled contracts have no cliff — there is nothing to avoid. <b>The shape of the curve into expiry is a signature of whether a physical tether exists.</b></div>
+    </div>
+    <div class="desk-chrome">
+      Source shape <b>illustrative, public-data replicable</b><br>
+      Check against <b>CME · ICE · Nodal · EEX daily OI</b>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head"><h3>Open interest lifecycle</h3><span class="meta" id="tapeMeta"></span></div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px">
+        <div><label class="fld" for="tapeDay">Trading day <span id="tapeDayLbl"></span></label><input type="range" id="tapeDay" min="0" max="100" value="100"/></div>
+        <div style="display:flex;align-items:flex-end;gap:8px">
+          <button class="btn tiny copper" id="btnRunTape">Run to expiry ▶</button>
+          <button class="btn tiny" id="btnResetTape">Reset</button>
+        </div>
+      </div>
+      <div id="oiChart"></div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="rowsplit">
+    <div class="card">
+      <div class="card-head"><h3>At the cursor</h3></div>
+      <div class="card-body flush"><div id="tapeStats"></div></div>
+    </div>
+    <div class="note">
+      <div class="hd">The exhibit inside the exhibit</div>
+      This is the one chart on this page that belongs on a slide. The cliff is a <b>delivery-avoidance artifact</b>: it measures how badly the marginal holder wants to not take the commodity. Its absence in ERCOT North and Phelix is not a liquidity story — those contracts ride flat through final settlement because <b>the tether is notional</b>. It is built from free daily OI files on four exchanges, it is falsifiable, and it puts a shape on the ≈0% in the FTS row of your Point F table.
+    </div>
+  </div>
+</section>
+
+</main>
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   THE TRADING FLOOR — engine
+   Position/OI ledger, settlement, margin, VaR, scheduling.
+   ============================================================ */
+'use strict';
+
+const $ = id => document.getElementById(id);
+const fmt = (n,d=0) => (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const num = (n,d=0) => n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+
+/* ---------- Instruments ---------- */
+const INSTS = {
+  NGQ6:{code:'NG Q6',name:'Henry Hub Natural Gas',ex:'NYMEX · CME Globex',settle:'physical',
+    unit:'10,000 MMBtu',ccy:'$/MMBtu',tick:0.001,tickVal:10,dp:3,px:3.412,vol:58,im:3400,
+    deliv:'Sabine Pipe Line, Erath LA',fnd:'3 business days before month',dte:24,pv:10000},
+  CLQ6:{code:'CL Q6',name:'WTI Light Sweet Crude',ex:'NYMEX · CME Globex',settle:'physical',
+    unit:'1,000 bbl',ccy:'$/bbl',tick:0.01,tickVal:10,dp:2,px:68.42,vol:34,im:5900,
+    deliv:'Cushing OK',fnd:'business day after LTD',dte:24,pv:1000},
+  ERNQ6:{code:'ERN Q6',name:'ERCOT North 345kV Hub · DA Peak',ex:'ICE',settle:'cash',
+    unit:'2.5 MW × 352 peak h = 880 MWh',ccy:'$/MWh',tick:0.01,tickVal:8.8,dp:2,px:42.75,vol:118,im:9200,
+    deliv:'— no delivery. Cash vs. ERCOT DA SPP',fnd:'n/a',dte:24,pv:880},
+  DEBQ6:{code:'DEB Q6',name:'German Power Base (Phelix-DE)',ex:'EEX',settle:'cash',
+    unit:'1 MW × 720 h = 720 MWh',ccy:'€/MWh',tick:0.01,tickVal:7.2,dp:2,px:88.30,vol:74,im:7400,
+    deliv:'— cash vs. EPEX SPOT DA. FTS optional.',fnd:'n/a',dte:24,pv:720}
+};
+
+/* ---------- Accounts ---------- */
+const ACCTS = {
+  YOU:      {id:'SEMP-01', label:'YOU',   kind:'you'},
+  MACRO:    {id:'MACRO-7', label:'Macro fund',       kind:'spec'},
+  PROD:     {id:'PROD-3',  label:'Producer',         kind:'hedger'},
+  STOR:     {id:'STOR-2',  label:'Storage merchant', kind:'phys'},
+  MM:       {id:'MM-1',    label:'Market maker',     kind:'mm'},
+  UTIL:     {id:'UTIL-9',  label:'Utility',          kind:'hedger'}
+};
+
+/* ---------- State ---------- */
+const S = {
+  inst:'NGQ6',
+  day:0, mins:570,           /* 09:30 CT */
+  paused:false,
+  side:'B', otype:'LMT', tif:'DAY',
+  books:{}, pos:{}, oi:{}, prints:[], myFills:[], ledger:[],
+  working:[], ordSeq:1,
+  realized:0, cash:250000, cashRows:[],
+  priorSettle:{}, todaySettle:{},
+  setlTier:1,
+  varMethod:'param', varConf:95, horizon:1, volOverride:null,
+  schedMode:'gas', schedResult:null,
+  tapeDay:100, tapeTimer:null
+};
+
+/* init per instrument */
+Object.keys(INSTS).forEach(k=>{
+  const I = INSTS[k];
+  S.books[k] = {mid:I.px, levels:{}, last:I.px};
+  S.oi[k] = 14000 + Math.floor(Math.random()*6000);
+  S.priorSettle[k] = I.px;
+  S.pos[k] = {};
+  Object.keys(ACCTS).forEach(a => S.pos[k][a] = 0);
+  /* seed bot positions so OI is nonzero and closes are possible */
+  S.pos[k].MACRO = 620; S.pos[k].PROD = -540; S.pos[k].STOR = -180;
+  S.pos[k].MM = 40; S.pos[k].UTIL = 60;
+});
+
+const I = () => INSTS[S.inst];
+const B = () => S.books[S.inst];
+const myPos = () => S.pos[S.inst].YOU;
+
+/* ---------- Price grid ---------- */
+function levelsFor(inst){
+  const I2 = INSTS[inst], b = S.books[inst];
+  const step = I2.tick * (I2.dp===3?10:10);      /* display grid = 10 ticks */
+  const n = 21;
+  const base = Math.round(b.mid/step)*step;
+  const out = [];
+  for(let i=Math.floor(n/2); i>=-Math.floor(n/2); i--) out.push(+(base + i*step).toFixed(6));
+  return out;
+}
+function stepOf(inst){ const I2=INSTS[inst]; return I2.tick*10; }
+
+/* seed resting depth */
+function seedBook(inst){
+  const b = S.books[inst];
+  b.levels = {};
+  levelsFor(inst).forEach(p=>{
+    const d = (p - b.mid)/stepOf(inst);
+    const shape = Math.max(0, 60 - Math.abs(d)*7) + Math.random()*22;
+    if(p < b.mid - stepOf(inst)*0.4) b.levels[p] = {bid:Math.round(shape*(INSTS[inst].settle==='cash'?0.45:1)+2), ask:0};
+    else if(p > b.mid + stepOf(inst)*0.4) b.levels[p] = {bid:0, ask:Math.round(shape*(INSTS[inst].settle==='cash'?0.45:1)+2)};
+    else b.levels[p] = {bid:0, ask:0};
+  });
+  /* inside market */
+  const st = stepOf(inst), base = Math.round(b.mid/st)*st;
+  b.levels[+(base-st).toFixed(6)] = {bid: 18+Math.floor(Math.random()*30), ask:0};
+  b.levels[+(base+st).toFixed(6)] = {bid:0, ask: 18+Math.floor(Math.random()*30)};
+  b.levels[+base.toFixed(6)] = {bid:0, ask:0};
+}
+Object.keys(INSTS).forEach(seedBook);
+
+function bestBid(inst){
+  const b=S.books[inst]; let best=null;
+  Object.keys(b.levels).forEach(p=>{ if(b.levels[p].bid>0 && (best===null || +p>best)) best=+p; });
+  return best;
+}
+function bestAsk(inst){
+  const b=S.books[inst]; let best=null;
+  Object.keys(b.levels).forEach(p=>{ if(b.levels[p].ask>0 && (best===null || +p<best)) best=+p; });
+  return best;
+}
+
+/* ============================================================
+   THE OI ENGINE — the whole point of the exhibit
+   OI = sum of positive positions across all accounts.
+   Compute before and after. Difference is ΔOI. No fudging.
+   ============================================================ */
+function totalLongs(inst){
+  let t=0; Object.keys(ACCTS).forEach(a=>{ const p=S.pos[inst][a]; if(p>0) t+=p; });
+  return t;
+}
+function intentOf(pos, qtySigned){
+  /* qtySigned: +ve if buying, -ve if selling */
+  const q = Math.abs(qtySigned);
+  if(pos === 0) return {open:q, close:0, label:'OPEN'};
+  const sameDir = (pos>0 && qtySigned>0) || (pos<0 && qtySigned<0);
+  if(sameDir) return {open:q, close:0, label:'OPEN'};
+  const close = Math.min(q, Math.abs(pos));
+  const open = q - close;
+  return {open, close, label: open>0 ? 'FLIP' : 'CLOSE'};
+}
+
+function execTrade(buyer, seller, qty, px){
+  const inst = S.inst;
+  const before = totalLongs(inst);
+  const bi = intentOf(S.pos[inst][buyer], qty);
+  const si = intentOf(S.pos[inst][seller], -qty);
+  S.pos[inst][buyer] += qty;
+  S.pos[inst][seller] -= qty;
+  const after = totalLongs(inst);
+  const dOI = after - before;
+  S.oi[inst] += dOI;
+
+  const rec = {t:clockStr(), buyer, seller, qty, px, dOI, oi:S.oi[inst],
+               bLabel:bi.label, sLabel:si.label};
+  S.prints.unshift(rec); if(S.prints.length>400) S.prints.pop();
+  S.ledger.unshift(rec); if(S.ledger.length>400) S.ledger.pop();
+  S.books[inst].last = px;
+  return rec;
+}
+
+/* your fill accounting: realized P&L on the closing portion */
+const avgBook = {};
+Object.keys(INSTS).forEach(k=>avgBook[k]={qty:0, avg:0});
+function applyMyFill(sideSign, qty, px){
+  const inst=S.inst, ab=avgBook[inst];
+  const it = intentOf(ab.qty, sideSign*qty);
+  if(it.close>0){
+    const pnl = (ab.qty>0 ? (px-ab.avg) : (ab.avg-px)) * it.close * INSTS[inst].pv;
+    S.realized += pnl; S.cash += pnl;
+  }
+  const newQty = ab.qty + sideSign*qty;
+  if(ab.qty===0 || (ab.qty>0)===(sideSign>0)){
+    ab.avg = (ab.avg*Math.abs(ab.qty) + px*qty)/(Math.abs(ab.qty)+qty);
+  } else if(Math.sign(newQty)!==Math.sign(ab.qty) && newQty!==0){
+    ab.avg = px;
+  }
+  ab.qty = newQty;
+}
+
+/* ---------- Order handling ---------- */
+function submit(side, type, qty, px, tif){
+  const inst=S.inst, b=B();
+  qty = Math.floor(qty);
+  if(!(qty>0)) return toast('Quantity must be at least 1 lot','err');
+  if(type==='MKT'){
+    const lvl = side==='B' ? bestAsk(inst) : bestBid(inst);
+    if(lvl===null) return toast('No liquidity on that side','err');
+    fillAggressive(side, qty, lvl);
+    return;
+  }
+  px = +px;
+  if(!isFinite(px)) return toast('Enter a limit price','err');
+  const st = stepOf(inst);
+  px = +(Math.round(px/st)*st).toFixed(6);
+  const bb=bestBid(inst), ba=bestAsk(inst);
+  /* marketable limit → aggress */
+  if(side==='B' && ba!==null && px>=ba){ fillAggressive('B', qty, ba); return; }
+  if(side==='S' && bb!==null && px<=bb){ fillAggressive('S', qty, bb); return; }
+  if(tif==='IOC') return toast('IOC — no marketable liquidity, order killed','err');
+  /* rest it: queue position = resting size already there */
+  if(!b.levels[px]) b.levels[px]={bid:0,ask:0};
+  const ahead = side==='B' ? b.levels[px].bid : b.levels[px].ask;
+  S.working.push({id:'O'+(S.ordSeq++), inst, side, qty, px, tif, ahead});
+  if(side==='B') b.levels[px].bid += qty; else b.levels[px].ask += qty;
+  toast('Working '+(side==='B'?'buy':'sell')+' '+qty+' @ '+px.toFixed(INSTS[inst].dp)+' · '+ahead+' lots ahead in queue');
+  renderExec();
+}
+
+function fillAggressive(side, qty, px){
+  const cp = pickCounterparty(side==='B'?'S':'B');
+  const rec = execTrade(side==='B'?'YOU':cp, side==='B'?cp:'YOU', qty, px);
+  applyMyFill(side==='B'?1:-1, qty, px);
+  S.myFills.unshift({t:rec.t, side, qty, px, dOI:rec.dOI, mine:side==='B'?rec.bLabel:rec.sLabel, cp});
+  if(S.myFills.length>60) S.myFills.pop();
+  /* consume depth */
+  const b=B();
+  if(b.levels[px]){
+    if(side==='B') b.levels[px].ask = Math.max(0, b.levels[px].ask - qty);
+    else b.levels[px].bid = Math.max(0, b.levels[px].bid - qty);
+  }
+  b.mid = px;
+  toast((side==='B'?'Bought ':'Sold ')+qty+' @ '+px.toFixed(I().dp)+' · '+(side==='B'?rec.bLabel:rec.sLabel)+' · ΔOI '+(rec.dOI>=0?'+':'')+rec.dOI);
+  renderAll();
+}
+
+function pickCounterparty(side){
+  const pool = ['MACRO','PROD','STOR','MM','UTIL','MM','MACRO'];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function cancel(id){
+  const i = S.working.findIndex(o=>o.id===id);
+  if(i<0) return;
+  const o = S.working[i], b = S.books[o.inst];
+  if(b.levels[o.px]){
+    if(o.side==='B') b.levels[o.px].bid = Math.max(0,b.levels[o.px].bid-o.qty);
+    else b.levels[o.px].ask = Math.max(0,b.levels[o.px].ask-o.qty);
+  }
+  S.working.splice(i,1);
+  renderExec();
+}
+
+/* ---------- Market simulation tick ---------- */
+function botTick(){
+  if(S.paused) return;
+  const inst = S.inst, b = B(), I2 = INSTS[inst];
+  S.mins += 1;
+  /* random walk on mid */
+  const drift = (Math.random()-0.5) * I2.tick * (I2.settle==='cash'?26:9);
+  b.mid = +(b.mid + drift).toFixed(6);
+
+  /* bot aggresses ~40% of ticks */
+  if(Math.random()<0.42){
+    const side = Math.random()<0.5?'B':'S';
+    const px = side==='B' ? bestAsk(inst) : bestBid(inst);
+    if(px!==null){
+      const q = 1+Math.floor(Math.random()*14);
+      const a = pickCounterparty(side), c = pickCounterparty(side==='B'?'S':'B');
+      if(a!==c){
+        execTrade(side==='B'?a:c, side==='B'?c:a, q, px);
+        /* eat my queue then my order */
+        matchMyWorking(side, px, q);
+      }
+    }
+  }
+  reseedInside();
+  if(S.mins > 60*14+30){ S.mins = 570; }
+  renderExecLight();
+}
+
+function matchMyWorking(aggSide, px, q){
+  /* aggressive buy consumes asks; my working sell at px can fill */
+  const mySide = aggSide==='B' ? 'S' : 'B';
+  const o = S.working.find(w=>w.inst===S.inst && w.side===mySide && Math.abs(w.px-px)<1e-9);
+  const b = B();
+  if(b.levels[px]){
+    if(aggSide==='B') b.levels[px].ask = Math.max(0,b.levels[px].ask-q);
+    else b.levels[px].bid = Math.max(0,b.levels[px].bid-q);
+  }
+  if(!o) return;
+  let rem = q;
+  if(o.ahead>0){ const eat=Math.min(o.ahead,rem); o.ahead-=eat; rem-=eat; }
+  if(rem<=0) return;
+  const fillQty = Math.min(rem, o.qty);
+  const cp = pickCounterparty(aggSide);
+  const rec = execTrade(mySide==='B'?'YOU':cp, mySide==='B'?cp:'YOU', fillQty, px);
+  applyMyFill(mySide==='B'?1:-1, fillQty, px);
+  S.myFills.unshift({t:rec.t, side:mySide, qty:fillQty, px, dOI:rec.dOI, mine:mySide==='B'?rec.bLabel:rec.sLabel, cp, passive:true});
+  o.qty -= fillQty;
+  if(o.qty<=0) S.working.splice(S.working.indexOf(o),1);
+  toast('Passive fill · '+(mySide==='B'?'bought ':'sold ')+fillQty+' @ '+px.toFixed(I().dp));
+  renderAll();
+}
+
+function reseedInside(){
+  const inst=S.inst, b=B(), st=stepOf(inst);
+  const base = Math.round(b.mid/st)*st;
+  const want = [base-st*2, base-st, base, base+st, base+st*2];
+  want.forEach(p=>{ p=+p.toFixed(6); if(!b.levels[p]) b.levels[p]={bid:0,ask:0}; });
+  const bb=bestBid(inst), ba=bestAsk(inst);
+  const thin = INSTS[inst].settle==='cash'?0.45:1;
+  if(bb===null || b.mid-bb > st*2.5){ const p=+(base-st).toFixed(6); b.levels[p].bid += Math.round((6+Math.random()*20)*thin); }
+  if(ba===null || ba-b.mid > st*2.5){ const p=+(base+st).toFixed(6); b.levels[p].ask += Math.round((6+Math.random()*20)*thin); }
+  /* trim far levels */
+  Object.keys(b.levels).forEach(p=>{
+    if(Math.abs(+p-b.mid)>st*12) delete b.levels[p];
+  });
+  levelsFor(inst).forEach(p=>{
+    if(!b.levels[p]){
+      const d=(p-b.mid)/st;
+      const sh=Math.max(0,Math.round((55-Math.abs(d)*7)*thin))+2;
+      b.levels[p] = p<b.mid ? {bid:sh,ask:0} : {bid:0,ask:sh};
+    }
+  });
+}
+
+function clockStr(){
+  const h = Math.floor(S.mins/60), m = S.mins%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+}
+/* ============================================================
+   RENDER — Desk 1 Execution
+   ============================================================ */
+function renderInstrument(){
+  const I2=I();
+  $('instPill').innerHTML = '<span class="pill '+(I2.settle==='physical'?'phys':'cash')+'">'+I2.settle+'</span>';
+  $('instMeta').innerHTML = [
+    ['Exchange', I2.ex],
+    ['Contract unit', I2.unit],
+    ['Quote', I2.ccy],
+    ['Tick', I2.tick.toFixed(I2.dp)+' = '+fmt(I2.tickVal,2)],
+    ['Settlement', I2.settle==='physical'?'Physical delivery':'Cash to index'],
+    ['Delivery point', I2.deliv],
+    ['First notice', I2.fnd],
+    ['Init margin', fmt(I2.im)+' / lot']
+  ].map(r=>'<div style="display:flex;justify-content:space-between;gap:10px"><span style="color:var(--text-faint)">'+r[0]+'</span><span style="color:var(--text-muted);text-align:right">'+r[1]+'</span></div>').join('');
+  $('venueRead').textContent = I2.ex;
+}
+
+function renderLadder(){
+  const inst=S.inst, b=B(), I2=I();
+  const lv = levelsFor(inst);
+  const bb=bestBid(inst), ba=bestAsk(inst);
+  let maxq = 1;
+  lv.forEach(p=>{ const L=b.levels[p]; if(L){ maxq=Math.max(maxq,L.bid,L.ask); } });
+  const html = lv.map(p=>{
+    const L = b.levels[p] || {bid:0,ask:0};
+    const wkB = S.working.filter(o=>o.inst===inst&&o.side==='B'&&Math.abs(o.px-p)<1e-9).reduce((a,o)=>a+o.qty,0);
+    const wkS = S.working.filter(o=>o.inst===inst&&o.side==='S'&&Math.abs(o.px-p)<1e-9).reduce((a,o)=>a+o.qty,0);
+    const cls = [];
+    if(bb!==null && Math.abs(p-bb)<1e-9) cls.push('at-bid');
+    if(ba!==null && Math.abs(p-ba)<1e-9) cls.push('at-ask');
+    if(Math.abs(p-b.last)<1e-9) cls.push('last');
+    const bw = L.bid/maxq*100, aw = L.ask/maxq*100;
+    return '<tr class="'+cls.join(' ')+'">'
+      +'<td class="wk">'+(wkB?wkB:'')+'</td>'
+      +'<td class="bidq'+(wkB?' mine':'')+'" data-px="'+p+'" data-side="B"><span class="depthbar" style="width:'+bw+'%"></span><span class="q">'+(L.bid||'')+'</span></td>'
+      +'<td class="px">'+p.toFixed(I2.dp)+'</td>'
+      +'<td class="askq'+(wkS?' mine':'')+'" data-px="'+p+'" data-side="S"><span class="depthbar" style="width:'+aw+'%"></span><span class="q">'+(L.ask||'')+'</span></td>'
+      +'<td class="wk">'+(wkS?wkS:'')+'</td></tr>';
+  }).join('');
+  $('ladderBody').innerHTML = html;
+  const sp = (bb!==null&&ba!==null) ? (ba-bb) : null;
+  $('ladderMeta').innerHTML = 'Last <b style="color:var(--copper)">'+b.last.toFixed(I2.dp)+'</b> · '
+    + (sp!==null ? 'Spread '+sp.toFixed(I2.dp)+' ('+Math.round(sp/I2.tick)+' ticks)' : 'no market')
+    + ' · OI '+num(S.oi[inst]);
+}
+
+function renderPos(){
+  const inst=S.inst, I2=I(), ab=avgBook[inst], p=ab.qty;
+  $('stNet').textContent = (p>0?'+':'')+p;
+  $('stNet').className = 'v '+(p>0?'pos':p<0?'neg':'');
+  $('stNetN').textContent = p===0?'flat':(p>0?'long':'short')+' · '+Math.abs(p*I2.pv).toLocaleString()+' '+I2.unit.split('=').pop().trim().split(' ').pop();
+  $('stAvg').textContent = p===0?'—':ab.avg.toFixed(I2.dp);
+  const open = p===0?0:(B().last - ab.avg)*p*I2.pv;
+  $('stOpen').textContent = fmt(open,0);
+  $('stOpen').className = 'v sm '+(open>0?'pos':open<0?'neg':'');
+  $('stOpenN').textContent = 'mark '+B().last.toFixed(I2.dp);
+  $('stReal').textContent = fmt(S.realized,0);
+  $('stReal').className = 'v sm '+(S.realized>0?'pos':S.realized<0?'neg':'');
+}
+
+function renderWorking(){
+  const w = S.working.filter(o=>o.inst===S.inst);
+  $('wkMeta').textContent = w.length+' live';
+  $('wkBody').innerHTML = w.length? w.map(o=>
+    '<tr><td class="mut">'+o.id+'</td><td class="'+(o.side==='B'?'pos':'neg')+'">'+(o.side==='B'?'BUY':'SELL')+'</td>'
+    +'<td class="num">'+o.qty+'</td><td class="num">'+o.px.toFixed(I().dp)+'</td><td class="mut">'+o.tif+'</td>'
+    +'<td class="num"><button class="btn tiny" data-cxl="'+o.id+'">×</button></td></tr>'
+    + (o.ahead>0? '<tr><td></td><td colspan="5" class="mut" style="font-size:9px;padding-top:0">'+o.ahead+' lots ahead of you in the queue at this price</td></tr>':'')
+  ).join('') : '<tr><td colspan="6" class="empty-row">No working orders. Click a size cell in the ladder to rest one.</td></tr>';
+  document.querySelectorAll('[data-cxl]').forEach(b=>b.onclick=()=>cancel(b.dataset.cxl));
+}
+
+function renderFills(){
+  if(!S.myFills.length){ $('fillsTape').innerHTML='<div class="empty-row">No fills yet. Hit a bid or lift an offer.</div>'; return; }
+  $('fillsTape').innerHTML = S.myFills.map(f=>{
+    const oc = f.dOI>0?'oi-up':f.dOI<0?'oi-dn':'oi-flat';
+    return '<div class="tape-row"><span class="t">'+f.t+'</span>'
+      +'<span class="s '+(f.side==='B'?'b':'s')+'">'+(f.side==='B'?'BUY':'SELL')+'</span>'
+      +'<span>'+f.qty+'</span>'
+      +'<span style="color:var(--text-primary)">'+f.px.toFixed(I().dp)+'<span style="color:var(--text-faint);font-size:9px"> · '+(f.passive?'passive':'aggressive')+' · vs '+ACCTS[f.cp].label+'</span></span>'
+      +'<span class="oi '+oc+'">'+f.mine+' · ΔOI '+(f.dOI>=0?'+':'')+f.dOI+'</span></div>';
+  }).join('');
+}
+
+function renderTS(){
+  $('tsTape').innerHTML = S.prints.slice(0,50).map(p=>{
+    const oc = p.dOI>0?'oi-up':p.dOI<0?'oi-dn':'oi-flat';
+    const mine = (p.buyer==='YOU'||p.seller==='YOU');
+    return '<div class="tape-row" style="'+(mine?'background:rgba(224,169,109,.06)':'')+'"><span class="t">'+p.t+'</span>'
+      +'<span class="s b">'+p.qty+'</span><span style="color:var(--text-primary)">'+p.px.toFixed(I().dp)+'</span>'
+      +'<span style="color:var(--text-faint);font-size:9.5px">'+ACCTS[p.buyer].label+' ← '+ACCTS[p.seller].label+'</span>'
+      +'<span class="oi '+oc+'">'+(p.dOI>=0?'+':'')+p.dOI+'</span></div>';
+  }).join('');
+}
+
+function renderExecLight(){ renderLadder(); renderPos(); renderTS(); $('clockRead').textContent='D+'+S.day+' · '+clockStr()+' CT'; }
+function renderExec(){ renderInstrument(); renderLadder(); renderPos(); renderWorking(); renderFills(); renderTS(); }
+
+/* ============================================================
+   RENDER — Desk 2 Clearing
+   ============================================================ */
+const TIERS = [
+  {n:1,name:'VWAP of the settlement window',desc:'Volume-weighted average of outright trades in the closing window (NG: 14:28–14:30 ET). Fires when the month traded.'},
+  {n:2,name:'Implied from calendar spreads',desc:'Deferred month has no outrights, but the spread to the anchored front month traded. Settle = front settle ± spread.'},
+  {n:3,name:'Bid/ask midpoint',desc:'No trades, no spreads. Take the midpoint of the best resting bid and offer at the close.'},
+  {n:4,name:'Prior settle + net change',desc:'Nothing resting either. Roll yesterday forward by the net change on a related month.'},
+  {n:5,name:'Committee determination',desc:'Settlement staff sets a reasonable value. A human decides the price of your book.'}
+];
+
+function renderTiers(){
+  $('setlTiers').innerHTML = TIERS.map(t=>
+    '<button class="btn tiny" data-tier="'+t.n+'" style="text-align:left;justify-content:flex-start;'
+    +(S.setlTier===t.n?'border-color:var(--copper-dim);background:rgba(224,169,109,.12);color:var(--copper-bright)':'')+'">'
+    +'Tier '+t.n+' · '+t.name+'</button>'
+    + (S.setlTier===t.n ? '<div style="font-size:11px;color:var(--text-muted);padding:2px 4px 6px 4px;line-height:1.5">'+t.desc+'</div>' : '')
+  ).join('');
+  document.querySelectorAll('[data-tier]').forEach(b=>b.onclick=()=>{S.setlTier=+b.dataset.tier;renderTiers();renderClear();});
+}
+
+function windowVwap(){
+  const w = S.prints.slice(0,14);
+  if(!w.length) return B().last;
+  let pv=0,v=0; w.forEach(p=>{pv+=p.px*p.qty; v+=p.qty;});
+  return pv/v;
+}
+function settlePrice(){
+  const I2=I(), b=B();
+  switch(S.setlTier){
+    case 1: return windowVwap();
+    case 2: return b.last + I2.tick*3;
+    case 3: { const bb=bestBid(S.inst), ba=bestAsk(S.inst); return (bb!==null&&ba!==null)?(bb+ba)/2:b.last; }
+    case 4: return S.priorSettle[S.inst] + (b.last - S.priorSettle[S.inst])*0.6;
+    case 5: return S.priorSettle[S.inst] + I2.tick*Math.round((b.last-S.priorSettle[S.inst])/I2.tick*0.5);
+  }
+}
+
+function runEod(){
+  const inst=S.inst, I2=I(), ab=avgBook[inst];
+  const st = +settlePrice().toFixed(I2.dp);
+  const prior = S.priorSettle[inst];
+  const vm = (st - prior) * ab.qty * I2.pv;
+  S.todaySettle[inst] = st;
+  S.cash += vm;
+  S.cashRows.unshift({day:'D+'+S.day, st, d:st-prior, pos:ab.qty, vm, bal:S.cash});
+  S.priorSettle[inst] = st;
+  S.day++; S.mins=570;
+  /* day orders expire */
+  S.working = S.working.filter(o=>{
+    if(o.tif==='DAY'){ const b=S.books[o.inst]; if(b.levels[o.px]){ if(o.side==='B') b.levels[o.px].bid-=o.qty; else b.levels[o.px].ask-=o.qty; } return false; }
+    return true;
+  });
+  toast('Close run · settle '+st.toFixed(I2.dp)+' · variation '+fmt(vm,0)+' · OI published T+1');
+  renderAll();
+}
+
+function imRequired(){
+  const I2=I(), q=Math.abs(avgBook[S.inst].qty);
+  return q * I2.im;
+}
+
+function renderClear(){
+  const I2=I(), ab=avgBook[S.inst];
+  $('oiLedgerMeta').innerHTML = 'Current OI <b style="color:var(--copper)">'+num(S.oi[S.inst])+'</b> · derived, not quoted';
+  const L = S.ledger.slice(0,60);
+  $('oiLedgerBody').innerHTML = L.length? L.map(r=>{
+    const c = r.dOI>0?'pos':r.dOI<0?'neg':'mut';
+    const hl = (r.buyer==='YOU'||r.seller==='YOU')?' style="background:rgba(224,169,109,.06)"':'';
+    return '<tr'+hl+'><td class="mut">'+r.t+'</td><td>'+ACCTS[r.buyer].label+'</td><td class="'+(r.bLabel==='OPEN'?'pos':r.bLabel==='CLOSE'?'neg':'mut')+'">'+r.bLabel+'</td>'
+      +'<td>'+ACCTS[r.seller].label+'</td><td class="'+(r.sLabel==='OPEN'?'pos':r.sLabel==='CLOSE'?'neg':'mut')+'">'+r.sLabel+'</td>'
+      +'<td class="num">'+r.qty+'</td><td class="num">'+r.px.toFixed(I2.dp)+'</td>'
+      +'<td class="num '+c+'">'+(r.dOI>=0?'+':'')+r.dOI+'</td><td class="num mut">'+num(r.oi)+'</td></tr>';
+  }).join('') : '<tr><td colspan="9" class="empty-row">No prints yet.</td></tr>';
+
+  const st = S.todaySettle[S.inst];
+  $('stSetl').textContent = st? st.toFixed(I2.dp) : '—';
+  $('stSetlN').textContent = 'tier '+S.setlTier+' · '+TIERS[S.setlTier-1].name.slice(0,22);
+  $('stPrior').textContent = S.priorSettle[S.inst].toFixed(I2.dp);
+  const lastRow = S.cashRows[0];
+  $('stVm').textContent = lastRow? fmt(lastRow.vm,0) : '$0';
+  $('stVm').className = 'v sm '+(lastRow? (lastRow.vm>0?'pos':lastRow.vm<0?'neg':'') : '');
+  $('stIm').textContent = fmt(imRequired(),0);
+  $('setlMeta').textContent = st? 'settled D+'+(S.day-1) : 'not yet run';
+
+  const proj = settlePrice();
+  $('setlDetail').innerHTML =
+    '<div style="color:var(--copper);letter-spacing:.1em;font-size:9px;margin-bottom:8px">IF THE CLOSE RAN RIGHT NOW</div>'
+    +'Settlement price   = <b style="color:var(--text-primary)">'+proj.toFixed(I2.dp)+'</b>  (tier '+S.setlTier+')<br>'
+    +'Prior settlement   = '+S.priorSettle[S.inst].toFixed(I2.dp)+'<br>'
+    +'Δ settle           = '+(proj-S.priorSettle[S.inst]>=0?'+':'')+(proj-S.priorSettle[S.inst]).toFixed(I2.dp)+' '+I2.ccy+'<br>'
+    +'Your position      = '+(ab.qty>0?'+':'')+ab.qty+' lots<br>'
+    +'Contract value     = '+num(I2.pv)+' × Δ<br>'
+    +'<span style="color:var(--copper-bright)">Variation margin   = '+fmt((proj-S.priorSettle[S.inst])*ab.qty*I2.pv,0)+'</span>  ← cash moves overnight<br>'
+    +'<span style="color:var(--text-faint)">Note: settlement is not the last trade ('+B().last.toFixed(I2.dp)+'). It never was.</span>';
+
+  $('cashBody').innerHTML = S.cashRows.length? S.cashRows.map(r=>
+    '<tr><td class="mut">'+r.day+'</td><td class="num">'+r.st.toFixed(I2.dp)+'</td>'
+    +'<td class="num '+(r.d>0?'pos':r.d<0?'neg':'mut')+'">'+(r.d>=0?'+':'')+r.d.toFixed(I2.dp)+'</td>'
+    +'<td class="num">'+(r.pos>0?'+':'')+r.pos+'</td>'
+    +'<td class="num '+(r.vm>0?'pos':r.vm<0?'neg':'mut')+'">'+fmt(r.vm,0)+'</td>'
+    +'<td class="num">'+fmt(r.bal,0)+'</td></tr>').join('')
+    : '<tr><td colspan="6" class="empty-row">Run a close on desk 01 to post the first day.</td></tr>';
+
+  /* SPAN scan */
+  const q = ab.qty, scans = [-0.33,-0.165,0,0.165,0.33];
+  const volMove = I2.px * (I2.vol/100) / Math.sqrt(252) * 3;
+  let worst = 0;
+  const rows = scans.map(f=>{
+    const dp = volMove*f/0.33;
+    const pl = dp*q*I2.pv;
+    if(pl<worst) worst=pl;
+    return {f,dp,pl};
+  });
+  $('spanScan').innerHTML = '<table class="grid"><thead><tr><th>Scan point</th><th class="num">Δ price</th><th class="num">Portfolio P&amp;L</th></tr></thead><tbody>'
+    + rows.map(r=>'<tr><td class="mut">'+(r.f===0?'unchanged':(r.f>0?'up ':'down ')+Math.abs(r.f*100).toFixed(1)+'%')+'</td>'
+      +'<td class="num">'+(r.dp>=0?'+':'')+r.dp.toFixed(I2.dp)+'</td>'
+      +'<td class="num '+(r.pl>0?'pos':r.pl<0?'neg':'mut')+'">'+fmt(r.pl,0)+'</td></tr>').join('')
+    + '</tbody></table>'
+    + '<div style="padding:11px 12px;border-top:1px solid var(--border-strong);font-family:var(--font-mono);font-size:11px">'
+    + '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-faint)">Worst scan loss</span><span class="neg">'+fmt(worst,0)+'</span></div>'
+    + '<div style="display:flex;justify-content:space-between;margin-top:4px"><span style="color:var(--text-faint)">Requirement (max of scan, floor)</span><span style="color:var(--copper-bright)">'+fmt(Math.max(Math.abs(worst), imRequired()),0)+'</span></div>'
+    + '<div style="color:var(--text-faint);font-size:10px;margin-top:8px;line-height:1.5">SPAN prices the whole portfolio under a scan of moves, then charges you the worst outcome — not a percentage of notional. Spreads offset; outrights don\'t.</div></div>';
+}
+/* ============================================================
+   RENDER — Desk 3 Risk
+   ============================================================ */
+function zScore(c){ return c===99 ? 2.3263 : 1.6449; }
+function esZ(c){ /* normal ES multiplier */ const z=zScore(c); const a=c/100;
+  return Math.exp(-z*z/2)/(Math.sqrt(2*Math.PI)*(1-a)); }
+
+function bookVol(){ return S.volOverride!==null ? S.volOverride : I().vol; }
+
+function riskNumbers(){
+  const I2=I(), ab=avgBook[S.inst];
+  const notional = Math.abs(ab.qty) * I2.pv * B().last;
+  const sigA = bookVol()/100;
+  const sigD = sigA/Math.sqrt(252);
+  const h = Math.sqrt(S.horizon);
+  let varv;
+  if(S.varMethod==='param'){
+    varv = notional * sigD * zScore(S.varConf) * h;
+  } else if(S.varMethod==='hist'){
+    const r = histReturns(sigD);
+    const sorted = r.slice().sort((a,b)=>a-b);
+    const idx = Math.floor((1-S.varConf/100)*sorted.length);
+    varv = Math.abs(sorted[idx]) * notional * h;
+  } else {
+    let acc=0; const N=4000; const losses=[];
+    for(let i=0;i<N;i++){ losses.push(gauss()*sigD*h); }
+    losses.sort((a,b)=>a-b);
+    varv = Math.abs(losses[Math.floor((1-S.varConf/100)*N)]) * notional;
+  }
+  const es = notional * sigD * esZ(S.varConf) * h;
+  return {notional, varv, es, sigD, sigA};
+}
+let _hist=null, _histSig=null;
+function histReturns(sig){
+  if(_hist && Math.abs(_histSig-sig)<1e-9) return _hist;
+  const r=[]; for(let i=0;i<500;i++){ let g=gauss(); if(Math.random()<0.06) g*=3.1; r.push(g*sig); }
+  _hist=r; _histSig=sig; return r;
+}
+function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+function renderRisk(){
+  const I2=I(), ab=avgBook[S.inst];
+  const R = riskNumbers();
+  $('riskCob').textContent='D+'+S.day;
+  $('volLbl').textContent = bookVol()+'% ann';
+  $('horizLbl').textContent = S.horizon+(S.horizon===1?' day':' days');
+  $('stVar').textContent = fmt(R.varv,0);
+  $('stVarN').textContent = S.varConf+'% · '+S.horizon+'d · '+(S.varMethod==='param'?'variance-covariance':S.varMethod==='hist'?'historical sim, 500d':'Monte Carlo, 4k paths');
+  $('stEs').textContent = fmt(R.es,0);
+  $('stNotional').textContent = fmt(R.notional,0);
+  $('varMeta').innerHTML = 'Daily vol <b style="color:var(--copper)">'+(R.sigD*100).toFixed(2)+'%</b> · position '+(ab.qty>0?'+':'')+ab.qty+' lots';
+  drawVarChart(R);
+  drawTenorChart();
+  drawStress();
+  drawLimits(R);
+}
+
+function svgOpen(w,h){ return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto;display:block" role="img">'; }
+
+function drawVarChart(R){
+  const W=760,H=210,ml=8,mr=8,mt=14,mb=28;
+  const sig=R.sigD*Math.sqrt(S.horizon);
+  const xmax=sig*4;
+  const x = v => ml + (v+xmax)/(2*xmax)*(W-ml-mr);
+  let path='', area='';
+  const pk = 1/(sig*Math.sqrt(2*Math.PI));
+  for(let i=0;i<=240;i++){
+    const v = -xmax + (2*xmax)*i/240;
+    const d = Math.exp(-v*v/(2*sig*sig))/(sig*Math.sqrt(2*Math.PI));
+    const px=x(v), py = H-mb - (d/pk)*(H-mt-mb);
+    path += (i?'L':'M')+px.toFixed(1)+','+py.toFixed(1);
+  }
+  const cut = -zScore(S.varConf)*sig;
+  for(let i=0;i<=80;i++){
+    const v = -xmax + (cut+xmax)*i/80;
+    const d = Math.exp(-v*v/(2*sig*sig))/(sig*Math.sqrt(2*Math.PI));
+    const px=x(v), py=H-mb-(d/pk)*(H-mt-mb);
+    area += (i?'L':'M')+px.toFixed(1)+','+py.toFixed(1);
+  }
+  area += 'L'+x(cut).toFixed(1)+','+(H-mb)+'L'+x(-xmax).toFixed(1)+','+(H-mb)+'Z';
+  let ticks='';
+  [-3,-2,-1,0,1,2,3].forEach(k=>{
+    const v=k*sig, px=x(v);
+    ticks += '<line x1="'+px+'" y1="'+(H-mb)+'" x2="'+px+'" y2="'+(H-mb+4)+'" stroke="#3e4658"/>'
+      +'<text x="'+px+'" y="'+(H-mb+16)+'" fill="#5d6675" font-size="9" text-anchor="middle">'+(k>0?'+':'')+(k*sig*100).toFixed(1)+'%</text>';
+  });
+  $('varChart').innerHTML = svgOpen(W,H)
+    +'<line x1="'+ml+'" y1="'+(H-mb)+'" x2="'+(W-mr)+'" y2="'+(H-mb)+'" stroke="#232934"/>'
+    +ticks
+    +'<path d="'+area+'" fill="rgba(232,93,117,.22)"/>'
+    +'<path d="'+path+'" fill="none" stroke="#8a93a3" stroke-width="1.3"/>'
+    +'<line x1="'+x(cut)+'" y1="'+mt+'" x2="'+x(cut)+'" y2="'+(H-mb)+'" stroke="#e85d75" stroke-width="1.2" stroke-dasharray="3 3"/>'
+    +'<text x="'+(x(cut)-8)+'" y="'+(mt+12)+'" fill="#e85d75" font-size="10" text-anchor="end">VaR '+S.varConf+'% = '+fmt(R.varv,0)+'</text>'
+    +'<text x="'+(x(-xmax)+4)+'" y="'+(H-mb-6)+'" fill="#5d6675" font-size="9">'+(100-S.varConf)+'% of days are worse than this line</text>'
+    +'</svg>';
+}
+
+function drawTenorChart(){
+  const I2=I(), ab=avgBook[S.inst];
+  const months=['Q6','U6','V6','X6','Z6','F7','G7','H7','J7','K7','M7','Cal28'];
+  /* front month = your traded position; deferred = illustrative book */
+  const base=[ab.qty, -18, -12, 24, 40, 15, -8, -22, -30, 6, 11, -55];
+  const W=760,H=190,ml=34,mr=10,mt=12,mb=30;
+  const mx=Math.max(20,...base.map(v=>Math.abs(v)));
+  const bw=(W-ml-mr)/months.length;
+  const y0=mt+(H-mt-mb)/2;
+  let bars='',labs='';
+  months.forEach((m,i)=>{
+    const v=base[i];
+    const h=Math.abs(v)/mx*((H-mt-mb)/2);
+    const x=ml+i*bw+bw*0.18, w=bw*0.64;
+    const y=v>=0? y0-h : y0;
+    const col = i===0 ? '#e0a96d' : (v>=0? '#6db5b5':'#cf7878');
+    bars+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(1,h).toFixed(1)+'" fill="'+col+'" opacity="'+(i===0?1:.62)+'"/>';
+    if(Math.abs(v)>0) bars+='<text x="'+(x+w/2)+'" y="'+(v>=0? y-4 : y+h+10)+'" fill="#8a93a3" font-size="8.5" text-anchor="middle">'+(v>0?'+':'')+v+'</text>';
+    labs+='<text x="'+(ml+i*bw+bw/2)+'" y="'+(H-mb+15)+'" fill="'+(i===0?'#e0a96d':'#5d6675')+'" font-size="9" text-anchor="middle">'+m+'</text>';
+  });
+  $('tenorChart').innerHTML = svgOpen(W,H)
+    +'<line x1="'+ml+'" y1="'+y0+'" x2="'+(W-mr)+'" y2="'+y0+'" stroke="#303747"/>'
+    +bars+labs
+    +'<text x="'+ml+'" y="'+(mt+2)+'" fill="#5d6675" font-size="8.5">LONG</text>'
+    +'<text x="'+ml+'" y="'+(H-mb-2)+'" fill="#5d6675" font-size="8.5">SHORT</text>'
+    +'<text x="'+(W-mr)+'" y="'+(mt+2)+'" fill="#5d6675" font-size="8.5" text-anchor="end">copper = the month you are trading on desk 01</text>'
+    +'</svg>';
+}
+
+const SCENARIOS = [
+  {n:'Base', px:0, vol:0},
+  {n:'Curve +10%', px:0.10, vol:0},
+  {n:'Curve −10%', px:-0.10, vol:0},
+  {n:'Vol doubles', px:0, vol:1.0},
+  {n:'Winter storm (Uri)', px:0.85, vol:2.2},
+  {n:'Demand collapse', px:-0.35, vol:0.6},
+  {n:'Counterparty fails', px:-0.06, vol:1.4}
+];
+function drawStress(){
+  const I2=I(), ab=avgBook[S.inst], last=B().last;
+  const rows = SCENARIOS.map(sc=>{
+    const pl = last*sc.px*ab.qty*I2.pv;
+    const R = riskNumbers();
+    const v = R.varv*(1+sc.vol);
+    return {n:sc.n, dpx:last*sc.px, pl, v};
+  });
+  $('stressGrid').innerHTML = '<table class="grid"><thead><tr><th>Scenario</th><th class="num">Δ price</th><th class="num">P&amp;L on book</th><th class="num">VaR after</th><th>Read</th></tr></thead><tbody>'
+    + rows.map(r=>'<tr><td>'+r.n+'</td><td class="num">'+(r.dpx>=0?'+':'')+r.dpx.toFixed(I2.dp)+'</td>'
+      +'<td class="num '+(r.pl>0?'pos':r.pl<0?'neg':'mut')+'">'+fmt(r.pl,0)+'</td>'
+      +'<td class="num mut">'+fmt(r.v,0)+'</td>'
+      +'<td class="mut" style="font-size:10px">'+stressRead(r)+'</td></tr>').join('')
+    +'</tbody></table>';
+}
+function stressRead(r){
+  if(r.n==='Winter storm (Uri)') return I().settle==='cash' ? 'cash settles to a price nobody could hedge at' : 'delivery obligation becomes the asset';
+  if(r.n==='Counterparty fails') return 'clearing house absorbs it — that is what the margin was for';
+  if(r.n==='Vol doubles') return 'position unchanged, requirement doubles, desk gets cut';
+  if(Math.abs(r.pl)<1) return 'flat book, no exposure';
+  return r.pl>0?'book benefits':'book bleeds';
+}
+
+function drawLimits(R){
+  const lims = [
+    {n:'VaR limit', v:R.varv, cap:400000},
+    {n:'Initial margin vs. equity', v:imRequired(), cap:Math.max(1,S.cash)},
+    {n:'Notional limit', v:R.notional, cap:6000000}
+  ];
+  $('limitBars').innerHTML = lims.map(l=>{
+    const pct = clamp(l.v/l.cap*100,0,140);
+    const col = pct>100?'var(--critical)':pct>75?'var(--warning)':'var(--sage)';
+    return '<div style="padding:11px 13px;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:9.5px;margin-bottom:6px">'
+      +'<span style="color:var(--text-faint);letter-spacing:.08em;text-transform:uppercase">'+l.n+'</span>'
+      +'<span style="color:'+col+'">'+pct.toFixed(0)+'%</span></div>'
+      +'<div style="height:5px;background:var(--bg-input);border:1px solid var(--border)">'
+      +'<div style="height:100%;width:'+Math.min(100,pct)+'%;background:'+col+';opacity:.8"></div></div>'
+      +'<div style="font-family:var(--font-mono);font-size:9px;color:var(--text-faint);margin-top:5px">'+fmt(l.v,0)+' of '+fmt(l.cap,0)+'</div></div>';
+  }).join('');
+}
+/* ============================================================
+   RENDER — Desk 4 Scheduling
+   ============================================================ */
+const SCHED = {
+  gas:{
+    label:'GAS · EBB', cycles:['TIMELY (13:00 CT, D-1)','EVENING (18:00 CT, D-1)','INTRADAY 1 (10:00 CT, D)','INTRADAY 2 (14:30 CT, D)','INTRADAY 3 (19:00 CT, D)'],
+    fields:[
+      {k:'point', l:'Receipt point', t:'sel', o:['Henry Hub (Sabine, Erath LA)','Katy Hub','Waha','Opal']},
+      {k:'qty', l:'Nomination qty (Dth/d)', t:'num', v:25000},
+      {k:'tt', l:'Transaction type', t:'sel', o:['Firm — FT contract 84210','Interruptible — IT','Capacity release']},
+      {k:'up', l:'Upstream party (DUNS)', t:'sel', o:['XTO Energy · 06-4419','Chevron · 05-1180','Storage merchant · 09-2277']}
+    ]
+  },
+  power:{
+    label:'US POWER · SIBR', cycles:['DAM BID SUBMIT (10:00 PT, D-1)','DAM RESULTS (13:00 PT, D-1)','RUC (15:00 PT, D-1)','RTM 75-MIN GATE (D)','5-MIN SCED (D)'],
+    fields:[
+      {k:'point', l:'Resource / node', t:'sel', o:['SP15 EZ Gen Hub','NP15 EZ Gen Hub','ERCOT North 345kV Hub','Battery — SOC 62%']},
+      {k:'qty', l:'Self-schedule (MW)', t:'num', v:50},
+      {k:'tt', l:'Bid type', t:'sel', o:['Self-schedule — price taker','Economic bid — $/MWh curve','Virtual (INC/DEC)']},
+      {k:'up', l:'Underlying', t:'sel', o:['PPA — 10-yr, fixed $41.50','Merchant','Storage arbitrage']}
+    ]
+  },
+  fts:{
+    label:'EU POWER · FTS', cycles:['FUTURES CASCADE Y→Q→M (ECC)','FTS INITIATION (D-1)','EPEX DA AUCTION GATE (12:00 CET, D-1)','AUCTION CLEARS (12:42 CET)','NOMINATION TO TSO'],
+    fields:[
+      {k:'point', l:'Market area', t:'sel', o:['DE-LU (Phelix)','France','Great Britain','Netherlands','SE3 — Initiation Service only']},
+      {k:'qty', l:'Futures position to convert (MW)', t:'num', v:25},
+      {k:'tt', l:'Eligible tenor', t:'sel', o:['Month contract','Week contract','Quarter — MUST CASCADE FIRST','Year — MUST CASCADE FIRST']},
+      {k:'up', l:'Instruction', t:'sel', o:['Price-independent bid','Limit bid']}
+    ]
+  }
+};
+
+function renderSchedTicket(){
+  const M = SCHED[S.schedMode];
+  $('schedModeRead').textContent = M.label;
+  $('schedTicket').innerHTML = M.fields.map(f=>
+    '<div><label class="fld">'+f.l+'</label>'
+    + (f.t==='sel' ? '<select data-sf="'+f.k+'">'+f.o.map(o=>'<option>'+o+'</option>').join('')+'</select>'
+                   : '<input type="number" data-sf="'+f.k+'" value="'+f.v+'"/>')
+    + '</div>').join('');
+  $('cycleClock').innerHTML = M.cycles.map((c,i)=>
+    '<div style="display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:10px">'
+    +'<span style="width:6px;height:6px;border-radius:50%;background:'+(i===0?'var(--copper)':'var(--border-accent)')+';flex:none"></span>'
+    +'<span style="color:'+(i===0?'var(--copper-bright)':'var(--text-faint)')+'">'+c+'</span></div>').join('')
+    + '<div style="padding:11px 13px;font-size:10.5px;color:var(--text-faint);line-height:1.5;font-style:italic">'
+    + (S.schedMode==='gas'?'Miss Timely and you are nominating into Evening at whatever capacity is left. This clock is the reason schedulers do not go to lunch.'
+      :S.schedMode==='power'?'The DAM gate is hard. After 10:00 PT you are a real-time price taker, whatever your PPA says.'
+      :'Nothing here happens until the futures cascade down to a month. Years and quarters cannot touch physical.')
+    + '</div>';
+  $('schedCycleRead').textContent = M.cycles[0].split(' ')[0];
+}
+
+function submitNom(){
+  const M=SCHED[S.schedMode];
+  const g = k => { const el=document.querySelector('[data-sf="'+k+'"]'); return el?el.value:''; };
+  const qty = +g('qty')||0, point=g('point'), tt=g('tt'), up=g('up');
+  let res;
+  if(S.schedMode==='gas'){
+    const cut = Math.random()<0.28 ? Math.round(qty*(0.55+Math.random()*0.3)) : qty;
+    res = {ok:true, sched:cut, of:qty, unit:'Dth/d',
+      rows:[['Nominated', num(qty)+' Dth/d'],['Confirmed by operator', num(cut)+' Dth/d'],
+        ['Scheduled quantity', num(cut)+' Dth/d'],['Cut', cut<qty? num(qty-cut)+' Dth/d — capacity constrained':'none'],
+        ['Title transfer', point.split('(')[0].trim()],['Imbalance exposure', cut<qty?'you are short '+num(qty-cut)+' Dth — cash-out at index':'balanced']],
+      holds:'A title claim to physical molecules at a named point, on a named day, transferred from a named counterparty. You can hold it, store it, resell it, or deliver it against a futures contract.',
+      verdict:'TETHER: REAL', vc:'phys'};
+  } else if(S.schedMode==='power'){
+    const lmp = (38+Math.random()*22);
+    res = {ok:true, sched:qty, of:qty, unit:'MW',
+      rows:[['Self-scheduled', qty+' MW'],['DAM award', qty+' MW — price taker, always cleared'],
+        ['Settled at', '$'+lmp.toFixed(2)+'/MWh nodal LMP'],['Congestion component','$'+((Math.random()-0.4)*9).toFixed(2)+'/MWh'],
+        ['Loss component','$'+(-Math.random()*2).toFixed(2)+'/MWh'],['RT deviation exposure','5-min LMP, unhedged']],
+      holds:'An instruction to a dispatch algorithm. Your PPA fixed the energy price; the ISO still prices the transmission layer on top and you wear it. Nothing is held. Nothing can be stored. The MWh existed for one hour and is gone.',
+      verdict:'TETHER: DISPATCH ONLY', vc:'cash'};
+  } else {
+    const cascade = tt.indexOf('CASCADE')>-1;
+    if(cascade){
+      res = {ok:false, rows:[['Instruction','REJECTED'],['Reason','FTS is offered for week and month contracts only'],
+        ['Required','Wait for ECC cascade: Year → Quarter → Month'],['Earliest physical touch','the front month, and not before']],
+        holds:'Nothing. A quarter or a year has no route to physical power at all. The instrument you are holding is, until it cascades, purely a financial claim.',
+        verdict:'TETHER: UNREACHABLE', vc:'cash'};
+    } else {
+      res = {ok:true, sched:qty, of:qty, unit:'MW',
+        rows:[['Position converted', qty+' MW '+tt.toLowerCase()],['Action taken','bids entered into EPEX SPOT DA auction'],
+          ['Auction outcome','cleared at €'+(70+Math.random()*40).toFixed(2)+'/MWh'],['Warrant issued','none'],
+          ['Inventory claim','none'],['What changed','your hedge became a spot bid. That is all it did.']],
+        holds:'A cleared spot position for delivery hours. FTS is a bidding convenience, not a delivery mechanism: no warrant, no inventory claim, no right to hold. EEX\'s own specs state no physically fulfilled EEX Power Future can be traded via the order book.',
+        verdict:'TETHER: SCAFFOLDING ONLY', vc:'cash'};
+    }
+  }
+  S.schedResult = res;
+  renderSchedResult();
+  toast(res.ok?'Submitted · scheduled quantity returned':'Rejected by ECC — see confirmation panel', res.ok?'':'err');
+}
+
+function renderSchedResult(){
+  const r = S.schedResult;
+  if(!r){
+    $('confPanel').innerHTML='<div class="empty-row">Submit a nomination to see what comes back.</div>';
+    $('tetherTest').innerHTML='<div class="empty-row">The point of this desk is the last panel. Submit one of each and compare.</div>';
+    $('confMeta').textContent='awaiting nomination';
+    return;
+  }
+  $('confMeta').innerHTML = r.ok? '<span class="pill live">confirmed</span>' : '<span class="pill" style="color:var(--critical);border-color:var(--critical)">rejected</span>';
+  $('confPanel').innerHTML = '<table class="grid"><tbody>'
+    + r.rows.map(x=>'<tr><td style="color:var(--text-faint);width:44%">'+x[0]+'</td><td style="color:var(--text-primary)">'+x[1]+'</td></tr>').join('')
+    + '</tbody></table>';
+  $('tetherTest').innerHTML = '<div style="padding:14px">'
+    +'<div style="margin-bottom:10px"><span class="pill '+r.vc+'">'+r.verdict+'</span></div>'
+    +'<div style="font-size:13px;line-height:1.6;color:var(--text-body)">'+r.holds+'</div></div>';
+}
+
+/* ============================================================
+   RENDER — Desk 5 Tether Tape
+   ============================================================ */
+const TAPE_SERIES = [
+  {k:'NG', n:'Henry Hub NG (NYMEX)', type:'physical', col:'#e0a96d', peak:1.0, cliff:0.94},
+  {k:'CL', n:'WTI Crude (NYMEX)', type:'physical', col:'#8db573', peak:0.92, cliff:0.90},
+  {k:'ERN', n:'ERCOT North (ICE)', type:'cash', col:'#7d97c4', peak:0.62, cliff:0.10},
+  {k:'DEB', n:'Phelix-DE Base (EEX)', type:'cash', col:'#6db5b5', peak:0.74, cliff:0.06}
+];
+function oiCurve(s, day){
+  /* day 0 = listing, 100 = last trading day */
+  const t = day/100;
+  const build = 1/(1+Math.exp(-(t-0.62)*9));         /* OI builds toward prompt */
+  let v = build * s.peak;
+  const roll = Math.max(0, (t-0.80)/0.20);            /* final 20 days */
+  v *= (1 - s.cliff*Math.pow(roll,2.4));
+  return Math.max(0.004, v);
+}
+function drawOiChart(){
+  const W=1100,H=330,ml=56,mr=170,mt=18,mb=38;
+  const x = d => ml + d/100*(W-ml-mr);
+  const y = v => H-mb - v*(H-mt-mb)/1.05;
+  let grid='';
+  for(let i=0;i<=5;i++){ const v=i*0.2, py=y(v);
+    grid+='<line x1="'+ml+'" y1="'+py+'" x2="'+(W-mr)+'" y2="'+py+'" stroke="#232934" stroke-dasharray="2 4"/>'
+      +'<text x="'+(ml-8)+'" y="'+(py+3)+'" fill="#5d6675" font-size="9" text-anchor="end">'+(v*100).toFixed(0)+'%</text>'; }
+  [0,25,50,75,90,100].forEach(d=>{
+    grid+='<text x="'+x(d)+'" y="'+(H-mb+16)+'" fill="#5d6675" font-size="9" text-anchor="middle">'+(d===100?'LTD':'T−'+(100-d))+'</text>';
+  });
+  let paths='', dots='', legend='';
+  TAPE_SERIES.forEach((s,i)=>{
+    let p='';
+    for(let d=0;d<=S.tapeDay;d++){ p += (d?'L':'M')+x(d).toFixed(1)+','+y(oiCurve(s,d)).toFixed(1); }
+    paths += '<path d="'+p+'" fill="none" stroke="'+s.col+'" stroke-width="'+(s.type==='physical'?2.2:1.8)+'" '
+      +(s.type==='cash'?'stroke-dasharray="5 3"':'')+' opacity=".92"/>';
+    const cy=y(oiCurve(s,S.tapeDay));
+    dots += '<circle cx="'+x(S.tapeDay)+'" cy="'+cy+'" r="3.2" fill="'+s.col+'"/>';
+    dots += '<text x="'+(x(S.tapeDay)+9)+'" y="'+(cy+3.5)+'" fill="'+s.col+'" font-size="10">'+s.n+'</text>';
+  });
+  const fnd = x(90);
+  $('oiChart').innerHTML = svgOpen(W,H)
+    + grid
+    + '<rect x="'+fnd+'" y="'+mt+'" width="'+(x(100)-fnd)+'" height="'+(H-mt-mb)+'" fill="rgba(232,93,117,.06)"/>'
+    + '<line x1="'+fnd+'" y1="'+mt+'" x2="'+fnd+'" y2="'+(H-mb)+'" stroke="#e85d75" stroke-width="1" stroke-dasharray="3 3"/>'
+    + '<text x="'+(fnd+5)+'" y="'+(mt+11)+'" fill="#e85d75" font-size="9">FIRST NOTICE DAY — physical only</text>'
+    + '<line x1="'+ml+'" y1="'+(H-mb)+'" x2="'+(W-mr)+'" y2="'+(H-mb)+'" stroke="#303747"/>'
+    + '<line x1="'+ml+'" y1="'+mt+'" x2="'+ml+'" y2="'+(H-mb)+'" stroke="#303747"/>'
+    + paths + dots
+    + '<text x="'+ml+'" y="'+(mt-5)+'" fill="#5d6675" font-size="9">OPEN INTEREST, % OF PEAK</text>'
+    + '</svg>';
+  $('tapeDayLbl').textContent = S.tapeDay>=100 ? 'last trading day' : 'T−'+(100-S.tapeDay);
+  $('tapeMeta').innerHTML = 'Solid = physically settled · dashed = cash settled';
+  const rows = TAPE_SERIES.map(s=>{
+    const v = oiCurve(s,S.tapeDay), pk = Math.max(...Array.from({length:101},(_,d)=>oiCurve(s,d)));
+    return '<tr><td><span style="color:'+s.col+'">■</span> '+s.n+'</td>'
+      +'<td><span class="pill '+(s.type==='physical'?'phys':'cash')+'">'+s.type+'</span></td>'
+      +'<td class="num">'+(v/pk*100).toFixed(0)+'%</td>'
+      +'<td class="num '+(s.cliff>0.5?'neg':'mut')+'">−'+(s.cliff*100).toFixed(0)+'%</td></tr>';
+  }).join('');
+  $('tapeStats').innerHTML = '<table class="grid"><thead><tr><th>Contract</th><th>Settlement</th><th class="num">OI vs. peak</th><th class="num">Terminal decay</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div style="padding:12px 13px;font-size:11.5px;color:var(--text-muted);line-height:1.55;border-top:1px solid var(--border)">'
+    +'Drag to <b style="color:var(--copper)">T−10</b> and watch the two solid lines fall off the table while the dashed ones walk flat into settlement. '
+    +'That divergence is the entire thesis in one gesture: the cliff is the tether announcing itself.</div>';
+}
+
+/* ============================================================
+   WIRING
+   ============================================================ */
+let toastT;
+function toast(msg, kind){
+  const t=$('toast'); t.textContent=msg; t.className='toast show'+(kind==='err'?' err':'');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.className='toast',2600);
+}
+function renderAll(){ renderExec(); renderClear(); renderRisk(); }
+
+function segWire(id, cb){
+  const el=$(id); if(!el) return;
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true'); cb(b.dataset.v);
+  });
+}
+
+function init(){
+  /* instrument select */
+  $('instSel').innerHTML = Object.keys(INSTS).map(k=>'<option value="'+k+'">'+INSTS[k].code+' · '+INSTS[k].name+'</option>').join('');
+  $('instSel').value=S.inst;
+  $('instSel').onchange = e => { S.inst=e.target.value; $('pxIn').value=B().mid.toFixed(I().dp); _hist=null; renderAll(); };
+  $('pxIn').value = B().mid.toFixed(I().dp);
+
+  /* tabs */
+  document.querySelectorAll('.desk-tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.desk-tab').forEach(x=>x.setAttribute('aria-selected','false'));
+    t.setAttribute('aria-selected','true');
+    document.querySelectorAll('.desk-panel').forEach(p=>p.classList.remove('active'));
+    $('desk-'+t.dataset.desk).classList.add('active');
+    if(t.dataset.desk==='risk') renderRisk();
+    if(t.dataset.desk==='tape') drawOiChart();
+    if(t.dataset.desk==='sched'){ renderSchedTicket(); renderSchedResult(); }
+  });
+
+  segWire('segSide', v=>S.side=v);
+  segWire('segType', v=>{ S.otype=v; $('pxIn').disabled = v==='MKT'; });
+  segWire('segTif', v=>S.tif=v);
+  segWire('segVar', v=>{ S.varMethod=v; renderRisk(); });
+  segWire('segConf', v=>{ S.varConf=+v; renderRisk(); });
+  segWire('segSched', v=>{ S.schedMode=v; S.schedResult=null; renderSchedTicket(); renderSchedResult(); });
+
+  $('btnBuy').onclick = ()=>submit('B', S.otype, +$('qtyIn').value, $('pxIn').value, S.tif);
+  $('btnSell').onclick = ()=>submit('S', S.otype, +$('qtyIn').value, $('pxIn').value, S.tif);
+  $('btnCxlAll').onclick = ()=>{ S.working.slice().forEach(o=>cancel(o.id)); toast('All working orders cancelled'); };
+  $('btnPause').onclick = e => { S.paused=!S.paused; e.target.textContent = S.paused?'Resume tape':'Pause tape';
+    $('sessionDot').className='live-dot'+(S.paused?' halted':''); $('sessionState').textContent=S.paused?'Tape paused':'Session Open'; };
+  $('btnEod').onclick = runEod;
+
+  /* ladder click */
+  $('ladderBody').onclick = e => {
+    const td = e.target.closest('td'); if(!td||!td.dataset.px) return;
+    const px=+td.dataset.px, side=td.dataset.side;
+    $('pxIn').value = px.toFixed(I().dp);
+    submit(side, 'LMT', +$('qtyIn').value, px, S.tif);
+  };
+
+  $('horizIn').oninput = e => { S.horizon=+e.target.value; renderRisk(); };
+  $('volIn').oninput = e => { S.volOverride=+e.target.value; _hist=null; renderRisk(); };
+  $('volIn').value = I().vol;
+
+  $('btnNom').onclick = submitNom;
+
+  $('tapeDay').oninput = e => { S.tapeDay=+e.target.value; drawOiChart(); };
+  $('btnRunTape').onclick = ()=>{
+    if(S.tapeTimer){ clearInterval(S.tapeTimer); S.tapeTimer=null; $('btnRunTape').textContent='Run to expiry ▶'; return; }
+    S.tapeDay=0; $('btnRunTape').textContent='Stop ■';
+    S.tapeTimer=setInterval(()=>{ S.tapeDay+=1; $('tapeDay').value=S.tapeDay; drawOiChart();
+      if(S.tapeDay>=100){ clearInterval(S.tapeTimer); S.tapeTimer=null; $('btnRunTape').textContent='Run to expiry ▶'; } },42);
+  };
+  $('btnResetTape').onclick = ()=>{ if(S.tapeTimer){clearInterval(S.tapeTimer);S.tapeTimer=null;$('btnRunTape').textContent='Run to expiry ▶';} S.tapeDay=100; $('tapeDay').value=100; drawOiChart(); };
+
+  renderTiers();
+  renderAll();
+  renderSchedTicket();
+  renderSchedResult();
+  drawOiChart();
+  setInterval(botTick, 900);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+</script>
+</body>
+</html>

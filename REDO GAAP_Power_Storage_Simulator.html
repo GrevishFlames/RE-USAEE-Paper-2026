@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Energy Storage — Technology Comparison &amp; Required Rate Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#12263F; --navy2:#1F3B5B; --navy3:#2C4E75;
+  --copper:#B5651D; --copper-lt:#D68C4A; --copper-pale:#E8CDB0;
+  --paper:#F7F5F1; --card:#FFFFFF; --ink:#1A1D23; --ink-2:#4A5260;
+  --rule:#DDD7CD; --rule-2:#EDE9E2;
+  --pos:#2E6F5E; --neg:#A33B3B; --warn:#8A6A1F;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --body:'Geist','Inter',system-ui,-apple-system,sans-serif;
+  --disp:'Fraunces',Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+header{background:var(--navy);color:#F2EFE9;padding:22px 28px 20px}
+header .wrap{max-width:1580px;margin:0 auto;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+h1{font-family:var(--disp);font-weight:600;font-size:26px;margin:0;letter-spacing:-.01em}
+.sub{color:#9FB1C6;font-size:12.5px;margin-top:5px;max-width:780px}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--copper-lt);margin-bottom:6px}
+.modes{display:flex;gap:18px;flex-wrap:wrap}
+.modegrp{display:flex;flex-direction:column;gap:5px}
+.modegrp>span{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:#8FA3BB}
+.seg{display:flex;border:1px solid #34517A;border-radius:3px;overflow:hidden}
+.seg button{background:transparent;border:0;border-right:1px solid #34517A;color:#B9C8DA;font-family:var(--body);font-size:11.5px;padding:6px 11px;cursor:pointer;white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--copper);color:#fff;font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--copper-lt);outline-offset:-2px}
+.seg.mini{border-color:var(--rule)}
+.seg.mini button{border-right-color:var(--rule);color:var(--ink-2);font-size:11px;padding:4px 9px}
+
+main{max-width:1580px;margin:0 auto;padding:20px 28px 60px;display:grid;grid-template-columns:342px minmax(0,1fr);gap:22px;align-items:start}
+
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:4px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+.panel>h2{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#fff;background:var(--navy2);margin:0;padding:9px 13px;border-radius:3px 3px 0 0;position:sticky;top:0;z-index:2}
+
+.acc{border-bottom:1px solid var(--rule-2)}
+.acc:last-child{border-bottom:0}
+.acc>summary{cursor:pointer;padding:9px 13px;font-size:11.5px;font-weight:600;color:var(--navy2);list-style:none;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary:hover{background:#F4F1EC}
+.acc>summary::after{content:"+";font-family:var(--mono);color:var(--copper);font-size:14px}
+.acc[open]>summary::after{content:"\\2212"}
+.acc .body{padding:4px 13px 12px}
+
+.f{margin-bottom:10px}
+.f label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:var(--ink-2);margin-bottom:3px}
+.f label .u{font-family:var(--mono);font-size:9.5px;color:#8B93A1;white-space:nowrap}
+.f .ctrl{display:flex;gap:6px;align-items:center}
+.f input[type=number]{width:84px;flex:0 0 auto;font-family:var(--mono);font-size:12px;padding:4px 6px;border:1px solid var(--rule);border-radius:3px;background:#FCFBF9;color:var(--ink)}
+.f input[type=number]:focus{outline:2px solid var(--copper-lt);outline-offset:-1px;background:#fff}
+.f input[type=range]{flex:1 1 auto;min-width:0;accent-color:var(--copper);height:16px}
+.hint{font-size:10px;color:#8B93A1;margin-top:2px;line-height:1.35}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--copper);border-radius:3px;padding:11px 13px}
+.kpi .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7C8595;margin-bottom:5px;line-height:1.3}
+.kpi .v{font-family:var(--mono);font-size:23px;font-weight:700;color:var(--navy);letter-spacing:-.02em}
+.kpi .v small{font-size:12px;font-weight:500;color:var(--ink-2)}
+.kpi .n{font-size:10.5px;color:#8B93A1;margin-top:4px;line-height:1.35}
+.kpi.hero{border-left-color:var(--navy);background:linear-gradient(180deg,#FFF 0%,#FAF7F2 100%)}
+.kpi.bad .v{color:var(--neg)} .kpi.good .v{color:var(--pos)}
+
+.card{background:var(--card);border:1px solid var(--rule);border-radius:4px;margin-bottom:18px}
+.card>h3{font-family:var(--disp);font-size:15px;font-weight:600;margin:0;padding:12px 16px 2px;color:var(--navy)}
+.card>p.d{margin:0;padding:0 16px 10px;font-size:11.5px;color:var(--ink-2);max-width:920px}
+.card .cbody{padding:2px 16px 16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(410px,1fr));gap:18px}
+
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{stroke:var(--rule);stroke-width:1}
+.gl{stroke:var(--rule-2);stroke-width:1}
+text{font-family:var(--body);fill:var(--ink-2)}
+.lbl{font-size:10px}
+.lblm{font-family:var(--mono);font-size:9.5px;fill:#8B93A1}
+
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th,td{padding:5px 7px;text-align:right;border-bottom:1px solid var(--rule-2)}
+th{font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#7C8595;font-weight:500;border-bottom:1px solid var(--rule)}
+td:first-child,th:first-child{text-align:left}
+td.n{font-family:var(--mono)}
+tr.tot td{border-top:1px solid var(--navy2);font-weight:700;color:var(--navy)}
+
+.btn{font-family:var(--body);font-size:11.5px;padding:6px 12px;border:1px solid var(--navy2);background:#fff;color:var(--navy2);border-radius:3px;cursor:pointer}
+.btn:hover{background:var(--navy2);color:#fff}
+.btn:focus-visible{outline:2px solid var(--copper-lt);outline-offset:2px}
+
+.flag{border-left:3px solid var(--warn);background:#FDF8EC;padding:10px 13px;font-size:11.5px;color:#5A4A22;border-radius:0 3px 3px 0;margin:0 0 14px}
+.flag b{color:#3F3418}
+footer{max-width:1580px;margin:0 auto;padding:0 28px 50px;font-size:11px;color:#8B93A1;line-height:1.6}
+footer h4{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--navy2);margin:18px 0 6px}
+footer ul{margin:0;padding-left:16px}
+@media (max-width:1080px){main{grid-template-columns:1fr}.panel{position:static;max-height:none}}
+
+.cmpbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.conf{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+ text-transform:uppercase;padding:2px 6px;border-radius:2px;background:#F0EDE7;color:#6B7280}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Long duration and short duration &middot; unlevered, pre-tax, no ITC</div>
+      <h1>Grid Energy Storage</h1>
+      <div class="sub">Eight storage technologies on one engine. Capital and operating cost across
+      development, construction, operation and decommissioning, solved for the capacity payment or
+      arbitrage spread that breaks even and that earns a target return. Duration is the design
+      variable; efficiency and the charging price decide who survives it.</div>
+    </div>
+    <div class="modes" id="modes"></div>
+  </div>
+</header>
+
+<main>
+  <aside class="panel">
+    <h2>Inputs</h2>
+    <div id="inputs"></div>
+  </aside>
+
+  <section>
+    <div class="kpis" id="kpis"></div>
+    <div id="warn"></div>
+
+    <div class="card">
+      <h3>The crossover</h3>
+      <p class="d">Installed cost per kW against duration, every technology on one axis. The slope of
+      each line is its energy capex &mdash; the marginal cost of one more hour. Lithium starts lowest and
+      climbs fastest because its energy and power capacity are the same hardware. The cavern, reservoir
+      and borehole technologies start high and stay nearly flat, which is the entire long-duration case.
+      Lines are drawn only across each technology&rsquo;s practical range; the ring marks your current
+      configuration.</p>
+      <div class="cbody" id="v_cross"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>Efficiency meets the charging price</h3>
+        <p class="d">Required arbitrage spread as the charging price falls. Efficiency loss costs you the
+        charging price times the energy lost, so when that price goes negative the sign flips and a low
+        round-trip efficiency stops being a penalty. Watch how much steeper the low-efficiency lines are:
+        that slope, not the efficiency number itself, is what a curtailment-driven market pays for.</p>
+        <div class="cbody" id="v_charge"></div>
+      </div>
+      <div class="card">
+        <h3>Where the capital goes</h3>
+        <p class="d">Real cost before escalation to the spend date, for the selected technology and
+        configuration.</p>
+        <div class="cbody" id="v_capex"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>What the rate has to cover</h3>
+      <p class="d">Every cost block, discounted and divided by the present value of the revenue quantity
+      being solved for, so each is expressed in the same unit the market quotes. The blocks sum exactly
+      to the breakeven.</p>
+      <div class="cbody" id="v_stack"></div>
+    </div>
+
+    <div class="card">
+      <h3>Cash flow</h3>
+      <p class="d">Annual free cash flow as bars, cumulative discounted cash flow as the line, both at the
+      price currently entered rather than at the breakeven price.</p>
+      <div class="cbody" id="v_cf"></div>
+    </div>
+
+    <div class="card">
+      <h3>All eight, side by side</h3>
+      <p class="d">Common power rating, duration and cycling, each clamped to what the technology can
+      actually do &mdash; so a 100-hour technology asked for 8 hours is shown at its own minimum, and a
+      60-cycle technology asked for 150 cycles is shown at 60. Those clamps are the comparison.</p>
+      <div class="cbody">
+        <div class="cmpbar">
+          <div class="seg mini" id="cmpmetric">
+            <button type="button" data-k="perKW" aria-pressed="true">$/kW</button>
+            <button type="button" data-k="perKWh" aria-pressed="false">$/kWh</button>
+            <button type="button" data-k="lcos" aria-pressed="false">LCOS</button>
+            <button type="button" data-k="lensCap" aria-pressed="false">Required $/kW-month</button>
+          </div>
+        </div>
+        <div id="v_cmp"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Comparison table</h3>
+      <div class="cbody" id="tbl"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <h4>What this model does not do</h4>
+  <ul>
+    <li>No debt, no tax, and no investment tax credit. The 48E credit is worth 30&ndash;50% of storage
+        capex and every number here would move materially with it. These are unsubsidised costs.</li>
+    <li>The arbitrage spread is an input, not a dispatch result. There is no hourly price simulation,
+        no co-optimisation against ancillary markets, and no congestion or basis.</li>
+    <li>Degradation is a flat annual rate. Real fade depends on cycling depth, rate and temperature.</li>
+    <li>Interconnection is a single dollar-per-kW input. In CAISO it is a queue position, a cluster
+        study and a number that has moved by an order of magnitude between studies.</li>
+    <li>Natural gas storage is included on a stored-energy basis for comparison only. It does not
+        discharge electricity, so its capacity lens is undefined and its spread is a commodity spread.</li>
+  </ul>
+  <h4>On the technology table</h4>
+  <ul>
+    <li>Lithium and pumped storage carry decades of built cost history. Borehole thermal, GeoTES,
+        iron-air and gravity have roughly one credible datapoint each. The confidence column records
+        that, the comparison chart marks it, and the four low-confidence rows should be read as
+        order-of-magnitude estimates rather than forecasts.</li>
+    <li>Every cell of the technology table is editable in the panel. If you have better numbers than
+        these, the model is built to take them.</li>
+  </ul>
+</footer>
+
+<script>const SPEC=[{"k": "TECH", "l": "Technology  [1-8, see the Tech sheet]", "u": "flag", "v": 1, "g": "Model control", "h": "Switches the entire parameter set. 1 BESS, 2 CAES, 3 Borehole thermal, 4 GeoTES, 5 Pumped storage, 6 Iron-air, 7 Gravity, 8 Natural gas storage.", "seg": ["BESS", "CAES", "BTES", "GeoTES", "PSH", "Fe-air", "Gravity", "Gas stor."], "lo": 0, "hi": 10.0, "st": 0.025}, {"k": "REV_MODE", "l": "Revenue mode  [1 = Contracted tolling, 2 = Merchant arbitrage, 3 = Full merchant stack]", "u": "flag", "v": 1, "g": "Model control", "h": "Mode 1 solves for a capacity payment. Modes 2 and 3 solve for an arbitrage spread. Mode 3 adds ancillary services.", "seg": ["Contracted tolling", "Merchant arbitrage", "Full merchant stack"], "lo": 0, "hi": 3.75, "st": 0.009375}, {"k": "AUG_ON", "l": "Apply augmentation to hold nameplate energy  [1 = Yes, 0 = No]", "u": "flag", "v": 1, "g": "Model control", "h": "Set 0 to let capacity fade and revenue fall with it.", "seg": ["No", "Yes"], "lo": 0, "hi": 2.5, "st": 0.00625}, {"k": "DUR_MODE", "l": "Duration source  [1 = User input below, 2 = Technology default]", "u": "flag", "v": 1, "g": "Model control", "h": "Technology default sits at the practical minimum on the Tech sheet.", "seg": ["User input", "Tech default"], "lo": 0, "hi": 2.5, "st": 0.00625}, {"k": "P_MW", "l": "Discharge power rating", "u": "MW", "v": 100.0, "g": "Sizing", "h": "Nameplate discharge capacity at the point of interconnection.", "lo": 10, "hi": 800, "st": 3.95}, {"k": "DUR_H", "l": "Storage duration", "u": "h", "v": 4.0, "g": "Sizing", "h": "Hours of discharge at nameplate power. The central design variable - sweep it to find the crossover.", "lo": 1, "hi": 200, "st": 0.995}, {"k": "START_YEAR", "l": "Model start year", "u": "Yr", "v": 2026, "g": "Timing", "h": "Period 1 = Q1 of this year.", "lo": 2024, "hi": 2040, "st": 1}, {"k": "N_DEC", "l": "Decommissioning duration", "u": "Qtrs", "v": 4, "g": "Timing", "h": "", "lo": 0, "hi": 12, "st": 1}, {"k": "HORIZON_YR", "l": "Evaluation horizon from COD", "u": "Yrs", "v": 10, "g": "Timing", "h": "Used for the horizon return solve and exit value.", "lo": 3, "hi": 40, "st": 1}, {"k": "CPI", "l": "General escalation (CPI)", "u": "%p.a.", "v": 0.0225, "g": "Macro and financial", "h": "Applied to all real operating cost inputs.", "lo": 0, "hi": 0.09, "st": 0.00045, "pct": 1}, {"k": "POWER_ESC", "l": "Power price escalation", "u": "%p.a.", "v": 0.025, "g": "Macro and financial", "h": "Applied to the charging price anchor and the arbitrage spread.", "lo": 0, "hi": 0.1, "st": 0.0005, "pct": 1}, {"k": "GAS_ESC", "l": "Gas price escalation", "u": "%p.a.", "v": 0.02, "g": "Macro and financial", "h": "Applied to fuel for the technologies that burn it.", "lo": 0, "hi": 0.08, "st": 0.0004, "pct": 1}, {"k": "CAPEX_ESC", "l": "Capex escalation", "u": "%p.a.", "v": 0.03, "g": "Macro and financial", "h": "Applied to development and construction spend.", "lo": 0, "hi": 0.12, "st": 0.0006, "pct": 1}, {"k": "WACC", "l": "Discount rate (unlevered, nominal, pre-tax)", "u": "%p.a.", "v": 0.075, "g": "Macro and financial", "h": "Breakeven is solved at this rate. Contracted storage clears below a merchant peaker.", "lo": 0.02, "hi": 0.2, "st": 0.0009, "pct": 1}, {"k": "TARGET_IRR", "l": "Target return (unlevered, nominal, pre-tax)", "u": "%p.a.", "v": 0.125, "g": "Macro and financial", "h": "Required price is solved at this rate.", "lo": 0.04, "hi": 0.3, "st": 0.0013, "pct": 1}, {"k": "EXIT_MULT", "l": "Exit EBITDA multiple at horizon", "u": "x", "v": 10.0, "g": "Macro and financial", "h": "Applied to trailing four quarters of EBITDA.", "lo": 0, "hi": 20, "st": 0.1}, {"k": "EXIT_ON", "l": "Apply exit value at horizon  [1 = Yes, 0 = No]", "u": "flag", "v": 1, "g": "Macro and financial", "h": "", "seg": ["No", "Yes"], "lo": 0, "hi": 2.5, "st": 0.00625}, {"k": "CYCLES_YR", "l": "Full-equivalent cycles", "u": "cycles/yr", "v": 300, "g": "Dispatch", "h": "Annual full discharges. Capped at the technology maximum - see Checks.", "lo": 1, "hi": 400, "st": 1}, {"k": "AVAIL", "l": "Availability", "u": "%", "v": 0.96, "g": "Dispatch", "h": "Planned and forced outage allowance.", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "DOD", "l": "Depth of discharge in service", "u": "%", "v": 0.96, "g": "Dispatch", "h": "Operating envelope actually used, against usable nameplate.", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "CY_Q1", "l": "Cycle weight, Q1", "u": "share", "v": 0.24, "g": "Dispatch", "h": "", "lo": 0.0, "hi": 0.96, "st": 0.0048, "pct": 1}, {"k": "CY_Q2", "l": "Cycle weight, Q2", "u": "share", "v": 0.22, "g": "Dispatch", "h": "", "lo": 0.0, "hi": 0.88, "st": 0.0044, "pct": 1}, {"k": "CY_Q3", "l": "Cycle weight, Q3", "u": "share", "v": 0.32, "g": "Dispatch", "h": "Summer net peak is where a California asset earns.", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "CY_Q4", "l": "Cycle weight, Q4", "u": "share", "v": 0.22, "g": "Dispatch", "h": "Weights must sum to 100% - see Checks.", "lo": 0.0, "hi": 0.88, "st": 0.0044, "pct": 1}, {"k": "RA_RATE", "l": "Capacity payment", "u": "$/kW-month", "v": 12.0, "g": "Revenue - contracted tolling  (mode 1)", "h": "The solved variable in mode 1. CAISO resource adequacy for storage has cleared roughly $8-20/kW-month.", "lo": 0, "hi": 60, "st": 0.3}, {"k": "CONTRACT_PCT", "l": "Contracted share of nameplate", "u": "%", "v": 1.0, "g": "Revenue - contracted tolling  (mode 1)", "h": "", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "TOLL_VOM", "l": "Tolling variable payment", "u": "$/MWh discharged", "v": 3.0, "g": "Revenue - contracted tolling  (mode 1)", "h": "Covers variable cost pass-through in a tolling structure.", "lo": 0.0, "hi": 7.5, "st": 0.0375}, {"k": "RA_Q1", "l": "Capacity payment shape, Q1", "u": "x average", "v": 0.8, "g": "Revenue - contracted tolling  (mode 1)", "h": "", "lo": 0.0, "hi": 2.0, "st": 0.01}, {"k": "RA_Q2", "l": "Capacity payment shape, Q2", "u": "x average", "v": 0.85, "g": "Revenue - contracted tolling  (mode 1)", "h": "", "lo": 0.0, "hi": 2.125, "st": 0.010625}, {"k": "RA_Q3", "l": "Capacity payment shape, Q3", "u": "x average", "v": 1.55, "g": "Revenue - contracted tolling  (mode 1)", "h": "CAISO capacity value concentrates in the summer net peak.", "lo": 0.0, "hi": 3.875, "st": 0.019375}, {"k": "RA_Q4", "l": "Capacity payment shape, Q4", "u": "x average", "v": 0.8, "g": "Revenue - contracted tolling  (mode 1)", "h": "Shape must average to 1.00 - see Checks.", "lo": 0.0, "hi": 2.0, "st": 0.01}, {"k": "CHG_PRICE", "l": "Charging price anchor", "u": "$/MWh", "v": 14.0, "g": "Revenue - merchant  (modes 2 and 3)", "h": "Average price paid to charge. Set this negative to model a curtailment-driven charging regime - the model is built to handle it and the result inverts.", "lo": -40, "hi": 120, "st": 0.8}, {"k": "ARB_SPREAD", "l": "Arbitrage spread", "u": "$/MWh", "v": 78.0, "g": "Revenue - merchant  (modes 2 and 3)", "h": "The solved variable in modes 2 and 3. Discharge price less charging price.", "lo": 0, "hi": 400, "st": 2.0}, {"k": "SP_Q1", "l": "Spread shape, Q1", "u": "x average", "v": 0.85, "g": "Revenue - merchant  (modes 2 and 3)", "h": "", "lo": 0.0, "hi": 2.125, "st": 0.010625}, {"k": "SP_Q2", "l": "Spread shape, Q2", "u": "x average", "v": 0.8, "g": "Revenue - merchant  (modes 2 and 3)", "h": "", "lo": 0.0, "hi": 2.0, "st": 0.01}, {"k": "SP_Q3", "l": "Spread shape, Q3", "u": "x average", "v": 1.55, "g": "Revenue - merchant  (modes 2 and 3)", "h": "", "lo": 0.0, "hi": 3.875, "st": 0.019375}, {"k": "SP_Q4", "l": "Spread shape, Q4", "u": "x average", "v": 0.8, "g": "Revenue - merchant  (modes 2 and 3)", "h": "Shape must average to 1.00 - see Checks.", "lo": 0.0, "hi": 2.0, "st": 0.01}, {"k": "MERCH_RA_PCT", "l": "Merchant capacity revenue retained", "u": "% of mode 1 rate", "v": 0.75, "g": "Revenue - merchant  (modes 2 and 3)", "h": "A merchant asset still sells resource adequacy, just without a long-term contract.", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "AS_REV", "l": "Ancillary services revenue", "u": "$/kW-yr", "v": 22.0, "g": "Revenue - merchant  (modes 2 and 3)", "h": "Regulation and spinning reserve. Mode 3 only.", "lo": 0, "hi": 120, "st": 0.6}, {"k": "AS_DECAY", "l": "Ancillary services saturation decay", "u": "%/yr", "v": 0.06, "g": "Revenue - merchant  (modes 2 and 3)", "h": "The ancillary markets are shallow and storage saturates them. This decays the AS revenue in real terms.", "lo": 0.0, "hi": 0.24, "st": 0.0012, "pct": 1}, {"k": "GAS_PRICE", "l": "Delivered gas price", "u": "$/MMBtu", "v": 4.2, "g": "Revenue - merchant  (modes 2 and 3)", "h": "Only used by technologies with a non-zero heat rate.", "lo": 1.0, "hi": 15.0, "st": 0.07}, {"k": "CHG_ADDER", "l": "Grid charges and losses on charging energy", "u": "$/MWh", "v": 6.5, "g": "Revenue - merchant  (modes 2 and 3)", "h": "Transmission access charge, scheduling and delivery losses on energy imported to charge.", "lo": 0, "hi": 40, "st": 0.2}, {"k": "CX_IX", "l": "Interconnection and network upgrade cost", "u": "$/kW", "v": 140.0, "g": "Interconnection and site", "h": "CAISO cluster study outcomes have moved sharply. Applied to the larger of charge and discharge rating.", "lo": 0, "hi": 600, "st": 3.0}, {"k": "GENTIE_MI", "l": "Gen-tie length", "u": "miles", "v": 3.0, "g": "Interconnection and site", "h": "", "lo": 0.0, "hi": 7.5, "st": 0.0375}, {"k": "CX_GENTIE", "l": "Gen-tie cost", "u": "$000s/mile", "v": 2400, "g": "Interconnection and site", "h": "California transmission construction and right of way.", "lo": 0.0, "hi": 6000.0, "st": 30.0}, {"k": "CX_LAND", "l": "Land acquisition or lease capitalised", "u": "$000s", "v": 6000, "g": "Interconnection and site", "h": "", "lo": 0.0, "hi": 15000.0, "st": 75.0}, {"k": "OP_LAND", "l": "Land and site lease", "u": "$000s/yr", "v": 850, "g": "Interconnection and site", "h": "", "lo": 0.0, "hi": 2125.0, "st": 10.625}, {"k": "CX_DEV", "l": "Development cost", "u": "% of direct capex", "v": 0.045, "g": "Capital cost build-up", "h": "Permitting, CEQA, interconnection studies, legal, offtake origination.", "lo": 0.0, "hi": 0.18, "st": 0.0009, "pct": 1}, {"k": "PC_DEVGA", "l": "Development G&A", "u": "$000s/qtr", "v": 550, "g": "Capital cost build-up", "h": "Team cost through the development period.", "lo": 0.0, "hi": 1375.0, "st": 6.875}, {"k": "CX_EPC", "l": "EPC and installation multiplier", "u": "x equipment", "v": 1.0, "g": "Capital cost build-up", "h": "Set above 1.00 where the quoted technology cost is equipment-only.", "lo": 0.0, "hi": 2.5, "st": 0.0125}, {"k": "CX_OWNERS", "l": "Owner\u2019s cost, spares and commissioning", "u": "% of direct", "v": 0.045, "g": "Capital cost build-up", "h": "", "lo": 0.0, "hi": 0.18, "st": 0.0009, "pct": 1}, {"k": "CX_CONT", "l": "Contingency", "u": "% of direct + owner\u2019s", "v": 0.12, "g": "Capital cost build-up", "h": "Raise this materially for the low-confidence technologies.", "lo": 0.0, "hi": 0.48, "st": 0.0024, "pct": 1}, {"k": "SCURVE_A", "l": "Construction S-curve shape, front", "u": "x", "v": 2.0, "g": "Capital cost build-up", "h": "", "lo": 0.0, "hi": 5.0, "st": 0.025}, {"k": "SCURVE_B", "l": "Construction S-curve shape, back", "u": "x", "v": 1.7, "g": "Capital cost build-up", "h": "", "lo": 0.0, "hi": 4.25, "st": 0.02125}, {"k": "CX_SUSTAIN", "l": "Sustaining capex", "u": "% installed capex p.a.", "v": 0.006, "g": "Sustaining capital and augmentation", "h": "Excludes augmentation, which is modelled explicitly.", "lo": 0.0, "hi": 0.024, "st": 0.00012, "pct": 1}, {"k": "AUG_TRIG", "l": "Augmentation trigger", "u": "% of nameplate energy", "v": 0.85, "g": "Sustaining capital and augmentation", "h": "Energy capacity is restored to nameplate when it falls below this.", "lo": 0.0, "hi": 1.0, "st": 0.005, "pct": 1}, {"k": "CX_OVERHAUL", "l": "Major overhaul cost", "u": "% of power capex", "v": 0.14, "g": "Sustaining capital and augmentation", "h": "", "lo": 0.0, "hi": 0.56, "st": 0.0028, "pct": 1}, {"k": "OVERHAUL_YRS", "l": "Overhaul cycle", "u": "Yrs", "v": 12, "g": "Sustaining capital and augmentation", "h": "", "lo": 3, "hi": 30, "st": 1}, {"k": "OP_INSURE", "l": "Insurance", "u": "% installed capex p.a.", "v": 0.0055, "g": "Operating cost", "h": "", "lo": 0.0, "hi": 0.022, "st": 0.00011, "pct": 1}, {"k": "OP_PROPTAX", "l": "Property tax rate", "u": "% assessed value", "v": 0.0115, "g": "Operating cost", "h": "", "lo": 0.0, "hi": 0.046, "st": 0.00023, "pct": 1}, {"k": "ASSESS_DECL", "l": "Assessed value decline", "u": "%/yr", "v": 0.045, "g": "Operating cost", "h": "Floored at 25% of original installed cost.", "lo": 0.0, "hi": 0.18, "st": 0.0009, "pct": 1}, {"k": "OP_GA", "l": "General and administrative", "u": "$000s/yr", "v": 1400, "g": "Operating cost", "h": "", "lo": 0.0, "hi": 3500.0, "st": 17.5}, {"k": "OP_SCHED", "l": "Scheduling, trading and market participation", "u": "$000s/yr", "v": 900, "g": "Operating cost", "h": "", "lo": 0.0, "hi": 2250.0, "st": 11.25}, {"k": "OP_MKTFEE", "l": "CAISO and regulatory fees", "u": "% of gross revenue", "v": 0.0035, "g": "Operating cost", "h": "", "lo": 0.0, "hi": 0.014, "st": 7e-05, "pct": 1}, {"k": "CMP_DUR", "l": "Comparison duration", "u": "h", "v": 8.0, "g": "Comparison view", "h": "All eight technologies are compared at this duration, clamped to each one\u2019s practical range.", "lo": 1, "hi": 200, "st": 0.995}, {"k": "CMP_CYC", "l": "Comparison cycles", "u": "cycles/yr", "v": 150, "g": "Comparison view", "h": "Clamped to each technology\u2019s technical maximum. A common cycling assumption is the only way the comparison is fair.", "lo": 1, "hi": 400, "st": 1}, {"k": "CMP_MW", "l": "Comparison power rating", "u": "MW", "v": 100.0, "g": "Comparison view", "h": "", "lo": 10, "hi": 800, "st": 3.95}];
+const TECHTAB={"T_RTE": [0.87, 0.52, 0.34, 0.38, 0.8, 0.45, 0.78, 0.98], "T_CHGR": [1.0, 0.75, 0.9, 0.85, 1.0, 0.6, 1.0, 0.5], "T_SELF": [0.001, 0.002, 0.0035, 0.0015, 0.0002, 0.0005, 0.0, 0.0001], "T_CPWR": [300, 1250, 1600, 1750, 1900, 600, 1100, 124], "T_CENG": [185.0, 22.0, 9.0, 6.0, 28.0, 22.0, 150.0, 0.1], "T_DURMIN": [1.0, 4.0, 6.0, 8.0, 6.0, 24.0, 1.0, 200.0], "T_DURMAX": [12.0, 100.0, 900.0, 900.0, 200.0, 150.0, 16.0, 3000.0], "T_DEG": [0.02, 0.002, 0.003, 0.003, 0.0005, 0.01, 0.003, 0.001], "T_AUGC": [110.0, 0.0, 0.0, 0.0, 0.0, 18.0, 0.0, 0.0], "T_FOM": [28.0, 22.0, 32.0, 38.0, 18.0, 16.0, 26.0, 7.96], "T_VOM": [0.5, 2.5, 2.0, 2.2, 0.6, 1.5, 1.0, 0.35], "T_HR": [0, 4200, 0, 0, 0, 0, 0, 0], "T_AUX": [0.02, 0.03, 0.045, 0.05, 0.008, 0.025, 0.015, 0.005], "T_DEV": [8, 16, 12, 16, 32, 8, 8, 20], "T_CON": [6, 12, 10, 12, 24, 8, 8, 10], "T_LIFE": [20, 35, 30, 30, 40, 20, 30, 30], "T_CYCMAX": [400, 300, 60, 40, 300, 40, 350, 3], "T_RAQ": [1.0, 1.0, 0.9, 0.9, 1.0, 1.0, 1.0, 0.0], "T_DECOM": [0.03, 0.05, 0.03, 0.04, 0.04, 0.03, 0.04, 0.11], "T_GRID": [1, 1, 1, 1, 1, 1, 1, 0], "T_CONF": [1, 2, 3, 3, 1, 3, 3, 1], "T_ENERGY_LR": [0.045, 0.005, 0.01, 0.01, 0.002, 0.06, 0.015, 0.002]};
+const TECHMETA=[{"k": "T_RTE", "l": "Round-trip efficiency", "u": "fraction", "h": "Electricity in to electricity out. Excludes fuel, which is charged separately through the heat rate."}, {"k": "T_CHGR", "l": "Charge power as a share of discharge power", "u": "x", "h": "Asymmetric machines charge slower than they discharge. Sets the charging window and the interconnection import rating."}, {"k": "T_SELF", "l": "Self-discharge", "u": "%/day of stored energy", "h": "The tax on holding energy. Thermal media leak; raised mass and water do not."}, {"k": "T_CPWR", "l": "Power-related capex", "u": "$/kW", "h": "Power block, PCS, turbine or pump-turbine, transformer. Independent of duration."}, {"k": "T_CENG", "l": "Energy-related capex", "u": "$/kWh", "h": "The marginal cost of an hour of duration. This single number decides where the crossover sits."}, {"k": "T_DURMIN", "l": "Practical minimum duration", "u": "h", "h": "Below this the technology is not sensibly configured."}, {"k": "T_DURMAX", "l": "Practical maximum duration", "u": "h", "h": "Reservoir, cavern, borehole field or module count limits."}, {"k": "T_DEG", "l": "Capacity degradation", "u": "%/yr", "h": "Fade in usable energy capacity. Drives the augmentation trigger."}, {"k": "T_AUGC", "l": "Augmentation cost", "u": "$/kWh added", "h": "Cost of restoring nameplate energy capacity. Only electrochemical technologies carry this."}, {"k": "T_FOM", "l": "Fixed operating cost", "u": "$/kW-yr", "h": "Staff, maintenance, spares, site. Excludes insurance, property tax and land, which are modelled separately."}, {"k": "T_VOM", "l": "Variable operating cost", "u": "$/MWh discharged", "h": ""}, {"k": "T_HR", "l": "Heat rate on discharge", "u": "Btu/kWh", "h": "Diabatic CAES burns gas on expansion. Zero for every technology that does not."}, {"k": "T_AUX", "l": "Auxiliary load", "u": "% of discharge", "h": "Station service. Netted from saleable output."}, {"k": "T_DEV", "l": "Development duration", "u": "Qtrs", "h": "Permitting, interconnection study, offtake. Pumped storage is the extreme case and it is the reason the technology keeps losing to lithium."}, {"k": "T_CON", "l": "Construction duration", "u": "Qtrs", "h": ""}, {"k": "T_LIFE", "l": "Operating life", "u": "Yrs", "h": "Pumped storage genuinely runs longer than 40 years; the model caps the grid at 40 to keep the workbook tractable."}, {"k": "T_CYCMAX", "l": "Maximum technical cycles", "u": "cycles/yr", "h": "Ceiling on annual full-equivalent cycles. Constrains the dispatch input - see Checks."}, {"k": "T_RAQ", "l": "Resource adequacy qualifying factor", "u": "x nameplate", "h": "Share of nameplate that counts toward a capacity obligation. Zero for gas storage, which does not discharge to the grid."}, {"k": "T_DECOM", "l": "Decommissioning cost", "u": "% of installed capex", "h": "Net of salvage."}, {"k": "T_GRID", "l": "Discharges electricity to the grid  [1 = Yes, 0 = No]", "u": "flag", "h": "Gas storage is included on a stored-energy basis for comparison. Its capacity and arbitrage lenses are not meaningful and are suppressed."}, {"k": "T_CONF", "l": "Cost data confidence  [1 = High, 2 = Medium, 3 = Low]", "u": "flag", "h": "High = thousands of installed datapoints or decades of history. Low = roughly one credible datapoint. Read every low-confidence result as an order of magnitude, not a number."}, {"k": "T_ENERGY_LR", "l": "Energy capex learning rate", "u": "%/yr real", "h": "Applied to augmentation cost over the asset life. Electrochemistry improves; civil works do not."}];
+const TECH_NAMES=["BESS (Li-ion LFP)", "CAES (diabatic)", "Thermal - borehole", "Thermal - GeoTES", "Pumped storage hydro", "Iron-air", "Gravity", "Natural gas storage"];
+const TECH_SHORT=["BESS", "CAES", "BTES", "GeoTES", "PSH", "Fe-air", "Gravity", "Gas stor."];
+</script>
+<script>// Grid energy storage appraisal engine.
+// run(P)  - quarterly, single technology, exact. Mirrors the workbook formula for formula.
+// cmpAll(P) - annual, all eight technologies, mirrors the Compare sheet.
+
+var NQ = 240;
+
+function nz(x){ return Math.abs(x) > 1e-9; }
+
+function techOf(P, t) {
+  var T = {};
+  for (var k in P.TECHTAB) T[k] = P.TECHTAB[k][t - 1];
+  return T;
+}
+
+function betaW(n, a, b) {
+  // Discrete beta weights over n periods, normalised.
+  var w = [], s = 0, i, x;
+  for (i = 0; i < n; i++) {
+    x = (i + 0.5) / n;
+    w.push(Math.pow(x, a - 1) * Math.pow(1 - x, b - 1));
+    s += w[i];
+  }
+  for (i = 0; i < n; i++) w[i] = s === 0 ? 1 / n : w[i] / s;
+  return w;
+}
+
+function irrOf(cf) {
+  var lo = -0.95, hi = 3.0, i, m, f;
+  function npvAt(r) {
+    var v = 0;
+    for (var j = 0; j < cf.length; j++) v += cf[j] / Math.pow(1 + r, (j + 1) / 4);
+    return v;
+  }
+  if (npvAt(lo) * npvAt(hi) > 0) return null;
+  for (i = 0; i < 200; i++) {
+    m = (lo + hi) / 2; f = npvAt(m);
+    if (npvAt(lo) * f <= 0) hi = m; else lo = m;
+  }
+  return (lo + hi) / 2;
+}
+
+function run(P) {
+  var T = techOf(P, Math.round(P.TECH));
+
+  // ---- sizing
+  var durAct = P.DUR_MODE === 2 ? T.T_DURMIN : P.DUR_H;
+  durAct = Math.max(T.T_DURMIN, Math.min(T.T_DURMAX, durAct));
+  var eMWh = P.P_MW * durAct;
+  var pcMW = P.P_MW * T.T_CHGR;
+  var cycAct = Math.min(P.CYCLES_YR, T.T_CYCMAX);
+
+  // ---- timing
+  var nDev = Math.round(T.T_DEV), nCon = Math.round(T.T_CON);
+  var nOps = Math.round(T.T_LIFE) * 4, nDec = Math.round(P.N_DEC);
+  var nTot = nDev + nCon + nOps + nDec;
+  var codQ = nDev + nCon;                      // first operating quarter index (0-based)
+
+  // ---- capex (real, at start-year dollars)
+  var powerCx = P.P_MW * T.T_CPWR;             // $000s
+  var energyCx = eMWh * T.T_CENG;              // $000s
+  var equip = (powerCx + energyCx) * P.CX_EPC;
+  var ixCx = Math.max(P.P_MW, pcMW) * P.CX_IX;
+  var gentie = P.GENTIE_MI * P.CX_GENTIE;
+  var direct = equip + ixCx + gentie + P.CX_LAND;
+  var owners = direct * P.CX_OWNERS;
+  var cont = (direct + owners) * P.CX_CONT;
+  var conReal = direct + owners + cont;
+  var devReal = direct * P.CX_DEV + P.PC_DEVGA * nDev;
+
+  var wCon = betaW(nCon, P.SCURVE_A, P.SCURVE_B);
+
+  var esc = function (rate, q) { return Math.pow(1 + rate, q / 4); };
+
+  // ---- quarterly loop
+  var O = [], capFac = 1.0, instAll = 0, i;
+  var holdDays = Math.min(180, 365 / (2 * Math.max(cycAct, 0.5)));
+  var selfFac = 1 + T.T_SELF * holdDays;
+  var cyW = [P.CY_Q1, P.CY_Q2, P.CY_Q3, P.CY_Q4];
+  var raW = [P.RA_Q1, P.RA_Q2, P.RA_Q3, P.RA_Q4];
+  var spW = [P.SP_Q1, P.SP_Q2, P.SP_Q3, P.SP_Q4];
+
+  // first pass: capex through COD so opex percentages have an installed base
+  var devSpend = [], conSpend = [];
+  for (i = 0; i < nTot; i++) {
+    var d = 0, c = 0;
+    if (i < nDev) d = devReal / nDev * esc(P.CAPEX_ESC, i);
+    else if (i < codQ) c = conReal * wCon[i - nDev] * esc(P.CAPEX_ESC, i);
+    devSpend.push(d); conSpend.push(c);
+    instAll += d + c;
+  }
+  var instPower = instAll === 0 ? 0 : instAll * (powerCx * P.CX_EPC / direct);
+
+  // second pass: operations
+  for (i = 0; i < nTot; i++) {
+    var qy = i % 4;                             // 0-based quarter of calendar year
+    var opsQ = i - codQ;                        // quarter within operations
+    var opsYr = opsQ < 0 ? -1 : Math.floor(opsQ / 4);
+    var isOps = opsQ >= 0 && opsQ < nOps;
+    var isDec = i >= codQ + nOps;
+    var o = {
+      q: i, qy: qy, opsYr: opsYr, isOps: isOps,
+      xDev: devSpend[i], xCon: conSpend[i], xSus: 0, xAug: 0, xOvh: 0, xDec: 0,
+      dis: 0, net: 0, chg: 0, capFac: capFac,
+      revConst: 0, revB: 0, opex: 0,
+      oFom: 0, oVom: 0, oIns: 0, oTax: 0, oGa: 0, oFuel: 0, oChg: 0
+    };
+
+    if (isOps) {
+      // degradation and augmentation
+      if (opsQ > 0 && opsQ % 4 === 0) {
+        capFac = capFac * Math.pow(1 - T.T_DEG, 1);
+        if (P.AUG_ON === 1 && capFac < P.AUG_TRIG && T.T_AUGC > 0) {
+          var add = (1 - capFac) * eMWh;        // MWh restored
+          var augUnit = T.T_AUGC * Math.pow(1 - T.T_ENERGY_LR, opsYr) * Math.pow(1 + P.CPI, opsYr);
+          o.xAug = add * augUnit;               // $000s
+          capFac = 1.0;
+        }
+      }
+      o.capFac = capFac;
+
+      var cyc = cycAct * cyW[qy];
+      o.dis = eMWh * capFac * P.DOD * cyc * P.AVAIL;   // MWh discharged at the busbar
+      o.net = o.dis * (1 - T.T_AUX);                   // MWh saleable
+      o.chg = o.dis / T.T_RTE * selfFac;               // MWh imported to charge
+
+      var eP = esc(P.POWER_ESC, i), eC = esc(P.CPI, i), eG = esc(P.GAS_ESC, i);
+
+      // ---- revenue, split into a constant part and a part linear in the solved variable
+      if (P.REV_MODE === 1) {
+        // contracted tolling: offtaker supplies charging energy
+        o.revB = P.P_MW * T.T_RAQ * P.CONTRACT_PCT * 3 * raW[qy] * eC;
+        o.revConst = o.net * P.TOLL_VOM / 1000 * eC;
+      } else {
+        o.revB = o.net * spW[qy] * eP / 1000;
+        o.revConst = o.net * P.CHG_PRICE * eP / 1000
+                   + P.P_MW * T.T_RAQ * P.RA_RATE * P.MERCH_RA_PCT * 3 * raW[qy] * eC;
+        if (P.REV_MODE === 3) {
+          o.revConst += P.P_MW * P.AS_REV / 4 * Math.pow(1 - P.AS_DECAY, opsYr) * eC;
+        }
+      }
+
+      // ---- operating cost
+      var assess = Math.max(0.25, Math.pow(1 - P.ASSESS_DECL, opsYr)) * instAll;
+      var fuelMMBtu = T.T_HR * o.dis / 1000;
+      o.oFom = P.P_MW * T.T_FOM / 4 * eC;
+      o.oVom = o.net * T.T_VOM / 1000 * eC;
+      o.oIns = instAll * P.OP_INSURE / 4;
+      o.oTax = assess * P.OP_PROPTAX / 4;
+      o.oGa = (P.OP_GA + P.OP_SCHED + P.OP_LAND) / 4 * eC;
+      o.oFuel = fuelMMBtu * P.GAS_PRICE / 1000 * eG;
+      o.oChg = P.REV_MODE === 1 ? 0 : o.chg * (P.CHG_PRICE + P.CHG_ADDER) * eP / 1000;
+      o.opex = o.oFom + o.oVom + o.oIns + o.oTax + o.oGa + o.oFuel + o.oChg;
+
+      // ---- sustaining capital
+      o.xSus = instAll * P.CX_SUSTAIN / 4;
+      if (opsQ > 0 && opsQ % (Math.round(P.OVERHAUL_YRS) * 4) === 0) {
+        o.xOvh = instPower * P.CX_OVERHAUL * eC;
+      }
+    }
+
+    if (isDec) {
+      o.xDec = instAll * T.T_DECOM / nDec * esc(P.CPI, i);
+    }
+    O.push(o);
+  }
+
+  // ---- discounting and the closed-form solve
+  var retain = 1 - P.OP_MKTFEE;
+  function disc(r, q) { return Math.pow(1 + r, (q + 1) / 4); }
+
+  function solve(rate, hz) {
+    var nNum = 0, nDen = 0, last = hz === null ? nTot : Math.min(nTot, codQ + hz * 4);
+    for (var j = 0; j < last; j++) {
+      var o = O[j], df = disc(rate, j);
+      nNum += (o.opex + o.xDev + o.xCon + o.xSus + o.xAug + o.xOvh + o.xDec - o.revConst * retain) / df;
+      nDen += (o.revB * retain) / df;
+    }
+    if (hz !== null && P.EXIT_ON === 1 && last > 4) {
+      var ebC = 0, ebB = 0;
+      for (var k = last - 4; k < last; k++) { ebC += O[k].revConst * retain - O[k].opex; ebB += O[k].revB * retain; }
+      nNum -= (ebC * P.EXIT_MULT) / disc(rate, last - 1);
+      nDen += (ebB * P.EXIT_MULT) / disc(rate, last - 1);
+    }
+    return { num: nNum, den: nDen, r: nDen === 0 ? 0 : nNum / nDen };
+  }
+
+  var sW = solve(P.WACC, null);
+  var sT = solve(P.TARGET_IRR, null);
+  var sH = solve(P.TARGET_IRR, Math.round(P.HORIZON_YR));
+
+  var pvar = P.REV_MODE === 1 ? P.RA_RATE : P.ARB_SPREAD;
+
+  // ---- realised cash flow at the entered price
+  var cf = [], npv = 0, cum = 0, pb = null, fy = null;
+  for (i = 0; i < nTot; i++) {
+    var o = O[i];
+    var rev = (o.revConst + o.revB * pvar) * retain;
+    var c = rev - o.opex - o.xDev - o.xCon - o.xSus - o.xAug - o.xOvh - o.xDec;
+    o.rev = rev; o.cf = c; o.ebitda = rev - o.opex;
+    cf.push(c);
+    npv += c / disc(P.WACC, i);
+    cum += c;
+    if (pb === null && cum > 0 && i >= codQ) pb = (i - codQ + 1) / 4;
+    if (fy === null && o.isOps && o.opsYr === 1 && o.qy === 0) {
+      fy = { rev: 0, opex: 0, dis: 0, chg: 0, ebitda: 0 };
+      for (var m = i; m < i + 4 && m < nTot; m++) {
+        fy.rev += (O[m].revConst + O[m].revB * pvar) * retain;
+        fy.opex += O[m].opex; fy.dis += O[m].dis; fy.chg += O[m].chg;
+      }
+      fy.ebitda = fy.rev - fy.opex;
+    }
+  }
+  if (fy === null) fy = { rev: 0, opex: 0, dis: 0, chg: 0, ebitda: 0 };
+
+  // ---- lenses. Convert the solved rate into all three units on a common PV basis.
+  var pvCap = 0, pvE = 0, pvKW = 0, lifeMWh = 0, lifeChg = 0, sus = 0, aug = 0;
+  for (i = 0; i < nTot; i++) {
+    var oo = O[i], df = disc(P.WACC, i);
+    pvCap += P.P_MW * T.T_RAQ * 3 * raW[oo.qy] * (oo.isOps ? 1 : 0) * Math.pow(1 + P.CPI, i / 4) / df;
+    pvE += oo.net * spW[oo.qy] / 1000 * Math.pow(1 + P.POWER_ESC, i / 4) / df;
+    pvKW += P.P_MW / 4 * (oo.isOps ? 1 : 0) * Math.pow(1 + P.CPI, i / 4) / df;
+    lifeMWh += oo.net; lifeChg += oo.chg; sus += oo.xSus + oo.xOvh; aug += oo.xAug;
+  }
+  var netCostPV = sW.num + (P.REV_MODE === 1 ? 0 : 0);
+
+  // levelised cost of storage: PV of all cost less non-solved revenue, over PV of delivered MWh
+  var pvMWh = 0;
+  for (i = 0; i < nTot; i++) pvMWh += O[i].net / disc(P.WACC, i);
+  var lcos = pvMWh === 0 ? 0 : sW.num / pvMWh * 1000;   // $/MWh
+
+  var cost = { dev: 0, con: 0, sus: 0, aug: 0, ovh: 0, dec: 0 };
+  for (i = 0; i < nTot; i++) {
+    cost.dev += O[i].xDev; cost.con += O[i].xCon; cost.sus += O[i].xSus;
+    cost.aug += O[i].xAug; cost.ovh += O[i].xOvh; cost.dec += O[i].xDec;
+  }
+
+  // present value of each cost block, then expressed per unit of the solved variable
+  var pv = { dev: 0, con: 0, sus: 0, aug: 0, dec: 0, fom: 0, vom: 0,
+             ins: 0, tax: 0, ga: 0, fuel: 0, chg: 0, rev: 0 };
+  for (i = 0; i < nTot; i++) {
+    var oo2 = O[i], d2 = disc(P.WACC, i);
+    pv.dev += oo2.xDev / d2; pv.con += oo2.xCon / d2;
+    pv.sus += (oo2.xSus + oo2.xOvh) / d2; pv.aug += oo2.xAug / d2; pv.dec += oo2.xDec / d2;
+    pv.fom += oo2.oFom / d2; pv.vom += oo2.oVom / d2; pv.ins += oo2.oIns / d2;
+    pv.tax += oo2.oTax / d2; pv.ga += oo2.oGa / d2; pv.fuel += oo2.oFuel / d2;
+    pv.chg += oo2.oChg / d2; pv.rev += oo2.revConst * retain / d2;
+  }
+  var shr = conReal === 0 ? 0 : 1 / conReal;
+  var blocks = [
+    ['Development', pv.dev],
+    ['Power block', pv.con * powerCx * P.CX_EPC * shr],
+    ['Energy capacity', pv.con * energyCx * P.CX_EPC * shr],
+    ['Interconnection, gen-tie, land', pv.con * (ixCx + gentie + P.CX_LAND) * shr],
+    ["Owner's cost and contingency", pv.con * (owners + cont) * shr],
+    ['Sustaining and overhaul', pv.sus],
+    ['Augmentation', pv.aug],
+    ['Fixed O&M', pv.fom],
+    ['Variable O&M', pv.vom],
+    ['Fuel', pv.fuel],
+    ['Charging energy', pv.chg],
+    ['Insurance and property tax', pv.ins + pv.tax],
+    ['G&A, scheduling and land', pv.ga],
+    ['Decommissioning', pv.dec],
+    ['Less: revenue not being solved for', -pv.rev]
+  ];
+  var stack = blocks.filter(function (b) { return Math.abs(b[1]) > 1e-9; })
+    .map(function (b) { return { n: b[0], v: nz(sW.den) ? b[1] / sW.den : 0 }; });
+
+  return {
+    T: T, O: O, NTOT: nTot, CODQ: codQ, NOPS: nOps, NDEV: nDev, NCON: nCon,
+    durAct: durAct, eMWh: eMWh, pcMW: pcMW, cycAct: cycAct, selfFac: selfFac, holdDays: holdDays,
+    powerCx: powerCx, energyCx: energyCx, direct: direct, conReal: conReal, devReal: devReal,
+    instAll: instAll, instPower: instPower,
+    perKW: P.P_MW === 0 ? 0 : instAll / P.P_MW,          // $/kW
+    perKWh: eMWh === 0 ? 0 : instAll / eMWh,             // $/kWh
+    breakeven: nz(sW.den) ? sW.r : null, targetRate: nz(sT.den) ? sT.r : null,
+    hzRate: nz(sH.den) ? sH.r : null,
+    lensCap: nz(pvCap) ? sW.num / pvCap : null,          // $/kW-month
+    lensSpread: nz(pvE) ? sW.num / pvE : null,           // $/MWh
+    lensKWyr: nz(pvKW) ? sW.num / pvKW : null,           // $/kW-yr
+    lcos: lcos, npv: npv, irr: irrOf(cf), fy: fy, pb: pb,
+    lifeMWh: lifeMWh, lifeChg: lifeChg, cost: cost,
+    sustain: sus, augTot: aug, netCostPV: sW.num, pvMWh: pvMWh, stack: stack, pv: pv,
+    energyShare: (powerCx + energyCx) === 0 ? 0 : energyCx / (powerCx + energyCx)
+  };
+}
+
+// -------------------------------------------------------------- annual comparison
+// Deliberately coarser than run(). Annual periods, same escalation, same closed form.
+// Both the workbook Compare sheet and the simulator comparison table use this, so
+// they agree exactly with each other; expect a small gap against the quarterly model.
+
+function cmpOne(P, t) {
+  // Literal transcription of the Compare sheet: 46 integer year columns, same formulas.
+  var T = techOf(P, t);
+  var NYC = 46;
+  var dur = Math.max(T.T_DURMIN, Math.min(T.T_DURMAX, P.CMP_DUR));
+  var cyc = Math.min(P.CMP_CYC, T.T_CYCMAX);
+  var mw = P.CMP_MW, e = mw * dur, pc = mw * T.T_CHGR;
+
+  var powerCx = mw * T.T_CPWR, energyCx = e * T.T_CENG;
+  var direct = (powerCx + energyCx) * P.CX_EPC + Math.max(mw, pc) * P.CX_IX
+             + P.GENTIE_MI * P.CX_GENTIE + P.CX_LAND;
+  var conReal = direct + direct * P.CX_OWNERS + (direct + direct * P.CX_OWNERS) * P.CX_CONT;
+  var devReal = direct * P.CX_DEV + P.PC_DEVGA * T.T_DEV;
+
+  var yDev = T.T_DEV / 4, yCon = T.T_CON / 4, life = Math.round(T.T_LIFE);
+  var yCOD = yDev + yCon;
+  var holdDays = Math.min(180, 365 / (2 * Math.max(cyc, 0.5)));
+  var selfFac = 1 + T.T_SELF * holdDays;
+  var retain = 1 - P.OP_MKTFEE;
+
+  var i, sp = [], isO = [], oy = [], cap = [], augc = [], inst = 0;
+  var prevO = 0, prevOy = -1, prevCap = 0;
+  for (i = 0; i < NYC; i++) {
+    var s = i < yDev ? devReal / Math.max(yDev, 0.0001) * Math.min(1, yDev - i)
+          : (i < yCOD ? conReal / Math.max(yCon, 0.0001) * Math.min(1, yCOD - i) : 0);
+    s = s * Math.pow(1 + P.CAPEX_ESC, i);
+    sp.push(s); inst += s;
+
+    var o = (i >= yCOD && i < yCOD + life) ? 1 : 0;
+    isO.push(o);
+    var yy = o !== 1 ? -1 : (prevO !== 1 ? 0 : prevOy + 1);
+    oy.push(yy);
+
+    var c, ac = 0;
+    if (i === 0) { c = o === 1 ? 1 : 0; }
+    else if (o !== 1) { c = 0; }
+    else if (yy === 0) { c = 1; }
+    else {
+      var faded = prevCap * (1 - T.T_DEG);
+      if (P.AUG_ON === 1 && faded < P.AUG_TRIG && T.T_AUGC > 0) {
+        c = 1;
+        ac = (1 - faded) * e * T.T_AUGC * Math.pow(1 - T.T_ENERGY_LR, yy) * Math.pow(1 + P.CPI, i);
+      } else { c = faded; }
+    }
+    cap.push(c); augc.push(ac);
+    prevO = o; prevOy = yy; prevCap = c;
+  }
+
+  var num = 0, den = 0, pvMWh = 0, pvCap = 0, pvKW = 0;
+  for (i = 0; i < NYC; i++) {
+    var df = Math.pow(1 + P.WACC, i + 1);
+    var eC = Math.pow(1 + P.CPI, i), eP = Math.pow(1 + P.POWER_ESC, i), eG = Math.pow(1 + P.GAS_ESC, i);
+    var dis = e * cap[i] * P.DOD * cyc * P.AVAIL * isO[i];
+    var net = dis * (1 - T.T_AUX);
+    var chg = T.T_RTE === 0 ? 0 : dis / T.T_RTE * selfFac;
+    var opex = 0, K = 0, B = 0, sus = 0, dec = 0;
+    if (isO[i] === 1) {
+      opex = mw * T.T_FOM * eC + net * T.T_VOM / 1000 * eC
+           + inst * P.OP_INSURE
+           + Math.max(0.25, Math.pow(1 - P.ASSESS_DECL, oy[i])) * inst * P.OP_PROPTAX
+           + (P.OP_GA + P.OP_SCHED + P.OP_LAND) * eC
+           + T.T_HR * dis / 1000 * P.GAS_PRICE / 1000 * eG
+           + (P.REV_MODE === 1 ? 0 : chg * (P.CHG_PRICE + P.CHG_ADDER) / 1000 * eP);
+      K = P.REV_MODE === 1 ? net * P.TOLL_VOM / 1000 * eC
+        : net * P.CHG_PRICE / 1000 * eP + mw * T.T_RAQ * P.RA_RATE * P.MERCH_RA_PCT * 12 * eC
+          + (P.REV_MODE === 3 ? mw * P.AS_REV * Math.pow(1 - P.AS_DECAY, oy[i]) * eC : 0);
+      B = P.REV_MODE === 1 ? mw * T.T_RAQ * P.CONTRACT_PCT * 12 * eC : net / 1000 * eP;
+      sus = inst * P.CX_SUSTAIN
+          + ((oy[i] > 0 && oy[i] % Math.max(Math.round(P.OVERHAUL_YRS), 1) === 0)
+             ? inst * (powerCx * P.CX_EPC / direct) * P.CX_OVERHAUL * eC : 0);
+    }
+    if (i >= yCOD + life && i < yCOD + life + 1) dec = inst * T.T_DECOM * eC;
+    num += (opex + sp[i] + sus + augc[i] + dec - K * retain) / df;
+    den += B * retain / df;
+    pvMWh += net / df;
+    pvCap += mw * T.T_RAQ * 12 * eC * isO[i] / df;
+    pvKW += mw * eC * isO[i] / df;
+  }
+
+  return {
+    name: TECH_NAMES[t - 1], short: TECH_SHORT[t - 1], idx: t,
+    dur: dur, cyc: cyc, rte: T.T_RTE, conf: T.T_CONF, grid: T.T_GRID,
+    inst: inst, perKW: inst / mw, perKWh: inst / e,
+    lcos: nz(pvMWh) ? num / pvMWh * 1000 : null,
+    lensCap: nz(pvCap) ? num / pvCap : null,
+    lensSpread: nz(den) ? num / den : null,
+    lensKWyr: nz(pvKW) ? num / pvKW : null,
+    rate: nz(den) ? num / den : null,
+    netCostPV: num, powerCx: powerCx, energyCx: energyCx
+  };
+}
+
+function cmpAll(P) {
+  var r = [];
+  for (var t = 1; t <= 8; t++) r.push(cmpOne(P, t));
+  return r;
+}
+</script>
+<script>var P = {};
+SPEC.forEach(function (s) { P[s.k] = s.v; });
+P.TECHTAB = JSON.parse(JSON.stringify(TECHTAB));
+
+var CMPMETRIC = 'perKW';
+var PAL = ['#12263F', '#1F3B5B', '#2C4E75', '#3E6491', '#B5651D', '#D68C4A', '#C98A55', '#7C8595'];
+
+function fmt(v, d) {
+  if (v === null || v === undefined || !isFinite(v)) return 'n/a';
+  return v.toLocaleString('en-US', { minimumFractionDigits: d === undefined ? 1 : d,
+                                     maximumFractionDigits: d === undefined ? 1 : d });
+}
+
+// ------------------------------------------------------------------ controls
+function buildHeaderSegs() {
+  var host = document.getElementById('modes');
+  ['TECH', 'REV_MODE'].forEach(function (k) {
+    var s = SPEC.filter(function (x) { return x.k === k; })[0];
+    if (!s) return;
+    var g = document.createElement('div');
+    g.className = 'modegrp';
+    g.innerHTML = '<span>' + (k === 'TECH' ? 'Technology' : 'Revenue mode') + '</span>';
+    var seg = document.createElement('div');
+    seg.className = 'seg';
+    s.seg.forEach(function (lab, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = lab;
+      b.setAttribute('aria-pressed', P[k] === i + 1 ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        P[k] = i + 1;
+        buildPanel();
+        buildHeaderSegs();
+        refresh();
+      });
+      seg.appendChild(b);
+    });
+    g.appendChild(seg);
+    host.appendChild(g);
+  });
+}
+
+function field(s) {
+  var wrap = document.createElement('div');
+  wrap.className = 'f';
+  var pct = s.pct === 1;
+  var val = pct ? P[s.k] * 100 : P[s.k];
+  var lab = document.createElement('label');
+  lab.innerHTML = '<span>' + s.l + '</span><span class="u">' + s.u + '</span>';
+  wrap.appendChild(lab);
+  var ctrl = document.createElement('div');
+  ctrl.className = 'ctrl';
+
+  if (s.seg) {
+    var seg = document.createElement('div');
+    seg.className = 'seg mini';
+    s.seg.forEach(function (t, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = t;
+      b.setAttribute('aria-pressed', P[s.k] === i + 1 ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        P[s.k] = i + 1;
+        buildPanel(); buildHeaderSegs(); refresh();
+      });
+      seg.appendChild(b);
+    });
+    ctrl.appendChild(seg);
+  } else {
+    var num = document.createElement('input');
+    num.type = 'number';
+    num.value = Number(val.toFixed(6));
+    num.step = pct ? s.st * 100 : s.st;
+    var rng = document.createElement('input');
+    rng.type = 'range';
+    rng.min = pct ? s.lo * 100 : s.lo;
+    rng.max = pct ? s.hi * 100 : s.hi;
+    rng.step = pct ? s.st * 100 : s.st;
+    rng.value = val;
+    function set(v) {
+      P[s.k] = pct ? v / 100 : v;
+      num.value = Number(v.toFixed(6));
+      rng.value = v;
+      refresh();
+    }
+    num.addEventListener('input', function () {
+      var v = parseFloat(num.value);
+      if (isFinite(v)) { P[s.k] = pct ? v / 100 : v; rng.value = v; refresh(); }
+    });
+    rng.addEventListener('input', function () { set(parseFloat(rng.value)); });
+    ctrl.appendChild(num);
+    ctrl.appendChild(rng);
+  }
+  wrap.appendChild(ctrl);
+  if (s.h) {
+    var h = document.createElement('div');
+    h.className = 'hint';
+    h.textContent = s.h;
+    wrap.appendChild(h);
+  }
+  return wrap;
+}
+
+function techField(m, ti) {
+  var wrap = document.createElement('div');
+  wrap.className = 'f';
+  var lab = document.createElement('label');
+  lab.innerHTML = '<span>' + m.l + '</span><span class="u">' + m.u + '</span>';
+  wrap.appendChild(lab);
+  var ctrl = document.createElement('div');
+  ctrl.className = 'ctrl';
+  var num = document.createElement('input');
+  num.type = 'number';
+  num.value = P.TECHTAB[m.k][ti];
+  num.step = 'any';
+  num.style.width = '110px';
+  num.addEventListener('input', function () {
+    var v = parseFloat(num.value);
+    if (isFinite(v)) { P.TECHTAB[m.k][ti] = v; refresh(); }
+  });
+  ctrl.appendChild(num);
+  wrap.appendChild(ctrl);
+  if (m.h) {
+    var h = document.createElement('div');
+    h.className = 'hint';
+    h.textContent = m.h;
+    wrap.appendChild(h);
+  }
+  return wrap;
+}
+
+function buildPanel() {
+  var host = document.getElementById('inputs');
+  host.innerHTML = '';
+  var groups = [];
+  SPEC.forEach(function (s) { if (groups.indexOf(s.g) < 0) groups.push(s.g); });
+
+  // technology parameters for the active technology, first
+  var ti = Math.round(P.TECH) - 1;
+  var d0 = document.createElement('details');
+  d0.className = 'acc';
+  d0.open = false;
+  d0.innerHTML = '<summary>Technology parameters &mdash; ' + TECH_SHORT[ti] + '</summary>';
+  var b0 = document.createElement('div');
+  b0.className = 'body';
+  TECHMETA.forEach(function (m) { b0.appendChild(techField(m, ti)); });
+  d0.appendChild(b0);
+  host.appendChild(d0);
+
+  groups.forEach(function (g, gi) {
+    var d = document.createElement('details');
+    d.className = 'acc';
+    d.open = gi < 2;
+    d.innerHTML = '<summary>' + g + '</summary>';
+    var b = document.createElement('div');
+    b.className = 'body';
+    SPEC.filter(function (s) { return s.g === g; }).forEach(function (s) { b.appendChild(field(s)); });
+    d.appendChild(b);
+    host.appendChild(d);
+  });
+}
+
+// ------------------------------------------------------------------ svg helpers
+function svg(w, h, inner) {
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" role="img">' + inner + '</svg>';
+}
+function tx(x, y, s, cls, anchor, size) {
+  return '<text x="' + x + '" y="' + y + '"' + (cls ? ' class="' + cls + '"' : '') +
+    (anchor ? ' text-anchor="' + anchor + '"' : '') +
+    (size ? ' style="font-size:' + size + 'px"' : '') + '>' + s + '</text>';
+}
+function ln(x1, y1, x2, y2, cls, extra) {
+  return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '"' +
+    (cls ? ' class="' + cls + '"' : '') + (extra || '') + '/>';
+}
+function pathd(d, stroke, width, fill, extra) {
+  return '<path d="' + d + '" fill="' + (fill || 'none') + '" stroke="' + (stroke || 'none') +
+    '" stroke-width="' + (width || 1.6) + '"' + (extra || '') + '/>';
+}
+function rect(x, y, w, h, fill, extra) {
+  return '<rect x="' + x + '" y="' + y + '" width="' + Math.max(0, w) + '" height="' +
+    Math.max(0, h) + '" fill="' + fill + '"' + (extra || '') + '/>';
+}
+
+// ------------------------------------------------------------------ 1. the crossover
+function drawCrossover(M) {
+  var W = 980, H = 430, L = 66, R = 210, TP = 18, B = 46;
+  var durs = [], d;
+  for (d = 1; d <= 1200; d *= 1.35) durs.push(d);
+  durs.push(1200);
+
+  var series = [];
+  for (var t = 1; t <= 8; t++) {
+    var pts = [];
+    durs.forEach(function (dd) {
+      var Tt = {};
+      for (var k in P.TECHTAB) Tt[k] = P.TECHTAB[k][t - 1];
+      if (dd < Tt.T_DURMIN - 1e-9 || dd > Tt.T_DURMAX + 1e-9) return;
+      var c = cmpOne(Object.assign({}, P, { CMP_DUR: dd }), t);
+      pts.push([dd, c.perKW]);
+    });
+    if (pts.length > 1) series.push({ t: t, pts: pts });
+  }
+  var maxY = 0;
+  series.forEach(function (s) { s.pts.forEach(function (p) { maxY = Math.max(maxY, p[1]); }); });
+  maxY = Math.min(maxY, 9000);
+  var lx = function (v) { return L + (Math.log10(v) - 0) / (Math.log10(1200) - 0) * (W - L - R); };
+  var ly = function (v) { return TP + (1 - Math.min(v, maxY) / maxY) * (H - TP - B); };
+
+  var s = '';
+  [1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000].forEach(function (g) {
+    if (g > maxY) return;
+    s += ln(L, ly(g), W - R, ly(g), 'gl');
+    s += tx(L - 8, ly(g) + 3.5, '$' + (g / 1000) + 'k', 'lblm', 'end');
+  });
+  [1, 4, 10, 24, 100, 400, 1200].forEach(function (g) {
+    s += ln(lx(g), TP, lx(g), H - B, 'gl');
+    s += tx(lx(g), H - B + 15, g + 'h', 'lblm', 'middle');
+  });
+  s += ln(L, H - B, W - R, H - B, 'ax') + ln(L, TP, L, H - B, 'ax');
+
+  series.forEach(function (ser) {
+    var active = ser.t === Math.round(P.TECH);
+    var dstr = ser.pts.map(function (p, i) {
+      return (i ? 'L' : 'M') + lx(p[0]).toFixed(1) + ',' + ly(p[1]).toFixed(1);
+    }).join(' ');
+    s += pathd(dstr, PAL[ser.t - 1], active ? 3.2 : 1.5, null,
+      active ? '' : ' opacity="0.55"');
+    var last = ser.pts[ser.pts.length - 1];
+    s += '<circle cx="' + lx(last[0]).toFixed(1) + '" cy="' + ly(last[1]).toFixed(1) +
+      '" r="' + (active ? 4 : 2.5) + '" fill="' + PAL[ser.t - 1] + '"/>';
+  });
+
+  // legend
+  series.forEach(function (ser, i) {
+    var yy = TP + 6 + i * 19, active = ser.t === Math.round(P.TECH);
+    s += rect(W - R + 12, yy - 7, 16, 3, PAL[ser.t - 1]);
+    s += tx(W - R + 34, yy - 1, TECH_NAMES[ser.t - 1], 'lbl', 'start', active ? 11.5 : 10.5);
+    if (active) s += tx(W - R + 34, yy + 9, 'selected', 'lblm', 'start', 9);
+  });
+
+  // current operating point
+  var cx = lx(Math.max(1, Math.min(1200, M.durAct))), cy = ly(M.perKW);
+  s += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) +
+    '" r="6" fill="none" stroke="#B5651D" stroke-width="2.4"/>';
+  s += tx(cx, cy - 13, '$' + fmt(M.perKW, 0) + '/kW', 'lblm', 'middle', 10);
+
+  s += tx(L, H - 8, 'Duration, hours (log scale)', 'lbl', 'start', 10.5);
+  s += tx(L - 8, TP - 6, 'Installed $/kW', 'lblm', 'end', 9.5);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ 2. charging price
+function drawCharge() {
+  var W = 470, H = 330, L = 60, R = 12, TP = 16, B = 46;
+  var prices = [], p;
+  for (p = -40; p <= 60; p += 5) prices.push(p);
+  var series = [], maxY = 0, minY = 1e9;
+  for (var t = 1; t <= 8; t++) {
+    if (P.TECHTAB.T_GRID[t - 1] !== 1) continue;
+    var pts = prices.map(function (cp) {
+      var c = cmpOne(Object.assign({}, P, { REV_MODE: 2, CHG_PRICE: cp }), t);
+      return [cp, c.rate];
+    }).filter(function (q) { return q[1] !== null && isFinite(q[1]); });
+    pts.forEach(function (q) { maxY = Math.max(maxY, q[1]); minY = Math.min(minY, q[1]); });
+    series.push({ t: t, pts: pts });
+  }
+  maxY = Math.min(maxY, 1400);
+  minY = Math.max(0, minY - 20);
+  var lx = function (v) { return L + (v + 40) / 100 * (W - L - R); };
+  var ly = function (v) { return TP + (1 - (Math.min(v, maxY) - minY) / (maxY - minY)) * (H - TP - B); };
+
+  var s = '';
+  var step = maxY > 600 ? 200 : 100;
+  for (var g = Math.ceil(minY / step) * step; g <= maxY; g += step) {
+    s += ln(L, ly(g), W - R, ly(g), 'gl') + tx(L - 7, ly(g) + 3.5, '$' + g, 'lblm', 'end');
+  }
+  [-40, -20, 0, 20, 40, 60].forEach(function (g) {
+    s += ln(lx(g), TP, lx(g), H - B, g === 0 ? 'ax' : 'gl');
+    s += tx(lx(g), H - B + 15, '$' + g, 'lblm', 'middle');
+  });
+  s += ln(L, H - B, W - R, H - B, 'ax') + ln(L, TP, L, H - B, 'ax');
+  s += rect(lx(-40), TP, lx(0) - lx(-40), H - TP - B, '#B5651D', ' opacity="0.05"');
+  s += tx(lx(-20), TP + 12, 'curtailment regime', 'lblm', 'middle', 9);
+
+  series.forEach(function (ser) {
+    var active = ser.t === Math.round(P.TECH);
+    var dstr = ser.pts.map(function (q, i) {
+      return (i ? 'L' : 'M') + lx(q[0]).toFixed(1) + ',' + ly(q[1]).toFixed(1);
+    }).join(' ');
+    s += pathd(dstr, PAL[ser.t - 1], active ? 3 : 1.4, null, active ? '' : ' opacity="0.5"');
+    var f = ser.pts[0];
+    s += tx(lx(f[0]) + 4, ly(f[1]) - 4, TECH_SHORT[ser.t - 1], 'lblm', 'start',
+      active ? 10 : 8.5);
+  });
+  s += tx(L, H - 8, 'Charging price, $/MWh', 'lbl', 'start', 10.5);
+  s += tx(L - 7, TP - 5, 'Required spread $/MWh', 'lblm', 'end', 9.5);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ 3. capital stack
+function drawCapex(M) {
+  var W = 470, H = 330, L = 172, R = 76, TP = 20, B = 26;
+  var rows = [
+    ['Power block', M.powerCx * P.CX_EPC],
+    ['Energy capacity', M.energyCx * P.CX_EPC],
+    ['Interconnection', Math.max(P.P_MW, M.pcMW) * P.CX_IX],
+    ['Gen-tie and land', P.GENTIE_MI * P.CX_GENTIE + P.CX_LAND],
+    ["Owner's and contingency", M.conReal - M.direct],
+    ['Development', M.devReal]
+  ];
+  var max = 0;
+  rows.forEach(function (r) { max = Math.max(max, r[1]); });
+  var bh = (H - TP - B) / rows.length;
+  var s = '';
+  rows.forEach(function (r, i) {
+    var y = TP + i * bh, w = max === 0 ? 0 : r[1] / max * (W - L - R);
+    s += rect(L, y + bh * 0.16, w, bh * 0.62, PAL[i % PAL.length]);
+    s += tx(L - 8, y + bh * 0.56, r[0], 'lbl', 'end', 10.5);
+    s += tx(L + w + 7, y + bh * 0.56, '$' + fmt(r[1] / 1000, 1) + 'M', 'lblm', 'start', 10);
+  });
+  s += tx(L, H - 6, 'Real cost before escalation to the spend date', 'lblm', 'start', 9.5);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ 4. required-rate build
+function drawStack(M) {
+  var W = 980, H = 300, L = 62, R = 26, TP = 26, B = 64;
+  var st = M.stack;
+  if (!st.length || M.breakeven === null) return '<p class="d">No solved variable in this configuration.</p>';
+  var pos = 0, neg = 0;
+  st.forEach(function (b) { if (b.v > 0) pos += b.v; else neg += -b.v; });
+  var span = Math.max(pos, 1e-9);
+  var sx = (W - L - R) / span;
+  var s = '', x = L;
+  st.forEach(function (b, i) {
+    if (b.v <= 0) return;
+    var w = b.v * sx;
+    s += rect(x, TP, w, H - TP - B, PAL[i % PAL.length], ' opacity="0.92"');
+    if (w > 34) {
+      s += tx(x + w / 2, TP + (H - TP - B) / 2 - 4, b.n.length > 18 ? b.n.slice(0, 17) + '\u2026' : b.n,
+        'lbl', 'middle', 9.5) ;
+      s += tx(x + w / 2, TP + (H - TP - B) / 2 + 11, fmt(b.v, 2), 'lblm', 'middle', 10);
+    }
+    x += w;
+  });
+  var unit = P.REV_MODE === 1 ? '$/kW-month' : '$/MWh';
+  s += ln(L, H - B, W - R, H - B, 'ax');
+  s += tx(L, TP - 9, 'Cost blocks, expressed in ' + unit, 'lblm', 'start', 9.5);
+  s += tx(W - R, TP - 9, 'sum = breakeven ' + fmt(M.breakeven, 3) + ' ' + unit, 'lblm', 'end', 10);
+  var neglbl = st.filter(function (b) { return b.v < 0; });
+  if (neglbl.length) {
+    s += tx(L, H - B + 20, 'Netted off: ' + neglbl.map(function (b) {
+      return b.n + ' ' + fmt(b.v, 2);
+    }).join('   \u00b7   '), 'lblm', 'start', 9.5);
+  }
+  s += tx(L, H - B + 38, 'Breakeven ' + fmt(M.breakeven, 3) + '  \u00b7  target return ' +
+    fmt(M.targetRate, 3) + '  \u00b7  ' + P.HORIZON_YR + '-year horizon with exit ' +
+    fmt(M.hzRate, 3) + '   (' + unit + ')', 'lbl', 'start', 10.5);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ 5. cash flow
+function drawCF(M) {
+  var W = 980, H = 300, L = 70, R = 62, TP = 18, B = 40;
+  var yrs = [], i;
+  var nY = Math.ceil(M.NTOT / 4);
+  for (i = 0; i < nY; i++) yrs.push({ cf: 0, dcf: 0 });
+  for (i = 0; i < M.NTOT; i++) {
+    yrs[Math.floor(i / 4)].cf += M.O[i].cf;
+    yrs[Math.floor(i / 4)].dcf += M.O[i].cf / Math.pow(1 + P.WACC, (i + 1) / 4);
+  }
+  var cum = 0;
+  yrs.forEach(function (y) { cum += y.dcf; y.cum = cum; });
+  var maxB = 0, maxC = 0, minC = 0;
+  yrs.forEach(function (y) {
+    maxB = Math.max(maxB, Math.abs(y.cf));
+    maxC = Math.max(maxC, y.cum); minC = Math.min(minC, y.cum);
+  });
+  var bw = (W - L - R) / nY;
+  var y0 = TP + (H - TP - B) * 0.62;
+  var sy = maxB === 0 ? 0 : (H - TP - B) * 0.38 / maxB;
+  var cy = function (v) {
+    var rng = Math.max(maxC - minC, 1e-9);
+    return TP + (1 - (v - minC) / rng) * (H - TP - B);
+  };
+  var s = '';
+  s += ln(L, y0, W - R, y0, 'ax');
+  yrs.forEach(function (y, k) {
+    var h = Math.abs(y.cf) * sy;
+    s += rect(L + k * bw + bw * 0.15, y.cf >= 0 ? y0 - h : y0, bw * 0.7, h,
+      y.cf >= 0 ? '#2E6F5E' : '#A33B3B', ' opacity="0.82"');
+  });
+  var dstr = yrs.map(function (y, k) {
+    return (k ? 'L' : 'M') + (L + k * bw + bw / 2).toFixed(1) + ',' + cy(y.cum).toFixed(1);
+  }).join(' ');
+  s += pathd(dstr, '#B5651D', 2.4);
+  s += ln(L, cy(0), W - R, cy(0), 'gl');
+  for (var k = 0; k < nY; k += 5) {
+    s += tx(L + k * bw + bw / 2, H - B + 15, String(P.START_YEAR + k), 'lblm', 'middle');
+  }
+  s += tx(L - 8, y0 + 3.5, '0', 'lblm', 'end');
+  s += tx(L - 8, TP + 10, 'annual FCF', 'lblm', 'end', 9);
+  s += tx(W - R + 8, cy(maxC) + 3.5, '$' + fmt(maxC / 1000, 0) + 'M', 'lblm', 'start', 9.5);
+  s += tx(W - R + 8, cy(minC) + 3.5, '$' + fmt(minC / 1000, 0) + 'M', 'lblm', 'start', 9.5);
+  s += tx(W - R + 8, TP + 10, 'cumulative', 'lblm', 'start', 9);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ 6. comparison
+function drawCompare() {
+  var rows = cmpAll(P);
+  var W = 980, H = 330, L = 168, R = 108, TP = 22, B = 30;
+  var key = CMPMETRIC;
+  var lbls = { perKW: 'Installed $/kW', perKWh: 'Installed $/kWh',
+               lcos: 'Levelised cost of storage, $/MWh', lensCap: 'Required capacity payment, $/kW-month' };
+  var vals = rows.map(function (r) { return r[key]; });
+  var max = 0;
+  vals.forEach(function (v) { if (v !== null && isFinite(v)) max = Math.max(max, v); });
+  var bh = (H - TP - B) / rows.length;
+  var s = '';
+  rows.forEach(function (r, i) {
+    var y = TP + i * bh, v = r[key];
+    var active = r.idx === Math.round(P.TECH);
+    if (v === null || !isFinite(v)) {
+      s += tx(L + 6, y + bh * 0.6, 'not applicable \u2014 does not discharge to the grid', 'lblm', 'start', 9.5);
+    } else {
+      var w = max === 0 ? 0 : v / max * (W - L - R);
+      s += rect(L, y + bh * 0.18, w, bh * 0.6, PAL[i], active ? '' : ' opacity="0.72"');
+      s += tx(L + w + 7, y + bh * 0.62,
+        (key === 'perKWh' ? '$' + fmt(v, 2) : '$' + fmt(v, 0)) +
+        (r.conf > 1 ? '   \u25b3' : ''), 'lblm', 'start', 10);
+    }
+    s += tx(L - 8, y + bh * 0.56, TECH_NAMES[i], 'lbl', 'end', active ? 11 : 10.5);
+    s += tx(L - 8, y + bh * 0.56 + 11, fmt(r.dur, 0) + 'h \u00b7 ' + fmt(r.cyc, 0) + ' cyc \u00b7 RTE ' +
+      fmt(r.rte * 100, 0) + '%', 'lblm', 'end', 8.5);
+  });
+  s += tx(L, 12, lbls[key] + '   \u2014   \u25b3 marks medium or low cost-data confidence', 'lblm', 'start', 9.5);
+  return svg(W, H, s);
+}
+
+// ------------------------------------------------------------------ tiles and table
+function kpi(k, v, note, cls) {
+  return '<div class="kpi ' + (cls || '') + '"><div class="k">' + k + '</div><div class="v">' +
+    v + '</div>' + (note ? '<div class="n">' + note + '</div>' : '') + '</div>';
+}
+
+function refresh() {
+  var M = run(P);
+  var unit = P.REV_MODE === 1 ? '$/kW-month' : '$/MWh';
+  var solvedName = P.REV_MODE === 1 ? 'capacity payment' : 'arbitrage spread';
+
+  document.getElementById('kpis').innerHTML =
+    kpi('Installed cost', '<small>$</small>' + fmt(M.perKW, 0) + '<small>/kW</small>',
+        '$' + fmt(M.instAll / 1000, 1) + 'M total, nominal through COD', 'hero') +
+    kpi('Per kWh of storage', '<small>$</small>' + fmt(M.perKWh, 2),
+        'energy capex is ' + fmt(M.energyShare * 100, 0) + '% of equipment') +
+    kpi('Breakeven ' + solvedName, M.breakeven === null ? 'n/a' : fmt(M.breakeven, 2),
+        unit + ' at ' + fmt(P.WACC * 100, 2) + '% discount rate', 'hero') +
+    kpi('For target return', M.targetRate === null ? 'n/a' : fmt(M.targetRate, 2),
+        unit + ' at ' + fmt(P.TARGET_IRR * 100, 2) + '%') +
+    kpi('Levelised cost of storage', '<small>$</small>' + fmt(M.lcos, 0),
+        'per MWh delivered over the life') +
+    kpi('Round-trip efficiency', fmt(M.T.T_RTE * 100, 1) + '<small>%</small>',
+        fmt(M.cycAct, 0) + ' cycles/yr \u00b7 ' + fmt(M.durAct, 1) + 'h duration') +
+    kpi('NPV at entered price', '<small>$</small>' + fmt(M.npv / 1000, 1) + '<small>M</small>',
+        'at ' + fmt(P.WACC * 100, 2) + '% discount rate', M.npv >= 0 ? 'good' : 'bad') +
+    kpi('IRR at entered price', M.irr === null ? 'n/a' : fmt(M.irr * 100, 2) + '<small>%</small>',
+        'unlevered, pre-tax, no ITC', M.irr !== null && M.irr >= P.WACC ? 'good' : 'bad');
+
+  var w = [];
+  if (Math.abs(P.DUR_H - M.durAct) > 1e-6 && P.DUR_MODE === 1) {
+    w.push('<b>Duration clamped.</b> You asked for ' + fmt(P.DUR_H, 1) + 'h; ' +
+      TECH_SHORT[Math.round(P.TECH) - 1] + ' is modelled between ' + fmt(M.T.T_DURMIN, 0) +
+      'h and ' + fmt(M.T.T_DURMAX, 0) + 'h, so ' + fmt(M.durAct, 1) + 'h was used.');
+  }
+  if (Math.abs(P.CYCLES_YR - M.cycAct) > 1e-6) {
+    w.push('<b>Cycling capped.</b> You asked for ' + fmt(P.CYCLES_YR, 0) +
+      ' cycles a year; the technical ceiling here is ' + fmt(M.cycAct, 0) +
+      '. Throughput, and therefore every per-MWh number, is limited by that ceiling and not by the market.');
+  }
+  if (M.T.T_CONF > 1) {
+    w.push('<b>' + (M.T.T_CONF === 3 ? 'Low' : 'Medium') + ' cost-data confidence.</b> ' +
+      TECH_NAMES[Math.round(P.TECH) - 1] + ' has ' +
+      (M.T.T_CONF === 3 ? 'roughly one credible cost datapoint in the public record. Treat the output as an order of magnitude.'
+                        : 'real but thin cost history. Widen the contingency before relying on this.'));
+  }
+  if (M.T.T_GRID !== 1) {
+    w.push('<b>Not a grid-discharging asset.</b> Natural gas storage is here on a stored-energy basis only. ' +
+      'The capacity lens is undefined and the arbitrage lens is a commodity spread, not a power-market spread.');
+  }
+  if (M.T.T_HR > 0) {
+    w.push('<b>This technology burns fuel.</b> Round-trip efficiency excludes the ' +
+      fmt(M.T.T_HR, 0) + ' Btu/kWh of gas burned on discharge, which is charged separately. ' +
+      'Comparing its efficiency with a battery\u2019s is not like for like.');
+  }
+  document.getElementById('warn').innerHTML =
+    w.map(function (x) { return '<div class="flag">' + x + '</div>'; }).join('');
+
+  document.getElementById('v_cross').innerHTML = drawCrossover(M);
+  document.getElementById('v_charge').innerHTML = drawCharge();
+  document.getElementById('v_capex').innerHTML = drawCapex(M);
+  document.getElementById('v_stack').innerHTML = drawStack(M);
+  document.getElementById('v_cf').innerHTML = drawCF(M);
+  document.getElementById('v_cmp').innerHTML = drawCompare();
+
+  var rows = cmpAll(P);
+  var th = '<tr><th>Technology</th><th>Duration</th><th>Cycles</th><th>RTE</th><th>$/kW</th>' +
+    '<th>$/kWh</th><th>LCOS $/MWh</th><th>Req. $/kW-mo</th><th>Confidence</th></tr>';
+  var tb = rows.map(function (r) {
+    var act = r.idx === Math.round(P.TECH);
+    return '<tr' + (act ? ' style="background:#FAF7F2"' : '') + '><td>' +
+      (act ? '<b>' + r.name + '</b>' : r.name) + '</td>' +
+      '<td class="n">' + fmt(r.dur, 0) + 'h</td><td class="n">' + fmt(r.cyc, 0) + '</td>' +
+      '<td class="n">' + fmt(r.rte * 100, 0) + '%</td>' +
+      '<td class="n">' + fmt(r.perKW, 0) + '</td><td class="n">' + fmt(r.perKWh, 2) + '</td>' +
+      '<td class="n">' + fmt(r.lcos, 0) + '</td>' +
+      '<td class="n">' + (r.lensCap === null ? 'n/a' : fmt(r.lensCap, 2)) + '</td>' +
+      '<td>' + ['', 'high', 'medium', 'low'][r.conf] + '</td></tr>';
+  }).join('');
+  document.getElementById('tbl').innerHTML = '<table>' + th + tb + '</table>' +
+    '<p class="d" style="padding-left:0;margin-top:10px">Annual resolution at a common ' +
+    fmt(P.CMP_MW, 0) + ' MW, ' + fmt(P.CMP_DUR, 0) + 'h, ' + fmt(P.CMP_CYC, 0) +
+    ' cycles/yr, each clamped to its own technical range. Deliberately coarser than the quarterly ' +
+    'model driving the tiles above: for ' + TECH_SHORT[Math.round(P.TECH) - 1] +
+    ' the quarterly model gives $' + fmt(M.perKW, 0) + '/kW at the configuration you have set.</p>';
+}
+
+function init() {
+  buildHeaderSegs();
+  buildPanel();
+  refresh();
+  var segs = document.querySelectorAll('#cmpmetric button');
+  Array.prototype.forEach.call(segs, function (b) {
+    b.addEventListener('click', function () {
+      CMPMETRIC = b.getAttribute('data-k');
+      Array.prototype.forEach.call(segs, function (x) {
+        x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+      });
+      document.getElementById('v_cmp').innerHTML = drawCompare();
+    });
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The Convergent Curve · Existing vs. Proposed Power Derivatives</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ============================================================
+     The Convergent Curve — companion demo to Davis (2026)
+     Editorial-quant terminal aesthetic.
+     ============================================================ */
+
+  :root {
+    --bg-deep:        #0a0d12;
+    --bg-base:        #0e1218;
+    --bg-card:        #141821;
+    --bg-card-hover:  #181c26;
+    --bg-elev:        #1c2230;
+    --bg-input:       #0c0f15;
+
+    --border:         #232934;
+    --border-strong:  #303747;
+    --border-accent:  #3e4658;
+
+    --text-primary:   #e8e4dc;
+    --text-body:      #c4c0b6;
+    --text-muted:     #8a93a3;
+    --text-faint:     #5d6675;
+
+    --copper:         #e0a96d;
+    --copper-dim:     #b5824e;
+    --copper-bright:  #f0c290;
+
+    --teal:           #6db5b5;     /* capacity */
+    --sage:           #8db573;     /* ancillary */
+    --rose:           #cf7878;     /* cross-hub */
+    --slate-blue:     #7d97c4;     /* energy */
+
+    --positive:       #7fb069;
+    --negative:       #d4756b;
+    --warning:        #e0a96d;
+    --critical:       #e85d75;
+
+    --shadow-sm:      0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md:      0 4px 12px rgba(0,0,0,0.5);
+    --shadow-lg:      0 12px 32px rgba(0,0,0,0.6);
+
+    --font-display:   "Fraunces", "Iowan Old Style", Georgia, serif;
+    --font-body:      "Geist", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-mono:      "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg-deep);
+    color: var(--text-body);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(224,169,109,0.04), transparent 70%),
+      radial-gradient(ellipse 60% 80% at 100% 100%, rgba(109,181,181,0.02), transparent 60%),
+      var(--bg-deep);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  ::selection { background: rgba(224,169,109,0.25); color: var(--text-primary); }
+
+  /* ====== Header ====== */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px 24px 40px;
+    background: linear-gradient(180deg, rgba(20,24,33,0.4) 0%, transparent 100%);
+    position: relative;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, var(--copper) 20%, var(--copper-bright) 50%, var(--copper) 80%, transparent 100%);
+    opacity: 0.7;
+  }
+
+  .masthead-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: end;
+    max-width: 1680px;
+    margin: 0 auto;
+  }
+
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .kicker::before {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: var(--copper);
+  }
+  .kicker::after {
+    content: '◆';
+    color: var(--copper-dim);
+    font-size: 8px;
+  }
+
+  .masthead h1 {
+    font-family: var(--font-display);
+    font-weight: 350;
+    font-size: clamp(34px, 4vw, 54px);
+    line-height: 1.0;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+    font-variation-settings: "opsz" 144, "SOFT" 30;
+  }
+  .masthead h1 em {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    color: var(--copper);
+  }
+  .masthead .lede {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-style: italic;
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 720px;
+    line-height: 1.45;
+  }
+  .masthead .citation {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-faint);
+    margin-top: 18px;
+    letter-spacing: 0.04em;
+  }
+  .masthead .citation strong { color: var(--text-muted); font-weight: 500; }
+
+  .status-cluster {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .status-cluster .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--positive);
+    box-shadow: 0 0 8px rgba(127,176,105,0.6);
+    margin-right: 8px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ====== Dashboard ====== */
+  .dashboard {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    padding: 28px 40px 60px 40px;
+    max-width: 1680px;
+    margin: 0 auto;
+  }
+
+  /* ====== Controls (sidebar) ====== */
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: sticky;
+    top: 28px;
+    align-self: start;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+  .controls::-webkit-scrollbar { width: 4px; }
+  .controls::-webkit-scrollbar-track { background: transparent; }
+  .controls::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  fieldset {
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    border-radius: 4px;
+    padding: 18px 16px 16px 16px;
+    position: relative;
+  }
+  fieldset legend {
+    padding: 0 8px;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--copper);
+    background: var(--bg-deep);
+    margin-left: -4px;
+  }
+
+  .control-row {
+    margin-bottom: 14px;
+  }
+  .control-row:last-child { margin-bottom: 0; }
+
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .control-value {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--copper);
+    font-weight: 500;
+  }
+
+  select, input[type="text"], input[type="number"] {
+    width: 100%;
+    background: var(--bg-input);
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border 0.15s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23e0a96d' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 30px;
+  }
+  select:hover, input:hover { border-color: var(--border-accent); }
+  select:focus, input:focus { outline: none; border-color: var(--copper-dim); }
+
+  /* Range sliders */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 18px;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--border-strong);
+    border-radius: 1px;
+  }
+  input[type="range"]::-moz-range-track {
+    height: 2px;
+    background: var(--border-strong);
+    border-radius: 1px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--copper);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 0 1px var(--copper-dim);
+    margin-top: -5px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--copper);
+    border: 2px solid var(--bg-deep);
+    box-shadow: 0 0 0 1px var(--copper-dim);
+    cursor: pointer;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.2); }
+
+  /* Segmented control */
+  .segmented {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    background: var(--bg-input);
+    padding: 3px;
+    border-radius: 3px;
+    border: 1px solid var(--border-strong);
+  }
+  .segmented.three { grid-template-columns: repeat(3, 1fr); }
+  .segmented.four  { grid-template-columns: repeat(2, 1fr); }
+  .segmented button {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 6px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s ease;
+  }
+  .segmented button:hover {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+  }
+  .segmented button.active {
+    background: var(--copper);
+    color: var(--bg-deep);
+    font-weight: 600;
+  }
+
+  /* Run button */
+  .run-btn {
+    width: 100%;
+    background: linear-gradient(180deg, var(--copper) 0%, var(--copper-dim) 100%);
+    color: var(--bg-deep);
+    border: none;
+    padding: 14px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 14px rgba(224,169,109,0.18), inset 0 1px 0 rgba(255,255,255,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .run-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(224,169,109,0.32), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+  .run-btn:active { transform: translateY(0); }
+  .run-btn:disabled {
+    background: var(--bg-elev);
+    color: var(--text-faint);
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .run-btn .spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: -1px;
+    display: none;
+  }
+  .run-btn.running .spinner { display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ====== Results ====== */
+  .results {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 20px;
+    grid-auto-rows: min-content;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 22px 20px 22px;
+    transition: border-color 0.2s ease;
+  }
+  .card:hover { border-color: var(--border-strong); }
+  .card-full { grid-column: 1 / -1; }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 20px;
+    color: var(--text-primary);
+    letter-spacing: -0.005em;
+    font-variation-settings: "opsz" 60, "SOFT" 40;
+  }
+  .card-subtitle {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Stats row */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .stat {
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    border-left: 2px solid var(--border-strong);
+  }
+  .stat.positive { border-left-color: var(--positive); }
+  .stat.negative { border-left-color: var(--negative); }
+  .stat.accent   { border-left-color: var(--copper); }
+  .stat-label {
+    font-size: 9.5px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 4px;
+    font-family: var(--font-mono);
+  }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    color: var(--text-primary);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .stat-value.muted { color: var(--text-muted); }
+  .stat-value.pos { color: var(--positive); }
+  .stat-value.neg { color: var(--negative); }
+  .stat-aux {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    margin-top: 2px;
+  }
+
+  /* Chart containers */
+  .chart-container {
+    position: relative;
+    height: 280px;
+  }
+  .chart-container.tall { height: 340px; }
+  .chart-container.short { height: 200px; }
+
+  /* Instrument detail */
+  .instrument-detail .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Suite table */
+  .suite-table-wrap {
+    max-height: 560px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+  }
+  thead {
+    position: sticky;
+    top: 0;
+    background: var(--bg-elev);
+    z-index: 1;
+  }
+  th {
+    padding: 11px 14px;
+    text-align: left;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--copper);
+    border-bottom: 1px solid var(--border-strong);
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--copper-bright); }
+  th.numeric, td.numeric { text-align: right; }
+  th .sort-arrow { color: var(--text-faint); margin-left: 4px; font-size: 8px; }
+  th.sorted .sort-arrow { color: var(--copper); }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(35,41,52,0.5);
+    transition: background 0.1s ease;
+  }
+  tbody tr:hover { background: var(--bg-card-hover); }
+  tbody tr.selected { background: rgba(224,169,109,0.08); }
+  tbody tr.selected td:first-child { box-shadow: inset 2px 0 0 var(--copper); }
+
+  td {
+    padding: 9px 14px;
+    color: var(--text-body);
+  }
+  td:first-child { color: var(--text-primary); font-weight: 500; }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .tag-energy   { color: var(--slate-blue); border-color: rgba(125,151,196,0.4); background: rgba(125,151,196,0.08); }
+  .tag-ancillary{ color: var(--sage);       border-color: rgba(141,181,115,0.4); background: rgba(141,181,115,0.08); }
+  .tag-capacity { color: var(--teal);       border-color: rgba(109,181,181,0.4); background: rgba(109,181,181,0.08); }
+  .tag-crosshub { color: var(--rose);       border-color: rgba(207,120,120,0.4); background: rgba(207,120,120,0.08); }
+
+  /* Description / finding box */
+  .description {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    background: var(--bg-input);
+    border-left: 2px solid var(--copper-dim);
+    border-radius: 0 3px 3px 0;
+    margin-bottom: 16px;
+  }
+  .description .annotation {
+    display: block;
+    font-family: var(--font-mono);
+    font-style: normal;
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 4px;
+  }
+
+  /* Finding callout */
+  .finding {
+    border: 1px solid var(--copper-dim);
+    background: linear-gradient(135deg, rgba(224,169,109,0.06) 0%, rgba(224,169,109,0.02) 100%);
+    padding: 16px 18px;
+    border-radius: 3px;
+    margin-bottom: 18px;
+    display: none;
+  }
+  .finding.visible { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .finding-label {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--copper);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .finding-label::before {
+    content: '!';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--copper);
+    color: var(--bg-deep);
+    font-weight: 700;
+    font-size: 10px;
+  }
+  .finding-text {
+    font-family: var(--font-display);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-body);
+    font-variation-settings: "opsz" 30;
+  }
+  .finding-text em {
+    color: var(--copper-bright);
+    font-style: italic;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px 28px 40px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    line-height: 1.7;
+  }
+  .footer .divider {
+    display: inline-block;
+    width: 40px;
+    height: 1px;
+    background: var(--border-strong);
+    vertical-align: middle;
+    margin: 0 14px;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,13,18,0.78);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .loading-overlay.visible { display: flex; }
+  .loading-icon {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--copper);
+    border-right-color: var(--copper);
+    border-radius: 50%;
+    animation: spin 0.9s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+  }
+  .loading-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--copper);
+  }
+  .loading-progress {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-muted);
+    max-width: 320px;
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 1280px) {
+    .results { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 960px) {
+    .dashboard { grid-template-columns: 1fr; padding: 20px; }
+    .masthead { padding: 22px 20px; }
+    .masthead-grid { grid-template-columns: 1fr; gap: 20px; }
+    .controls { position: static; max-height: none; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+
+/* ---- RE+ wrapper additions (same design language) ---- */
+.modebar{display:flex;gap:0;justify-content:center;align-items:center;
+  border-bottom:1px solid var(--border);background:var(--bg-base);position:sticky;top:0;z-index:40;}
+.modetab{font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:.02em;
+  color:var(--text-muted);background:none;border:none;padding:16px 26px;cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .15s;}
+.modetab:hover{color:var(--text-body);}
+.modetab.active{color:var(--copper-bright);border-bottom-color:var(--copper);}
+.modetab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle;}
+.modetab .dot.exist{background:var(--slate-blue);}
+.modetab .dot.prop{background:var(--copper);}
+.view{display:none;}
+.view.active{display:block;}
+.regionbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  padding:14px 26px;border-bottom:1px solid var(--border);background:var(--bg-card);}
+.regionbar .rlabel{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--text-faint);}
+.region-seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden;}
+.region-seg button{font-family:var(--font-body);font-size:12.5px;font-weight:600;color:var(--text-muted);
+  background:var(--bg-input);border:none;padding:9px 18px;cursor:pointer;transition:all .15s;}
+.region-seg button:not(:last-child){border-right:1px solid var(--border-strong);}
+.region-seg button.active{background:var(--bg-elev);color:var(--copper-bright);}
+.nomap{margin-left:auto;font-family:var(--font-body);font-size:12px;color:var(--text-muted);
+  display:flex;align-items:center;gap:9px;}
+.nomap .pill{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;padding:3px 9px;border-radius:20px;
+  border:1px solid var(--border-strong);color:var(--text-body);background:var(--bg-input);}
+.settle-badge{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.04em;padding:5px 11px;border-radius:6px;font-weight:500;}
+.settle-badge .bd{width:8px;height:8px;border-radius:50%;}
+.settle-cash{background:rgba(125,151,196,.12);color:#9db3d6;border:1px solid rgba(125,151,196,.3);}
+.settle-cash .bd{background:var(--slate-blue);}
+.settle-flow{background:rgba(224,169,109,.10);color:var(--copper-bright);border:1px solid rgba(224,169,109,.3);}
+.settle-flow .bd{background:var(--copper);}
+.settle-inv{background:rgba(127,176,105,.12);color:#9ccb86;border:1px solid rgba(127,176,105,.3);}
+.settle-inv .bd{background:var(--positive);}
+.explainer{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-top:14px;}
+.explainer h4{font-family:var(--font-display);font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+.explainer .exch{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--copper-dim);margin-bottom:12px;}
+.explainer p{font-family:var(--font-body);font-size:13.5px;line-height:1.65;color:var(--text-body);margin-bottom:10px;}
+.explainer .who{font-size:12.5px;color:var(--text-muted);}
+.explainer .maprow{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);
+  font-family:var(--font-body);font-size:12.5px;color:var(--text-muted);}
+.explainer .maprow b{color:var(--copper-bright);font-family:var(--font-mono);font-weight:500;}
+.exist-note{font-family:var(--font-body);font-size:12px;color:var(--text-faint);
+  line-height:1.55;margin-top:10px;padding:0 2px;}
+
+/* ---- "the other side" row (existing-product explainer) ---- */
+.siderow{margin-top:12px;padding:10px 12px;background:var(--bg-input);
+  border-left:2px solid var(--copper-dim);border-radius:0 4px 4px 0;
+  font-family:var(--font-body);font-size:12.5px;line-height:1.6;color:var(--text-body);}
+.siderow .sidetag{display:inline-block;font-family:var(--font-mono);font-size:9.5px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--copper-bright);
+  margin-right:8px;white-space:nowrap;}
+
+/* ---- proposed-view fit strip: why futures, not swaps ---- */
+.fitstrip{max-width:1280px;margin:0 auto 22px;padding:16px 20px;
+  background:var(--bg-card);border:1px solid var(--border-strong);border-radius:8px;}
+.fitstrip .fs-head{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--copper-bright);margin-bottom:6px;}
+.fitstrip .fs-frame{font-family:var(--font-body);font-size:13px;line-height:1.6;
+  color:var(--text-body);margin-bottom:12px;}
+.fitstrip .fs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:860px){.fitstrip .fs-grid{grid-template-columns:1fr;}}
+.fitstrip .fs-cell{padding:10px 12px;background:var(--bg-input);border-radius:4px;
+  border-top:2px solid var(--copper-dim);}
+.fitstrip .fs-cell b{display:block;font-family:var(--font-display);font-size:13px;
+  font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+.fitstrip .fs-cell p{font-family:var(--font-body);font-size:12px;line-height:1.55;
+  color:var(--text-muted);margin:0;}
+
+</style>
+</head>
+<body>
+
+<div class="modebar">
+  <button class="modetab active" id="tab-exist" onclick="setMode('exist')"><span class="dot exist"></span>What exists today</button>
+  <button class="modetab" id="tab-prop" onclick="setMode('prop')"><span class="dot prop"></span>What I&#8217;m proposing</button>
+</div>
+
+<!-- ================= EXISTS TODAY ================= -->
+<div class="view active" id="view-exist">
+
+  <div class="regionbar">
+    <span class="rlabel">Market</span>
+    <div class="region-seg" id="region-seg">
+      <button class="active" data-region="NA" onclick="setRegion('NA')">North America</button>
+      <button data-region="EU" onclick="setRegion('EU')">Europe</button>
+    </div>
+    <div class="nomap">
+      <span class="pill">SETTLEMENT</span>
+      None of these is backed by storage inventory &mdash; they settle in cash or as physical flow.
+    </div>
+  </div>
+
+  <header class="masthead">
+    <div class="masthead-grid">
+      <div>
+        <h1>Already listed: <em id="region-title">North American power derivatives</em></h1>
+        <p class="lede" id="region-lede">The instruments a CAISO trader or PJM developer can buy today &mdash; and how each one settles.</p>
+        <p class="citation"><strong>Companion to Davis (2026), Appendix F.</strong> Stylized Monte Carlo for teaching, not pricing.</p>
+      </div>
+      <div class="masthead-status">
+        <div id="ex-status-paths">&mdash; paths</div>
+        <div id="ex-status-runtime">&mdash; ms last run</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <aside class="controls">
+      <div class="control-group">
+        <div class="control-label">Product <span class="control-value" id="prod-cat">&mdash;</span></div>
+        <select id="ctrl-prod"></select>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Settlement reference</div>
+        <div id="settle-badge-wrap" style="margin-top:8px;"></div>
+        <div class="exist-note" id="settle-note"></div>
+      </div>
+      <div class="control-group">
+        <div class="control-label">Paths <span class="control-value" id="ex-paths-val">300</span></div>
+        <input type="range" id="ex-ctrl-paths" min="100" max="1000" value="300" step="50">
+      </div>
+      <div class="control-group">
+        <div class="control-label">Delivery horizon <span class="control-value" id="ex-horizon-val">90 days</span></div>
+        <input type="range" id="ex-ctrl-horizon" min="30" max="365" value="90" step="5">
+      </div>
+      <div class="control-group">
+        <div class="control-label">Seed <span class="control-value" id="ex-seed-val">42</span></div>
+        <input type="range" id="ex-ctrl-seed" min="1" max="999" value="42" step="1">
+      </div>
+      <button class="run-btn" id="ex-run-btn"><span class="spinner"></span><span class="run-label">Run simulation</span></button>
+    </aside>
+
+    <section class="results">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Price paths</div>
+          <div class="card-subtitle" id="ex-paths-subtitle">Hourly LMP envelope</div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-label">Mean</div><div class="stat-value" id="ex-stat-mean">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-label">P99 hour</div><div class="stat-value" id="ex-stat-p99">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-label">P01 hour</div><div class="stat-value" id="ex-stat-p01">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-label">Daily TB4</div><div class="stat-value" id="ex-stat-tb4">&mdash;</div></div>
+        </div>
+        <div class="chart-container tall"><canvas id="ex-chart-paths"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title" id="ex-inst-title">Product P&amp;L</div>
+          <div class="card-subtitle">Per 100 MWh-equivalent notional · forward set unbiased</div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-label">Mean P&amp;L</div><div class="stat-value" id="ex-inst-mean">&mdash;</div><div class="stat-aux">per contract</div></div>
+          <div class="stat-card"><div class="stat-label">% profitable</div><div class="stat-value" id="ex-inst-pct">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-label">VaR 95</div><div class="stat-value" id="ex-inst-var">&mdash;</div></div>
+          <div class="stat-card"><div class="stat-label">Std dev</div><div class="stat-value" id="ex-inst-std">&mdash;</div></div>
+        </div>
+        <div class="chart-container"><canvas id="ex-chart-pnl"></canvas></div>
+      </div>
+
+      <div class="explainer" id="explainer">
+        <h4 id="ex-name">&mdash;</h4>
+        <div class="exch" id="ex-exch">&mdash;</div>
+        <p id="ex-what">&mdash;</p>
+        <p class="who" id="ex-who">&mdash;</p>
+        <div class="siderow" id="ex-side">&mdash;</div>
+        <div class="maprow" id="ex-map">&mdash;</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ================= PROPOSING (original, as-is) ================= -->
+<div class="view" id="view-prop">
+<!-- Original simulator merged inline (formerly index.html, unchanged content) -->
+
+<!-- ============================================================
+                          MASTHEAD
+============================================================ -->
+<header class="masthead">
+  <div class="masthead-grid">
+    <div>
+      <div class="kicker">USAEE / RE+ 2026 · Companion Demo · Build 1.0</div>
+      <h1>The <em>Convergent</em> Curve</h1>
+      <p class="lede">A Monte Carlo laboratory for the 25 physically-settled power derivatives proposed in Davis (2026), calibrated to ERCOT North, CAISO SP-15, and PJM West. Tune storage parameters, propagate stress regimes, watch the basis collapse.</p>
+      <div class="citation">
+        <strong>Davis, M. (2026).</strong> Grid-Scale Storage: Enforcing Convergence Between the Near-Forward Curve and Spot Price. University of Tulsa Collins College of Business.
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div><span class="live-dot"></span>Engine ready</div>
+      <div id="status-paths">— paths cached</div>
+      <div id="status-runtime">— ms last run</div>
+    </div>
+  </div>
+</header>
+
+<div class="fitstrip">
+  <div class="fs-head">Why futures, and not swaps &mdash; the counterparty argument</div>
+  <div class="fs-frame">These instruments do not compete with VPPAs, index swaps, or bespoke OTC structures &mdash; those remain the right tools for shaped, nodal, long-horizon procurement. They serve a counterparty those structures are <b>mechanically unable to hold</b>: the inventory operator, whose exposure did not exist before grid-scale storage and whose book has three properties only an exchange-traded contract satisfies.</div>
+  <div class="fs-grid">
+    <div class="fs-cell"><b>Fungible</b>
+      <p>A wind farm&#8217;s exposure is shaped, nodal, and volumetric &mdash; which is why it goes bespoke. An inventory operator&#8217;s exposure is a quantity, at a hub, over a period. That <i>is</i> the standard contract. Storage is the first power participant whose position needs no customizing.</p></div>
+    <div class="fs-cell"><b>Rollable</b>
+      <p>A PPA hedge is set once against a static obligation. State-of-charge moves every day &mdash; and the hedge ratio moves with it. You cannot rebalance a VPPA. A continuously managed inventory book requires a cleared, fungible, exit-at-will instrument; the swap cannot mechanically hold the position.</p></div>
+    <div class="fs-cell"><b>Financeable</b>
+      <p>A merchant borrowing against stored energy needs a hedge the financing desk will accept as collateral support. A bilateral swap drags counterparty credit into the collateral package; a cleared future does not. Cleared instruments are the precondition for the inventory-financing class power currently lacks.</p></div>
+  </div>
+</div>
+
+<!-- ============================================================
+                          DASHBOARD
+============================================================ -->
+<main class="dashboard">
+
+  <!-- ============ CONTROLS ============ -->
+  <aside class="controls">
+
+    <fieldset>
+      <legend>Market</legend>
+      <div class="control-row">
+        <div class="control-label">Hub <span class="control-value" id="hub-name">ERCOT North</span></div>
+        <select id="ctrl-hub">
+          <option value="ERCOT_NORTH">ERCOT North Hub (summer-peaking)</option>
+          <option value="CAISO_SP15">CAISO SP-15 (summer-peaking, solar-heavy)</option>
+          <option value="PJM_WEST">PJM West (winter-peaking, mature capacity mkt)</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Stress Regime</legend>
+      <div class="segmented" id="ctrl-stress">
+        <button data-value="baseline" class="active">Baseline</button>
+        <button data-value="uri">Uri 2021</button>
+        <button data-value="cal2001">Cal 2000–01</button>
+        <button data-value="solar">Solar Dump</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Storage Profile</legend>
+      <div class="control-row">
+        <div class="control-label">Asset class</div>
+        <select id="ctrl-asset">
+          <option value="BESS_2H">BESS · 2h Li-ion (SDES)</option>
+          <option value="BESS_4H" selected>BESS · 4h Li-ion (SDES)</option>
+          <option value="BESS_8H">BESS · 8h Li-ion (SDES)</option>
+          <option value="CAES_24H">CAES · 24h (LDES)</option>
+          <option value="CAES_72H">CAES · 72h (LDES)</option>
+          <option value="PSH_10H">Pumped storage · 10h</option>
+          <option value="PSH_20H">Pumped storage · 20h</option>
+          <option value="IRON_AIR_100H">Iron-air · 100h (LDES)</option>
+          <option value="HYDROGEN_1000H">Hydrogen · 1000h (seasonal)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <div class="control-label">Round-trip efficiency <span class="control-value" id="rte-val">85%</span></div>
+        <input type="range" id="ctrl-rte" min="40" max="95" value="85" step="1">
+      </div>
+      <div class="control-row">
+        <div class="control-label">Power rating <span class="control-value" id="mw-val">100 MW</span></div>
+        <input type="range" id="ctrl-mw" min="10" max="500" value="100" step="10">
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Monte Carlo</legend>
+      <div class="control-row">
+        <div class="control-label">Paths <span class="control-value" id="paths-val">250</span></div>
+        <input type="range" id="ctrl-paths" min="50" max="1000" value="250" step="50">
+      </div>
+      <div class="control-row">
+        <div class="control-label">Horizon <span class="control-value" id="horizon-val">365 days</span></div>
+        <input type="range" id="ctrl-horizon" min="30" max="365" value="365" step="5">
+      </div>
+      <div class="control-row">
+        <div class="control-label">Seed <span class="control-value" id="seed-val">42</span></div>
+        <input type="range" id="ctrl-seed" min="1" max="999" value="42" step="1">
+      </div>
+    </fieldset>
+
+    <button class="run-btn" id="run-btn">
+      <span class="spinner"></span>
+      <span class="btn-label">Run Simulation</span>
+    </button>
+
+  </aside>
+
+  <!-- ============ RESULTS ============ -->
+  <section class="results">
+
+    <!-- Price paths -->
+    <div class="card card-full">
+      <div class="card-header">
+        <div class="card-title">Sample Price Paths</div>
+        <div class="card-subtitle" id="paths-subtitle">LMP envelope · 1-year horizon</div>
+      </div>
+      <div class="stats">
+        <div class="stat accent">
+          <div class="stat-label">Mean LMP</div>
+          <div class="stat-value" id="stat-mean">—</div>
+          <div class="stat-aux">$/MWh, all paths</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">P99 LMP</div>
+          <div class="stat-value" id="stat-p99">—</div>
+          <div class="stat-aux">scarcity tail</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">P01 LMP</div>
+          <div class="stat-value" id="stat-p01">—</div>
+          <div class="stat-aux">curtailment tail</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Vol (σ)</div>
+          <div class="stat-value" id="stat-vol">—</div>
+          <div class="stat-aux">$/MWh</div>
+        </div>
+      </div>
+      <div class="chart-container tall">
+        <canvas id="chart-paths"></canvas>
+      </div>
+    </div>
+
+    <!-- Instrument detail -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Instrument Inspector</div>
+        <div class="card-subtitle" id="inst-subtitle">P&amp;L distribution</div>
+      </div>
+
+      <div class="control-row" style="margin-bottom: 14px;">
+        <select id="ctrl-instrument">
+          <!-- populated by JS -->
+        </select>
+      </div>
+
+      <div class="description" id="inst-description">
+        <span class="annotation">From Davis (2026), §12</span>
+        Select an instrument from the dropdown to view its payoff structure.
+      </div>
+
+      <div class="finding" id="inst-finding">
+        <div class="finding-label">Simulator Finding</div>
+        <div class="finding-text" id="inst-finding-text"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat accent">
+          <div class="stat-label">Mean P&amp;L</div>
+          <div class="stat-value" id="inst-mean">—</div>
+          <div class="stat-aux" id="inst-mean-aux">per contract</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">% Profitable</div>
+          <div class="stat-value" id="inst-pct">—</div>
+          <div class="stat-aux">paths with P&amp;L > 0</div>
+        </div>
+        <div class="stat negative">
+          <div class="stat-label">5% VaR</div>
+          <div class="stat-value" id="inst-var">—</div>
+          <div class="stat-aux">P05 loss</div>
+        </div>
+        <div class="stat negative">
+          <div class="stat-label">5% CVaR</div>
+          <div class="stat-value" id="inst-cvar">—</div>
+          <div class="stat-aux">tail expected loss</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-pnl"></canvas>
+      </div>
+    </div>
+
+    <!-- Basis compression -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Basis Compression</div>
+        <div class="card-subtitle">Storage duration vs forward-spot gap</div>
+      </div>
+      <div class="description">
+        <span class="annotation">Prediction P1 (§11.4)</span>
+        With deep, dispatchable storage, the realized | forward − settle | should fall by ≥40% relative to the no-storage counterfactual. This is the empirical core of the paper's convergence claim.
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-basis"></canvas>
+      </div>
+    </div>
+
+    <!-- Full suite summary table -->
+    <div class="card card-full">
+      <div class="card-header">
+        <div class="card-title">Suite-Wide P&amp;L Summary</div>
+        <div class="card-subtitle">All 25 instruments · sort by any column</div>
+      </div>
+      <div class="suite-table-wrap">
+        <table id="suite-table">
+          <thead>
+            <tr>
+              <th data-sort="id">ID <span class="sort-arrow">▼</span></th>
+              <th data-sort="category">Class</th>
+              <th data-sort="name">Instrument</th>
+              <th class="numeric" data-sort="mean">Mean P&amp;L <span class="sort-arrow">▼</span></th>
+              <th class="numeric" data-sort="pct">% Profit</th>
+              <th class="numeric" data-sort="var">5% VaR</th>
+              <th class="numeric" data-sort="cvar">5% CVaR</th>
+              <th class="numeric" data-sort="sharpe">Sharpe</th>
+            </tr>
+          </thead>
+          <tbody id="suite-tbody">
+            <!-- populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="footer">
+  Companion to Davis (2026)
+  <span class="divider"></span>
+  University of Tulsa · Collins College of Business
+  <span class="divider"></span>
+  Advisors: B. Pollett, R. Payne
+  <br>
+  <span style="opacity:0.5">Simulator runs locally in your browser · no data leaves this page · all payoffs computed from price-path Monte Carlo</span>
+</footer>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-icon"></div>
+  <div class="loading-text">Simulating</div>
+  <div class="loading-progress" id="loading-progress">Generating price paths…</div>
+</div>
+
+</div>
+
+<div class="loading-overlay" id="ex-loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-progress">Generating price paths&hellip;</div>
+</div>
+
+<script>
+
+function $(id){return document.getElementById(id);}
+
+/* ---- mode + iframe lazy load ---- */
+function setMode(m){
+  $('view-exist').classList.toggle('active', m==='exist');
+  $('view-prop').classList.toggle('active', m==='prop');
+  $('tab-exist').classList.toggle('active', m==='exist');
+  $('tab-prop').classList.toggle('active', m==='prop');
+  if(m==='prop' && window.__propBoot){ const b=window.__propBoot; window.__propBoot=null; requestAnimationFrame(b); }
+}
+
+/* =========================================================
+   Price engine (ported from the proposed simulator, with an
+   explicit intraday diurnal term so TB4 top4-bottom4 is real).
+   ========================================================= */
+function makeRng(seed){
+  let s=seed>>>0;
+  function rand(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);
+    t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;}
+  let spare=null;
+  function normal(){if(spare!==null){const v=spare;spare=null;return v;}
+    let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();
+    const mag=Math.sqrt(-2*Math.log(u));spare=mag*Math.sin(2*Math.PI*v);return mag*Math.cos(2*Math.PI*v);}
+  function poisson(l){if(l<=0)return 0;const L=Math.exp(-l);let k=0,p=1;do{k++;p*=rand();}while(p>L);return k-1;}
+  return {rand,normal,poisson};
+}
+
+const REGION_CALIB = {
+  // North America (USD)
+  ERCOT:{region:"NA",name:"ERCOT North",ccy:"$",mean:45,mr:0.04,vol:14,jI:4.0,jM:120,jS:340,sAmp:18,sPhase:0,diurnal:22,floor:-40,solar:false},
+  CAISO:{region:"NA",name:"CAISO SP-15",ccy:"$",mean:55,mr:0.05,vol:11,jI:2.5,jM:80,jS:180,sAmp:22,sPhase:0,diurnal:30,floor:-50,solar:true},
+  PJM:{region:"NA",name:"PJM West",ccy:"$",mean:42,mr:0.05,vol:9,jI:2.0,jM:55,jS:120,sAmp:12,sPhase:Math.PI,diurnal:15,floor:-30,solar:false},
+  // Europe (EUR)
+  NORDPOOL:{region:"EU",name:"Nord Pool (Nordic system)",ccy:"\u20ac",mean:42,mr:0.035,vol:7,jI:1.0,jM:45,jS:90,sAmp:20,sPhase:Math.PI,diurnal:9,floor:-10,solar:false,hydro:true},
+  GERMANY:{region:"EU",name:"EEX / German (Phelix DE)",ccy:"\u20ac",mean:78,mr:0.045,vol:12,jI:2.2,jM:65,jS:160,sAmp:16,sPhase:Math.PI,diurnal:26,floor:-90,solar:true}
+};
+
+function diurnal(h,c){
+  // evening peak ~18:00; solar regions get a deep midday trough ~13:00
+  let d = c.diurnal*Math.cos(2*Math.PI*(h-18)/24);
+  if(c.solar) d -= c.diurnal*1.05*Math.exp(-Math.pow((h-13)/3.0,2));
+  return d;
+}
+
+/* Generate per-path aggregates for one calibration. Returns arrays sized nPaths. */
+function simulateExisting(c, days, nPaths, seed){
+  const rng = makeRng(seed);
+  const out = {
+    dayMeanRT:new Float64Array(nPaths), dayMeanDA:new Float64Array(nPaths),
+    tb4RT:new Float64Array(nPaths),    tb4DA:new Float64Array(nPaths),
+    peakMean:new Float64Array(nPaths), basis:new Float64Array(nPaths),
+    p99:new Float64Array(nPaths),      p01:new Float64Array(nPaths),
+    monthRT:new Float64Array(nPaths)
+  };
+  // one representative envelope path for the chart (median seed path)
+  const envHours = Math.min(days,30)*24;
+  const env = {p05:new Float64Array(envHours),mean:new Float64Array(envHours),p95:new Float64Array(envHours)};
+  const envSamples = []; for(let i=0;i<envHours;i++) envSamples.push([]);
+
+  for(let p=0;p<nPaths;p++){
+    let level = c.mean;                       // slow AR(1) daily level
+    let basisState = 0;
+    let sumRT=0,sumDA=0,sTb4RT=0,sTb4DA=0,sPeak=0,sBasis=0;
+    let allHi=-1e9, allLo=1e9;
+    let nPeak=0;
+    for(let d=0; d<days; d++){
+      const toy = (d/365.0);
+      const season = c.sAmp*Math.sin(2*Math.PI*(toy-0.25)+c.sPhase);
+      // daily mean-reversion of the level toward seasonal target
+      const target = c.mean + season;
+      level += c.mr*(target-level) + c.vol*0.18*rng.normal();
+      // hourly RT prices for the day
+      const hrs = new Float64Array(24);
+      const hrsDA = new Float64Array(24);
+      let jumpsToday = rng.poisson(c.jI/365.0*24.0/24.0); // per-day expected jumps ~ jI/365
+      for(let h=0; h<24; h++){
+        let base = level + diurnal(h,c) + c.vol*0.5*rng.normal();
+        // day-ahead = expectation-ish: same level+diurnal, low noise, NO jumps
+        let da = level + diurnal(h,c) + c.vol*0.22*rng.normal();
+        hrsDA[h] = Math.max(c.floor, da);
+        hrs[h] = base;
+      }
+      // sprinkle the day's jumps onto random peak-ish hours (RT only)
+      for(let j=0;j<jumpsToday;j++){
+        const hr = 16 + Math.floor(rng.rand()*5); // 16-20h
+        hrs[hr%24] += c.jM + Math.abs(c.jS*rng.normal());
+      }
+      for(let h=0;h<24;h++) hrs[h]=Math.max(c.floor,hrs[h]);
+      // daily stats
+      let dm=0,dmDA=0; for(let h=0;h<24;h++){dm+=hrs[h];dmDA+=hrsDA[h];}
+      dm/=24; dmDA/=24;
+      // top4 / bottom4 for TB4
+      const sortedRT=Array.from(hrs).sort((a,b)=>a-b);
+      const sortedDA=Array.from(hrsDA).sort((a,b)=>a-b);
+      const t4RT=(sortedRT[23]+sortedRT[22]+sortedRT[21]+sortedRT[20])/4 - (sortedRT[0]+sortedRT[1]+sortedRT[2]+sortedRT[3])/4;
+      const t4DA=(sortedDA[23]+sortedDA[22]+sortedDA[21]+sortedDA[20])/4 - (sortedDA[0]+sortedDA[1]+sortedDA[2]+sortedDA[3])/4;
+      // peak hours 8-20
+      let pk=0; for(let h=8;h<20;h++)pk+=hrs[h]; pk/=12;
+      sumRT+=dm; sumDA+=dmDA; sTb4RT+=t4RT; sTb4DA+=t4DA; sPeak+=pk; nPeak++;
+      for(let h=0;h<24;h++){if(hrs[h]>allHi)allHi=hrs[h];if(hrs[h]<allLo)allLo=hrs[h];}
+      // zonal/congestion basis: mean-revert to 0 with fat tails + occasional congestion spikes
+      basisState += -0.25*basisState + (c.region==='NA'?6:4)*rng.normal();
+      if(rng.rand()<0.03) basisState += (rng.rand()<0.5?-1:1)*(c.region==='NA'?28:18);
+      sBasis += basisState;
+      // envelope (first <=30 days)
+      if(d*24 < envHours){ for(let h=0;h<24;h++) envSamples[d*24+h].push(hrs[h]); }
+    }
+    out.dayMeanRT[p]=sumRT/days; out.dayMeanDA[p]=sumDA/days;
+    out.tb4RT[p]=sTb4RT/days;    out.tb4DA[p]=sTb4DA/days;
+    out.peakMean[p]=sPeak/nPeak; out.basis[p]=sBasis/days;
+    out.monthRT[p]=sumRT/days;   out.p99[p]=allHi; out.p01[p]=allLo;
+  }
+  for(let i=0;i<envHours;i++){
+    const a=envSamples[i].sort((x,y)=>x-y); const n=a.length;
+    env.p05[i]=a[Math.floor(n*0.05)]; env.p95[i]=a[Math.floor(n*0.95)];
+    let s=0; for(const v of a)s+=v; env.mean[i]=s/n;
+  }
+  out.env=env; out.envHours=envHours;
+  return out;
+}
+
+function stats(arr){
+  const n=arr.length; let s=0; for(let i=0;i<n;i++)s+=arr[i]; const mean=s/n;
+  let v=0; for(let i=0;i<n;i++)v+=(arr[i]-mean)**2; const std=Math.sqrt(v/n);
+  const a=Array.from(arr).sort((x,y)=>x-y);
+  return {mean,std,p05:a[Math.floor(n*0.05)],p50:a[Math.floor(n*0.5)],p95:a[Math.floor(n*0.95)],
+          pctPos:arr.reduce((k,x)=>k+(x>0?1:0),0)/n*100, min:a[0], max:a[n-1]};
+}
+
+/* =========================================================
+   Existing-product registry. fn(agg, fwd) -> Float64Array P&L.
+   Settlement is the teaching point: "cash" or "flow" — never "inventory".
+   ========================================================= */
+const N=100; // 100 MWh-equivalent notional, to compare with proposed side
+function pnlVsForward(metric, fwd){const o=new Float64Array(metric.length);
+  for(let p=0;p<metric.length;p++)o[p]=(metric[p]-fwd)*N; return o;}
+function callPnl(metric, strike, premium){const o=new Float64Array(metric.length);
+  for(let p=0;p<metric.length;p++)o[p]=(Math.max(0,metric[p]-strike)-premium)*N; return o;}
+
+const PRODUCTS = {
+NA:[
+ {id:"ICE_TB4_RT", name:"ICE TB4 Daily Future — Real-Time", exch:"Intercontinental Exchange · ERCOT / CAISO hubs",
+  settle:"cash", metric:a=>a.tb4RT, fwd:a=>stats(a.tb4RT).mean,
+  fn:(a,f)=>pnlVsForward(a.tb4RT,f),
+  what:"A cash-settled daily future on the <b>top-bottom-4 spread</b>: the four highest hourly prices minus the four lowest. That spread is exactly the daily revenue an ideal 4-hour battery could earn from arbitrage.",
+  who:"Battery developers and traders use it to hedge or speculate on intraday arbitrage value. Crucially, you settle in cash — you never have to own or cycle a battery to hold the position.",
+  side:"Prop desks and market makers pricing an intraday volatility view. No participant is structurally <i>long the spread as inventory</i>, so beyond the prompt window the quote is a model output, not a carry position — and it widens or vanishes when volatility regimes shift.",
+  map:"E3 (SDES Calendar Spread)"},
+ {id:"ICE_TB4_DA", name:"ICE TB4 Daily Future — Day-Ahead", exch:"Intercontinental Exchange · ERCOT / CAISO hubs",
+  settle:"cash", metric:a=>a.tb4DA, fwd:a=>stats(a.tb4DA).mean,
+  fn:(a,f)=>pnlVsForward(a.tb4DA,f),
+  what:"The same top-bottom-4 spread measured on day-ahead prices. The gap between this and the real-time TB4 is the day-ahead/real-time convergence basis.",
+  who:"Traders run the DA-vs-RT pair as a convergence view. The pair is, in cash form, what the proposed E8 convergence swap does with a storage operator behind it.",
+  side:"The same expectational pool trading the other leg. Nobody&#8217;s physical book is long the DA/RT spread through time, so both legs of the pair are views against views — there is no natural holder whose business requires standing on the opposite side.",
+  map:"E8 (DA/RT Convergence Swap)"},
+ {id:"ISO_CONVERGENCE", name:"ISO Convergence (virtual / INC-DEC) bid", exch:"ERCOT / CAISO / PJM day-ahead market",
+  settle:"cash", metric:a=>{const m=new Float64Array(a.dayMeanDA.length);for(let p=0;p<m.length;p++)m[p]=a.dayMeanDA[p]-a.dayMeanRT[p];return m;}, fwd:a=>0,
+  fn:(a,f)=>{const m=new Float64Array(a.dayMeanDA.length);for(let p=0;p<m.length;p++)m[p]=(a.dayMeanDA[p]-a.dayMeanRT[p])*N;return m;},
+  what:"A purely financial bid that settles the difference between the day-ahead and real-time price. It is the ISO&#8217;s existing convergence mechanism — no asset, no delivery.",
+  who:"Banks and prop traders submit virtuals to push DA and RT together. It disciplines DA/RT convergence financially, but nothing physical stands behind it.",
+  side:"Other virtual bidders — purely expectational capital on both sides. That is exactly the capital that evaporated in 2002: when speculative balance sheets withdraw, nothing remains to hold the two prices together. A working convergence mechanism, but one with no inventory floor under it.",
+  map:"E8 (DA/RT Convergence Swap)"},
+ {id:"NODAL_MONTHLY", name:"Nodal Exchange Monthly Future (LMP)", exch:"Nodal Exchange / Nodal Clear · all NA ISOs",
+  settle:"cash", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a,f)=>pnlVsForward(a.dayMeanRT,f),
+  what:"A cash-settled monthly future that settles to the realized average LMP at a chosen node, hub or zone. Nodal can settle to the full LMP or to its Energy, Congestion or Loss components separately.",
+  who:"The locational hedging workhorse of North American power. It is the closest existing analog to the proposed E1/E2 futures — but settles to an index, with no delivery obligation.",
+  side:"In the prompt months: genuine two-way flow, generators short against load-serving entities long. In the deferred months: no one. There is no inventory holder to warehouse deferred price risk, so market makers quote wide or not at all, and open interest decays sharply with tenor. The missing counterparty <i>is</i> the missing liquidity.",
+  map:"E1 / E2 (SDES / LDES Futures)"},
+ {id:"NODAL_CONGESTION", name:"Nodal Congestion-Component Future / FTR", exch:"Nodal Exchange · congestion component (≈ FTR/CRR)",
+  settle:"cash", metric:a=>a.basis, fwd:a=>stats(a.basis).mean,
+  fn:(a,f)=>pnlVsForward(a.basis,f),
+  what:"Hedges the congestion component of LMP — the location basis between a hub and a constrained node. Functionally the exchange-traded cousin of an FTR / CRR.",
+  who:"Generators and loads at congested nodes hedge transmission cost here. It compresses location basis financially; the proposed E7/H3 add a storage anchor that FTRs alone cannot provide.",
+  side:"Real two-way flow at auction — generators inside the constraint against loads outside it. But the seller of congestion protection holds no offsetting physical position through time: the position is a model view on shift factors and outage schedules. Spatial risk has a natural counterparty; the <i>temporal</i> leg of the same exposure still has none.",
+  map:"E7 / H3 (Hub Basis Swap / FTR-bundled)"},
+ {id:"NODAL_OPTION", name:"Nodal Monthly Option (on LMP future)", exch:"Nodal Exchange · 8 hub locations + Cal-Year options",
+  settle:"cash", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a)=>{const st=stats(a.dayMeanRT); const prem=Math.max(2,(st.p95-st.mean)*0.35); return callPnl(a.dayMeanRT,st.mean,prem);},
+  what:"A cash-settled call/put on the corresponding monthly LMP future. Buyer pays a premium and receives the in-the-money amount at settlement.",
+  who:"Used to cap price exposure or monetize volatility. The proposed E5/E6 differ by writing the option against physically-held storage inventory, linking the premium to a real State-of-Charge.",
+  side:"Every writer is either naked or delta-hedging in the same thin underlying future — no seller covers the call with held inventory, because there is nothing to hold. In gas, a cavern operator writes calls against molecules in the ground; the premium reflects real optionality. Here the premium is a volatility model plus a balance-sheet charge.",
+  map:"E5 / E6 (Spark / Seasonal options)"}
+],
+EU:[
+ {id:"EEX_PHELIX_BASE", name:"EEX Phelix DE Base Month Future", exch:"European Energy Exchange · settles vs EPEX day-ahead",
+  settle:"cash", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a,f)=>pnlVsForward(a.dayMeanRT,f),
+  what:"Europe&#8217;s benchmark power contract: a cash-settled baseload future settling to the average EPEX SPOT day-ahead price over the delivery month. Listed Day through Year, out to six years.",
+  who:"The most liquid power future in Europe. It is the direct analog to the proposed E1/E2 futures — but settles financially against an index, with no inventory behind it.",
+  side:"Europe&#8217;s best case: utilities, industrials, and financials give real two-way flow years out the curve. But even here the deferred quote is expectational — no participant can cash-and-carry against it, so the curve is held together by balance sheets and hedging mandates rather than arbitrage. The 2021&#8211;22 margin crisis showed what that costs when the expectational capital is squeezed.",
+  map:"E1 / E2 (SDES / LDES Futures)"},
+ {id:"EEX_PHELIX_PEAK", name:"EEX Phelix DE Peak Month Future", exch:"European Energy Exchange · peak hours (08–20)",
+  settle:"cash", metric:a=>a.peakMean, fwd:a=>stats(a.peakMean).mean,
+  fn:(a,f)=>pnlVsForward(a.peakMean,f),
+  what:"The peak-load version of the Phelix future, referencing only the 08:00–20:00 hours where demand and solar interact most strongly.",
+  who:"Used to hedge the shape premium between peak and baseload. Cash-settled; the peak/off-peak spread it captures is what a battery physically arbitrages in the proposed E3.",
+  side:"Shape sellers are overwhelmingly gas peakers monetizing their dispatch option. No one on either side is long <i>stored</i> peak energy, so the peak premium floats on fuel economics and scarcity expectations with no storage arbitrage bounding it from below — the band a charged battery fleet would enforce simply is not there.",
+  map:"E3 (SDES Calendar Spread)"},
+ {id:"EEX_FTS", name:"EEX Future-to-Spot (FTS) Service", exch:"EEX × EPEX SPOT · converts a future into day-ahead bids",
+  settle:"flow", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a,f)=>pnlVsForward(a.dayMeanRT,f),
+  what:"This is the closest thing in any power market to &#8220;physical delivery.&#8221; The FTS service converts a futures position into bids in the EPEX day-ahead auction, so the holder physically produces or consumes the energy flow.",
+  who:"Used by utilities to bridge financial and physical books. The decisive limit: it delivers the <b>flow</b>, not inventory — there is no storage buffer, so it cannot create the cash-and-carry carry trade that disciplines a forward curve. This is the exact gap the proposed suite fills.",
+  side:"There is no bilateral counterparty at all — the other side is the day-ahead auction itself. Flow in, flow out, nothing held. A tether that spans twelve countries on paper and carries almost nothing, because no position on either end includes a right-to-hold.",
+  map:"the &#8220;threat of delivery&#8221; — but flow, not inventory"},
+ {id:"NP_SYSTEM", name:"Euronext Nord Pool System Price Future", exch:"Euronext Nord Pool · cash-settled, to 10 years",
+  settle:"cash", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a,f)=>pnlVsForward(a.dayMeanRT,f),
+  what:"A cash-settled future on the Nordic System Price (the unconstrained reference price), listed daily through yearly out to ten years. Migrated from Nasdaq to Euronext in March 2026.",
+  who:"The Nordic hedging backbone. Note the seasonality: the Nordic system is hydro-dominated and winter-peaking — the opposite of ERCOT, which is exactly why the proposed E4 winter-summer direction inverts between the two.",
+  side:"Hydro reservoir operators — the only genuine inventory-holding participant class in any power market on earth. A Norwegian reservoir is a battery measured in TWh and months, and its operators quote deferred tenors against water they actually hold. It is no coincidence that the one power market with a real inventory class also lists futures ten years out: the exception that proves this paper&#8217;s rule.",
+  map:"E1 / E2 (SDES / LDES Futures)"},
+ {id:"NP_EPAD", name:"Nord Pool EPAD (Area Price Differential)", exch:"Euronext Nord Pool · zonal basis, incl. Baltic",
+  settle:"cash", metric:a=>a.basis, fwd:a=>stats(a.basis).mean,
+  fn:(a,f)=>pnlVsForward(a.basis,f),
+  what:"An Electricity Price Area Differential: a cash-settled hedge on the spread between a bidding-zone price and the Nordic System Price. The European twin of a Nodal congestion future / FTR.",
+  who:"Essential because the Nordic system splits into price areas constantly. It compresses zonal basis financially — the proposed E7/H3 add the storage anchor EPADs and FTRs lack.",
+  side:"Directionally real: a generator inside the zone is a natural seller of its own area premium. But nothing enforces the spread <i>through time</i> — no one holds inventory at the constrained zone — so EPAD curves are notoriously thin at deferred tenors, and regulators have spent a decade debating market-making mandates to fix by rule what an inventory holder would fix by arbitrage.",
+  map:"E7 / H3 (Hub Basis Swap / FTR-bundled)"},
+ {id:"EEX_ASIAN", name:"EEX Average-Price (Asian) Option", exch:"European Energy Exchange · 2025, JP power (analog)",
+  settle:"cash", metric:a=>a.dayMeanRT, fwd:a=>stats(a.dayMeanRT).mean,
+  fn:(a)=>{const st=stats(a.dayMeanRT);const prem=Math.max(2,(st.p95-st.mean)*0.35);return callPnl(a.dayMeanRT,st.mean,prem);},
+  what:"An option that settles against the <b>average</b> spot price over the delivery month, rather than a single expiry price. Launched by EEX in 2025 on Japanese power.",
+  who:"The averaging logic is the closest existing match to the proposed E2 month-long LDES delivery window — but it is still a cash-settled option, with no inventory account behind the average.",
+  side:"Writers selling average-price volatility from a model, with no inventory account standing behind the average. The averaging window mimics a month-long delivery period — but nothing is delivered, so the writer&#8217;s risk is pure vega, not the decay of a physically held position. Same shape as E2, none of the substance.",
+  map:"E2 / E6 (LDES Futures / Seasonal Call)"}
+]
+};
+
+/* ---- region + product wiring ---- */
+let REGION='NA', curProd=null, lastAgg=null;
+let chPaths=null, chPnl=null;
+
+const REGION_META = {
+  NA:{calib:'CAISO', title:'North American power derivatives',
+      lede:'The instruments a CAISO trader or PJM developer can buy today \u2014 and how each one settles.'},
+  EU:{calib:'NORDPOOL', title:'European power derivatives',
+      lede:'The instruments a Nord Pool or EEX desk in Stockholm or Leipzig can buy today \u2014 and how each one settles.'}
+};
+
+function setRegion(r){
+  REGION=r;
+  document.querySelectorAll('#region-seg button').forEach(b=>b.classList.toggle('active',b.dataset.region===r));
+  $('region-title').textContent=REGION_META[r].title;
+  $('region-lede').textContent=REGION_META[r].lede;
+  // rebuild product dropdown
+  const sel=$('ctrl-prod'); sel.innerHTML='';
+  PRODUCTS[r].forEach((p,i)=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+  curProd=PRODUCTS[r][0];
+  sel.value=curProd.id;
+  runExisting();
+}
+$('ctrl-prod').addEventListener('change',e=>{
+  curProd=PRODUCTS[REGION].find(p=>p.id===e.target.value); renderProduct();
+});
+['paths','horizon','seed'].forEach(k=>{
+  $('ex-ctrl-'+k).addEventListener('input',e=>{
+    const v=e.target.value;
+    if(k==='paths')$('ex-paths-val').textContent=v;
+    if(k==='horizon')$('ex-horizon-val').textContent=v+' days';
+    if(k==='seed')$('ex-seed-val').textContent=v;
+  });
+});
+$('ex-run-btn').addEventListener('click',runExisting);
+
+async function runExisting(){
+  const btn=$('ex-run-btn'); btn.classList.add('running'); btn.disabled=true;
+  $('ex-loading').classList.add('active');
+  await new Promise(r=>setTimeout(r,30));
+  const t0=performance.now();
+  const nPaths=+$('ex-ctrl-paths').value, days=+$('ex-ctrl-horizon').value, seed=+$('ex-ctrl-seed').value;
+  const calib = REGION==='NA' ? REGION_CALIB.CAISO : REGION_CALIB.NORDPOOL;
+  lastAgg = simulateExisting(calib, days, nPaths, seed);
+  lastAgg._ccy = calib.ccy;
+  const dt=Math.round(performance.now()-t0);
+  $('ex-status-paths').textContent=nPaths+' paths · '+calib.name;
+  $('ex-status-runtime').textContent=dt+' ms last run';
+  renderPriceEnvelope(); renderProduct();
+  $('ex-loading').classList.remove('active'); btn.classList.remove('running'); btn.disabled=false;
+}
+
+const FONT={family:"'JetBrains Mono', monospace",size:10};
+function gridColor(){return 'rgba(48,55,71,0.5)';}
+
+function renderPriceEnvelope(){
+  const a=lastAgg, env=a.env, h=a.envHours, ccy=a._ccy;
+  const labels=Array.from({length:h},(_,i)=>i);
+  const ps=stats(a.dayMeanRT);
+  $('ex-stat-mean').textContent=ccy+ps.mean.toFixed(1);
+  $('ex-stat-p99').textContent=ccy+stats(a.p99).p95.toFixed(0);
+  $('ex-stat-p01').textContent=ccy+stats(a.p01).p05.toFixed(0);
+  $('ex-stat-tb4').textContent=ccy+stats(a.tb4RT).mean.toFixed(1);
+  $('ex-paths-subtitle').textContent='Hourly price envelope (P05–mean–P95) · first '+(h/24)+' days · '+lastAgg._ccy+'/MWh';
+  const data={labels,datasets:[
+    {label:'P95',data:Array.from(env.p95),borderColor:'rgba(224,169,109,0.0)',backgroundColor:'rgba(224,169,109,0.10)',fill:'+1',pointRadius:0,borderWidth:0},
+    {label:'Mean',data:Array.from(env.mean),borderColor:'#e0a96d',backgroundColor:'transparent',fill:false,pointRadius:0,borderWidth:1.6,tension:0.2},
+    {label:'P05',data:Array.from(env.p05),borderColor:'rgba(224,169,109,0.0)',backgroundColor:'transparent',fill:false,pointRadius:0,borderWidth:0}
+  ]};
+  const opts={responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{ticks:{color:'#5d6675',font:FONT,maxTicksLimit:8,callback:v=>'h'+v},grid:{color:gridColor()}},
+            y:{ticks:{color:'#5d6675',font:FONT,callback:v=>lastAgg._ccy+v},grid:{color:gridColor()}}}};
+  if(chPaths)chPaths.destroy();
+  chPaths=new Chart($('ex-chart-paths'),{type:'line',data,options:opts});
+}
+
+function renderProduct(){
+  const a=lastAgg, p=curProd, ccy=a._ccy;
+  const fwd=p.fwd(a); const pnl=p.fn(a,fwd); const st=stats(pnl);
+  $('ex-inst-title').textContent=p.name;
+  $('ex-inst-mean').textContent=(st.mean>=0?'+':'')+ccy+Math.round(st.mean).toLocaleString();
+  $('ex-inst-pct').textContent=st.pctPos.toFixed(0)+'%';
+  $('ex-inst-var').textContent=ccy+Math.round(st.p05).toLocaleString();
+  $('ex-inst-std').textContent=ccy+Math.round(st.std).toLocaleString();
+  // settlement badge
+  const cls=p.settle==='cash'?'settle-cash':p.settle==='flow'?'settle-flow':'settle-inv';
+  const txt=p.settle==='cash'?'Cash settlement':p.settle==='flow'?'Physical FLOW · no inventory':'Inventory-backed';
+  $('settle-badge-wrap').innerHTML='<span class="settle-badge '+cls+'"><span class="bd"></span>'+txt+'</span>';
+  $('settle-note').textContent = p.settle==='flow'
+     ? 'Delivery is of the energy flow into the day-ahead auction. No stored inventory, so no carry trade against the forward curve.'
+     : 'Settles to a published price index. No delivery obligation; no physical position required to hold it.';
+  // explainer
+  $('ex-name').textContent=p.name; $('ex-exch').textContent=p.exch;
+  $('ex-what').innerHTML=p.what; $('ex-who').innerHTML=p.who;
+  $('ex-side').innerHTML='<span class="sidetag">The other side</span>'+(p.side||'&mdash;');
+  $('ex-map').innerHTML='Proposed-side analog: <b>'+p.map+'</b> &mdash; same payoff, but settled from a metered State-of-Charge / State-of-Inventory account.';
+  $('prod-cat').textContent=p.settle==='flow'?'flow':'cash';
+  // histogram
+  renderPnlHist(pnl, ccy);
+}
+
+function renderPnlHist(pnl, ccy){
+  const st=stats(pnl); const lo=st.min, hi=st.max; const bins=34;
+  const w=(hi-lo)/bins||1; const counts=new Array(bins).fill(0);
+  for(const v of pnl){let b=Math.floor((v-lo)/w);if(b<0)b=0;if(b>=bins)b=bins-1;counts[b]++;}
+  const labels=counts.map((_,i)=>lo+w*(i+0.5));
+  const colors=labels.map(x=>x>=0?'rgba(127,176,105,0.7)':'rgba(212,117,107,0.7)');
+  const data={labels,datasets:[{data:counts,backgroundColor:colors,borderWidth:0,barPercentage:1.0,categoryPercentage:1.0}]};
+  const opts={responsive:true,maintainAspectRatio:false,animation:false,
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{ticks:{color:'#5d6675',font:FONT,maxTicksLimit:7,callback:function(v){const x=this.getLabelForValue(v);return ccy+Math.round(x/1000)+'k';}},grid:{display:false}},
+            y:{ticks:{color:'#5d6675',font:FONT},grid:{color:gridColor()}}}};
+  if(chPnl)chPnl.destroy();
+  chPnl=new Chart($('ex-chart-pnl'),{type:'bar',data,options:opts});
+}
+
+// boot
+setRegion('NA');
+
+</script>
+
+<script>
+/* ===========================================================
+   Merged engine — the original index.html simulator, wrapped
+   in an IIFE so its names ($ , makeRng, …) stay private.
+   Boot is deferred until the tab is first opened so Chart.js
+   canvases lay out at full size.
+   =========================================================== */
+(function(){
+/* ===========================================================
+   The Convergent Curve — Engine
+   Monte Carlo, storage dispatch, 25 instruments, all in JS.
+   =========================================================== */
+
+// -------------------- Calibrations (matched to prices.py) --------------------
+const CALIBRATIONS = {
+  ERCOT_NORTH: {
+    name: "ERCOT North Hub",
+    meanLevel: 45, meanReversion: 22, volatility: 110,
+    jumpIntensity: 4.0, jumpMean: 100, jumpStd: 350,
+    seasonalAmplitude: 18, seasonalPhase: 0, priceFloor: -50,
+    seasonality: "summer-peaking",
+    capacityFwd: 0  // ERCOT has energy-only
+  },
+  CAISO_SP15: {
+    name: "CAISO SP-15",
+    meanLevel: 55, meanReversion: 25, volatility: 85,
+    jumpIntensity: 2.5, jumpMean: 70, jumpStd: 180,
+    seasonalAmplitude: 22, seasonalPhase: 0, priceFloor: -50,
+    seasonality: "summer-peaking",
+    capacityFwd: 7.5  // CAISO RA $/kW-mo → ~$7.5/MW-day
+  },
+  PJM_WEST: {
+    name: "PJM West Hub",
+    meanLevel: 42, meanReversion: 25, volatility: 65,
+    jumpIntensity: 2.0, jumpMean: 50, jumpStd: 120,
+    seasonalAmplitude: 12, seasonalPhase: Math.PI, // winter-peaking: phase shift
+    priceFloor: -50,
+    seasonality: "winter-peaking",
+    capacityFwd: 12.0
+  }
+};
+
+// -------------------- Storage assets (matched to storage.py) --------------------
+const STORAGE_ASSETS = {
+  BESS_2H:    { name: "BESS · 2h Li-ion",      duration: 2,    rte: 0.85, category: "SDES" },
+  BESS_4H:    { name: "BESS · 4h Li-ion",      duration: 4,    rte: 0.85, category: "SDES" },
+  BESS_8H:    { name: "BESS · 8h Li-ion",      duration: 8,    rte: 0.82, category: "SDES" },
+  CAES_24H:   { name: "CAES · 24h",            duration: 24,   rte: 0.65, category: "LDES" },
+  CAES_72H:   { name: "CAES · 72h",            duration: 72,   rte: 0.60, category: "LDES" },
+  PSH_10H:    { name: "Pumped storage · 10h",  duration: 10,   rte: 0.78, category: "Hybrid" },
+  PSH_20H:    { name: "Pumped storage · 20h",  duration: 20,   rte: 0.78, category: "LDES" },
+  IRON_AIR_100H:  { name: "Iron-air · 100h",   duration: 100,  rte: 0.55, category: "LDES" },
+  HYDROGEN_1000H: { name: "Hydrogen · 1000h",  duration: 1000, rte: 0.35, category: "Seasonal" }
+};
+
+// -------------------- Seeded RNG (Mulberry32 + Box-Muller) --------------------
+function makeRng(seed) {
+  let s = seed >>> 0;
+  function rand() {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  // Cached Box-Muller pair
+  let spare = null;
+  function normal() {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0, v = 0;
+    while (u === 0) u = rand();
+    while (v === 0) v = rand();
+    const mag = Math.sqrt(-2.0 * Math.log(u));
+    const z0 = mag * Math.cos(2 * Math.PI * v);
+    const z1 = mag * Math.sin(2 * Math.PI * v);
+    spare = z1;
+    return z0;
+  }
+  function poisson(lambda) {
+    // Knuth's algorithm — fine for lambda < 30 (our regime: lambda ~ 4/8760 = 0.00046 per hour)
+    if (lambda < 0) return 0;
+    if (lambda < 30) {
+      const L = Math.exp(-lambda);
+      let k = 0, p = 1;
+      do { k++; p *= rand(); } while (p > L);
+      return k - 1;
+    } else {
+      // Normal approximation for very rare large lambdas
+      return Math.max(0, Math.round(lambda + Math.sqrt(lambda) * normal()));
+    }
+  }
+  return { rand, normal, poisson };
+}
+
+// -------------------- Price simulator --------------------
+function simulatePricePaths(calib, nHours, nPaths, opts = {}) {
+  const seed = opts.seed ?? 42;
+  const rng = makeRng(seed);
+  const dt = 1.0 / 8760.0; // 1 hour in years
+  const sqrtDt = Math.sqrt(dt);
+  const jumpDriftPerYear = calib.jumpIntensity * calib.jumpMean;
+  const targetOffset = jumpDriftPerYear / calib.meanReversion;
+
+  // Stress regime modifiers
+  const stress = opts.stress ?? "baseline";
+  let stressJumpMult = 1.0;
+  let stressLevelAdd = 0.0;
+  let stressUriHours = null;
+  let stressSolarHours = false;
+  if (stress === "uri") {
+    stressUriHours = { start: Math.floor(nHours * 0.1), end: Math.floor(nHours * 0.1) + 96, peak: 9000 };
+  } else if (stress === "cal2001") {
+    stressLevelAdd = 250; // sustained elevated level
+    stressJumpMult = 3.5;
+  } else if (stress === "solar") {
+    stressSolarHours = true;
+  }
+
+  // Allocate Float64Array (paths × hours)
+  const paths = new Float64Array(nPaths * nHours);
+  // Init
+  for (let p = 0; p < nPaths; p++) paths[p * nHours] = calib.meanLevel + stressLevelAdd;
+
+  // Per-hour vectorized loop
+  for (let t = 1; t < nHours; t++) {
+    const timeOfYear = ((t * dt) % 1.0);
+    // Seasonal mean — peak at summer (timeOfYear ~ 0.5 for July) using sin shifted
+    const seasonalShift = calib.seasonalAmplitude * Math.sin(
+      2 * Math.PI * (timeOfYear - 0.25) + calib.seasonalPhase
+    );
+    const target = calib.meanLevel + seasonalShift - targetOffset + stressLevelAdd;
+
+    for (let p = 0; p < nPaths; p++) {
+      const idx = p * nHours + t;
+      const prev = paths[idx - 1];
+      const drift = calib.meanReversion * (target - prev) * dt;
+      const diffusion = calib.volatility * sqrtDt * rng.normal();
+      const nJ = rng.poisson(calib.jumpIntensity * dt * stressJumpMult);
+      const jump = nJ > 0 ? nJ * (calib.jumpMean + calib.jumpStd * rng.normal()) : 0;
+      let v = prev + drift + diffusion + jump;
+      // Stress overlays
+      if (stressUriHours && t >= stressUriHours.start && t < stressUriHours.end) {
+        v = stressUriHours.peak + 500 * rng.normal();
+      }
+      if (stressSolarHours) {
+        const hourOfDay = t % 24;
+        if (hourOfDay >= 10 && hourOfDay < 16) {
+          v = -15 + 8 * rng.normal();
+        }
+      }
+      paths[idx] = Math.max(v, calib.priceFloor);
+    }
+  }
+
+  return paths; // flat Float64Array, shape (nPaths, nHours)
+}
+
+// -------------------- Aggregation helpers --------------------
+function pathSlice(paths, nHours, p) {
+  return paths.subarray(p * nHours, (p + 1) * nHours);
+}
+
+function meanWindow(paths, nHours, p, start, end) {
+  let s = 0;
+  for (let t = start; t < end; t++) s += paths[p * nHours + t];
+  return s / (end - start);
+}
+
+function maxWindow(paths, nHours, p, start, end) {
+  let m = -Infinity;
+  for (let t = start; t < end; t++) if (paths[p * nHours + t] > m) m = paths[p * nHours + t];
+  return m;
+}
+
+function minWindow(paths, nHours, p, start, end) {
+  let m = Infinity;
+  for (let t = start; t < end; t++) if (paths[p * nHours + t] < m) m = paths[p * nHours + t];
+  return m;
+}
+
+// -------------------- Simple storage dispatch --------------------
+function dispatchPnl(paths, nHours, p, asset, mwh) {
+  // Naive: charge at lowest-quartile prices, discharge at highest-quartile
+  // Limited by duration (max hours per day stored)
+  const duration = Math.min(asset.duration, 24);
+  // Sample one day's worth of hours and compute spread
+  // For paper-level demo: use 30-day rolling spread × number of cycles
+  const days = Math.floor(nHours / 24);
+  let totalRevenue = 0;
+  for (let d = 0; d < days; d++) {
+    const startH = d * 24, endH = startH + 24;
+    // Find best charge/discharge hours (simplified — duration hours each)
+    const hours = [];
+    for (let h = startH; h < endH; h++) hours.push({ h, p: paths[p * nHours + h] });
+    hours.sort((a, b) => a.p - b.p);
+    const chargeHours = Math.min(duration, 12);
+    let chargeCost = 0, dischargeRev = 0;
+    for (let i = 0; i < chargeHours; i++) chargeCost += hours[i].p;
+    for (let i = 0; i < chargeHours; i++) dischargeRev += hours[hours.length - 1 - i].p;
+    // RTE haircut on discharge
+    totalRevenue += (dischargeRev * asset.rte - chargeCost) * (mwh / chargeHours);
+  }
+  return totalRevenue;
+}
+
+// -------------------- Instrument library --------------------
+// Each takes a precomputed `agg` cache to avoid recomputation
+// Returns { pnl: Float64Array, basis: Float64Array | null }
+
+function buildAggregates(paths, nHours, nPaths) {
+  // Precompute commonly-used windowed statistics per path
+  const agg = {
+    settle_24h:   new Float64Array(nPaths),  // last 24h mean
+    settle_168h:  new Float64Array(nPaths),  // weekly
+    settle_720h:  new Float64Array(nPaths),  // monthly
+    settle_all:   new Float64Array(nPaths),  // full horizon mean
+    pathMax:      new Float64Array(nPaths),
+    pathMin:      new Float64Array(nPaths),
+    midNear:      new Float64Array(nPaths),
+    p99:          new Float64Array(nPaths),
+    // Seasonal slices (for E4)
+    summerMean:   new Float64Array(nPaths),
+    winterMean:   new Float64Array(nPaths),
+  };
+
+  const mid = Math.floor(nHours / 2);
+  // Tight peak windows so the seasonal direction shows up clearly
+  // Summer peak: late June through early August (days ~170-220)
+  // Winter peak: January (days 0-31) + late December (days 335-365)
+  const summerStart = Math.floor(nHours * 0.465);
+  const summerEnd   = Math.floor(nHours * 0.605);
+  const winterStart = 0;
+  const winterEnd   = Math.floor(nHours * 0.085);
+  const winterStart2 = Math.floor(nHours * 0.918);
+
+  for (let p = 0; p < nPaths; p++) {
+    agg.settle_24h[p]  = meanWindow(paths, nHours, p, Math.max(0, nHours - 24), nHours);
+    agg.settle_168h[p] = meanWindow(paths, nHours, p, Math.max(0, nHours - 168), nHours);
+    agg.settle_720h[p] = meanWindow(paths, nHours, p, Math.max(0, nHours - Math.min(720, nHours)), nHours);
+    agg.settle_all[p]  = meanWindow(paths, nHours, p, 0, nHours);
+    agg.pathMax[p]     = maxWindow(paths, nHours, p, 0, nHours);
+    agg.pathMin[p]     = minWindow(paths, nHours, p, 0, nHours);
+    agg.midNear[p]     = meanWindow(paths, nHours, p, Math.max(0, mid - 12), Math.min(nHours, mid + 12));
+    agg.summerMean[p]  = meanWindow(paths, nHours, p, summerStart, summerEnd);
+    // Winter: combine first and last segments
+    if (winterStart2 < nHours) {
+      const a = meanWindow(paths, nHours, p, winterStart, winterEnd);
+      const b = meanWindow(paths, nHours, p, winterStart2, nHours);
+      agg.winterMean[p] = (a + b) / 2;
+    } else {
+      agg.winterMean[p] = meanWindow(paths, nHours, p, winterStart, winterEnd);
+    }
+    // Crude P99 on this path (sort first 200 sampled hours)
+    let samp = [];
+    const step = Math.max(1, Math.floor(nHours / 500));
+    for (let t = 0; t < nHours; t += step) samp.push(paths[p * nHours + t]);
+    samp.sort((a, b) => a - b);
+    agg.p99[p] = samp[Math.floor(samp.length * 0.99)];
+  }
+
+  return agg;
+}
+
+// All 25 instrument calculators take (paths, nHours, nPaths, agg, ctx)
+// where ctx = { volumeMwh, forward, asset, etc. }
+// Return { pnl, basis }
+
+function inst_E1a(_, __, nPaths, agg, ctx) {
+  const fwd = ctx.fwdEnergy;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    basis[p] = agg.settle_24h[p] - fwd;
+    pnl[p] = basis[p] * 100; // 100 MWh
+  }
+  return { pnl, basis };
+}
+function inst_E1b(_, __, nPaths, agg, ctx) {
+  const fwd = ctx.fwdEnergy;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    basis[p] = agg.settle_24h[p] - fwd;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E1c(_, __, nPaths, agg, ctx) {
+  const fwd = ctx.fwdEnergy;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    basis[p] = agg.settle_24h[p] - fwd;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E2a(_, __, nPaths, agg, ctx) {
+  const fwd = ctx.fwdEnergy;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    basis[p] = agg.settle_168h[p] - fwd;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E2b(_, __, nPaths, agg, ctx) {
+  const fwd = ctx.fwdEnergy;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    basis[p] = agg.settle_720h[p] - fwd;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E3(_, __, nPaths, agg, ctx) {
+  // SDES calendar spread (near to far). Carry is fixed; RTE haircut scales with
+  // actual asset round-trip-efficiency and prevailing price level — a 50%-RTE
+  // iron-air asset must absorb a much larger haircut than an 85% Li-ion BESS.
+  const carry = 2.5;
+  const rte = ctx.asset.rte;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const refPrice = (agg.midNear[p] + agg.settle_24h[p]) / 2;
+    const rteLoss = (1 - rte) * refPrice;
+    const spread = agg.settle_24h[p] - agg.midNear[p];
+    basis[p] = spread;
+    pnl[p] = (spread - carry - rteLoss) * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E4(_, __, nPaths, agg, ctx) {
+  // LDES winter-summer. Direction depends on hub seasonality.
+  // Carry is fixed multi-month financing; RTE haircut scales with asset RTE
+  // and the prevailing seasonal price level (paper §7.6).
+  const carry = 5.0;
+  const rte = ctx.asset.rte;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const refPrice = (agg.summerMean[p] + agg.winterMean[p]) / 2;
+    const rteLoss = (1 - rte) * refPrice;
+    // Paper-canonical: winter - summer (buy summer, deliver winter)
+    const spread = agg.winterMean[p] - agg.summerMean[p];
+    basis[p] = spread;
+    pnl[p] = (spread - carry - rteLoss) * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E5(_, __, nPaths, agg, ctx) {
+  // Spark spread option (call on peak)
+  const strike = ctx.fwdEnergy * 5; // approximate spark strike
+  const premium = 8.0;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const payoff = Math.max(agg.pathMax[p] - strike, 0);
+    pnl[p] = (payoff - premium) * 100;
+  }
+  return { pnl, basis: null };
+}
+function inst_E6(_, __, nPaths, agg, ctx) {
+  // LDES seasonal call on average price
+  const strike = ctx.fwdEnergy * 1.1;
+  const premium = 4.0;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const payoff = Math.max(agg.settle_all[p] - strike, 0);
+    pnl[p] = (payoff - premium) * 100;
+  }
+  return { pnl, basis: null };
+}
+function inst_E6a(paths, nHours, nPaths, agg, ctx) {
+  // Weather-contingent: pays only if peak exceeds threshold (proxy for weather event)
+  const strike = ctx.fwdEnergy * 1.15;
+  const premium = 3.0;
+  const threshold = ctx.fwdEnergy * 4; // weather-triggered scarcity
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const triggered = agg.pathMax[p] > threshold;
+    const payoff = triggered ? Math.max(agg.settle_all[p] - strike, 0) : 0;
+    pnl[p] = (payoff - premium) * 100;
+  }
+  return { pnl, basis: null };
+}
+function inst_E7(_, __, nPaths, agg, ctx) {
+  // Hub basis swap: realized A-B vs swap basis. Synthesize "B" as A scaled.
+  const swapBasis = 0;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    // proxy: random spread vs another hub (uniform-shifted)
+    const realized = (agg.settle_all[p] - ctx.fwdEnergy) * 0.4;
+    basis[p] = realized - swapBasis;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E8(paths, nHours, nPaths, agg, ctx) {
+  // DA/RT convergence — synthesize DA as smoothed series
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    // crude: DA average is smoother than RT realization
+    const realized = (agg.settle_all[p] - agg.pathMax[p] * 0.05) * 0.5;
+    basis[p] = realized;
+    pnl[p] = basis[p] * 100;
+  }
+  return { pnl, basis };
+}
+function inst_E9(_, __, nPaths, agg, ctx) {
+  // Right-to-hold inventory: lessee captures min-max arbitrage × RTE − lease
+  const leaseRate = 12.0;
+  const rte = ctx.asset.rte;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const arb = (agg.pathMax[p] - agg.pathMin[p]) * rte;
+    pnl[p] = (arb - leaseRate) * 100;
+  }
+  return { pnl, basis: null };
+}
+
+// --- Ancillary (A1-A5) ---
+// Ancillary prices approximated as scaled fraction of energy
+function ancillaryPaths(paths, nHours, nPaths, scale) {
+  // Aggregate energy paths × scale + small additive noise (cached on first call per scale)
+  const arr = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    arr[p] = (agg_cache.settle_all[p]) * scale;
+  }
+  return arr;
+}
+let agg_cache = null; // populated by buildAggregates side-effect for ancillary calc
+
+function inst_A1(_, __, nPaths, agg, ctx) {
+  const fwdReg = 12.0;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const settle = agg.settle_all[p] * 0.3; // reg ~ 30% of energy
+    basis[p] = settle - fwdReg;
+    pnl[p] = basis[p] * 10 * 720; // 10 MW × 720h
+  }
+  return { pnl, basis };
+}
+function inst_A2(_, __, nPaths, agg, ctx) {
+  const fwdSpin = 8.0;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const settle = agg.settle_all[p] * 0.2;
+    basis[p] = settle - fwdSpin;
+    pnl[p] = basis[p] * 10 * 720;
+  }
+  return { pnl, basis };
+}
+function inst_A3(_, __, nPaths, agg, ctx) {
+  // Ancillary capacity option (call on peak)
+  const strike = 25.0, premium = 4.0;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const peakAnc = agg.pathMax[p] * 0.25;
+    const payoff = Math.max(peakAnc - strike, 0);
+    pnl[p] = (payoff - premium) * 10 * 24;
+  }
+  return { pnl, basis: null };
+}
+function inst_A4(_, __, nPaths, agg, ctx) {
+  // RT response swap
+  const swapRate = 18.0;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const realized = agg.settle_all[p] * 0.4;
+    pnl[p] = (realized - swapRate) * 10 * 24;
+  }
+  return { pnl, basis: null };
+}
+function inst_A5(_, __, nPaths, agg, ctx) {
+  // Performance-linked: revenue = avg_perf × avg_price + premium
+  const basePremium = 200.0;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const perf = 0.92 + 0.06 * Math.sin(p);
+    const revenue = agg.settle_all[p] * 0.25 * perf + basePremium;
+    pnl[p] = revenue * 10 * 24 * 30 / 1000; // normalized
+  }
+  return { pnl, basis: null };
+}
+
+// --- Capacity (C1-C4) ---
+function inst_C1(_, __, nPaths, agg, ctx) {
+  const fwdCap = ctx.fwdCapacity || 10;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  // Capacity proxy: scarcity-driven, scales with P99
+  for (let p = 0; p < nPaths; p++) {
+    const cap = Math.max(0, fwdCap * 0.5 + agg.p99[p] / 200);
+    basis[p] = cap - fwdCap;
+    pnl[p] = basis[p] * 100 * 90; // 100 MW × 90 days
+  }
+  return { pnl, basis };
+}
+function inst_C2(_, __, nPaths, agg, ctx) {
+  const strike = 15, premium = 3;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const peakCap = agg.p99[p] / 200 + 8;
+    const payoff = Math.max(peakCap - strike, 0);
+    pnl[p] = (payoff - premium) * 100 * 90;
+  }
+  return { pnl, basis: null };
+}
+function inst_C3(_, __, nPaths, agg, ctx) {
+  const fwdStrip = (ctx.fwdCapacity || 10) * 1.05;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const realized = ctx.fwdCapacity * 0.95 + agg.p99[p] / 250;
+    basis[p] = realized - fwdStrip;
+    pnl[p] = basis[p] * 100 * 365;
+  }
+  return { pnl, basis };
+}
+function inst_C4(_, __, nPaths, agg, ctx) {
+  const energyFwd = ctx.fwdEnergy;
+  const capFwd = ctx.fwdCapacity || 10;
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const energyPnl = (agg.settle_all[p] - energyFwd) * 100 * 720;
+    const capPnl = ((ctx.fwdCapacity * 0.95 + agg.p99[p] / 250) - capFwd) * 100 * 30;
+    pnl[p] = energyPnl + capPnl;
+  }
+  return { pnl, basis: null };
+}
+
+// --- Cross-hub (H1-H3) ---
+function inst_H1(_, __, nPaths, agg, ctx) {
+  // SoC/SoI index — synthesize as fn of price variability.
+  // Notional $100k matches other cross-hub instruments at this scale.
+  const fixedIdx = 50.0;
+  const notional = 100_000;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    // Crude SoC: high if prices are stable & moderate; low if scarcity
+    const realized = Math.max(0, Math.min(100, 60 - (agg.p99[p] - ctx.fwdEnergy) / 5));
+    basis[p] = realized - fixedIdx;
+    pnl[p] = basis[p] * notional / 100;
+  }
+  return { pnl, basis };
+}
+function inst_H2(_, __, nPaths, agg, ctx) {
+  // Delivery risk option — hub operator writer P&L
+  const curtailProb = 0.05;
+  const strike = ctx.fwdEnergy;
+  const premium = 6.0;
+  const rngLocal = makeRng(987);
+  const pnl = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    const curtailed = rngLocal.rand() < curtailProb;
+    const physical = Math.max(agg.settle_24h[p] - strike, 0);
+    const cashFallback = Math.abs(agg.settle_24h[p] - strike) * 0.5;
+    const payoff = curtailed ? cashFallback : physical;
+    pnl[p] = (premium - payoff) * 100;
+  }
+  return { pnl, basis: null };
+}
+function inst_H3(_, __, nPaths, agg, ctx) {
+  // FTR-bundled LDES — load zone vs hub
+  const contractPrice = ctx.fwdEnergy * 1.02;
+  const ftrCost = 2.0;
+  const pnl = new Float64Array(nPaths);
+  const basis = new Float64Array(nPaths);
+  for (let p = 0; p < nPaths; p++) {
+    // load zone proxy: hub × 1.05 + small noise (varies by path index)
+    const loadSettle = agg.settle_all[p] * 1.05 + 3;
+    basis[p] = loadSettle - contractPrice;
+    pnl[p] = (loadSettle - contractPrice - ftrCost) * 100;
+  }
+  return { pnl, basis };
+}
+
+const INSTRUMENT_REGISTRY = [
+  { id: "E1a", name: "SDES Futures · minute-ahead",     category: "Energy",    fn: inst_E1a,
+    desc: "Physically-settled minute-ahead futures backed by SDES (BESS) dispatch. Buyer is the LSE; payoff is settle minus forward.", unit: "$/contract (100 MWh)" },
+  { id: "E1b", name: "SDES Futures · hour-ahead",       category: "Energy",    fn: inst_E1b,
+    desc: "Physically-settled hour-ahead futures. The pivotal SDES product: must clear at the prevailing RTM LMP.", unit: "$/contract (100 MWh)" },
+  { id: "E1c", name: "SDES Futures · day-ahead",        category: "Energy",    fn: inst_E1c,
+    desc: "Day-ahead block, BESS-backed. The most liquid futures rung in the proposed SDES suite.", unit: "$/contract (100 MWh)" },
+  { id: "E2a", name: "LDES Futures · weekly",           category: "Energy",    fn: inst_E2a,
+    desc: "Week-ahead delivery, backed by 24-72h CAES/PSH. Bridges the SDES/LDES tenor gap.", unit: "$/contract (100 MWh)" },
+  { id: "E2b", name: "LDES Futures · monthly",          category: "Energy",    fn: inst_E2b,
+    desc: "Month-ahead delivery, backed by iron-air or hydrogen. The HH analog for power.", unit: "$/contract (100 MWh)" },
+  { id: "E3",  name: "SDES Calendar Spread",            category: "Energy",    fn: inst_E3,
+    desc: "Cash-and-carry: buy near, charge BESS, deliver far. Carry $2.5, RTE haircut scales with (1−η)·price (§7.6).", unit: "$/contract (100 MWh)" },
+  { id: "E4",  name: "LDES Winter–Summer Spread",       category: "Energy",    fn: inst_E4,
+    desc: "Multi-month carry. Carry $5, RTE haircut = (1−η)·avg(summer,winter). Direction depends on hub seasonality — see simulator finding.", unit: "$/contract (100 MWh)" },
+  { id: "E5",  name: "Spark Spread Capacity Option",    category: "Energy",    fn: inst_E5,
+    desc: "Call on intraday peak. Highest expected return in baseline ERCOT but very fragile to jump calibration.", unit: "$/contract (100 MWh)" },
+  { id: "E6",  name: "LDES Seasonal Call",              category: "Energy",    fn: inst_E6,
+    desc: "Long-dated European-style average-price call. Buyer pays premium upfront, receives realized > strike.", unit: "$/contract (100 MWh)" },
+  { id: "E6a", name: "Weather-Contingent LDES Option",  category: "Energy",    fn: inst_E6a,
+    desc: "Knock-in option: pays only if a weather event (proxied by price-tail breach) occurs during delivery.", unit: "$/contract (100 MWh)" },
+  { id: "E7",  name: "Hub Basis Swap",                  category: "Energy",    fn: inst_E7,
+    desc: "Pay-fixed/receive-floating swap on the realized A–B hub differential. Compresses basis without physical delivery.", unit: "$/contract (100 MWh)" },
+  { id: "E8",  name: "DA/RT Convergence Swap",          category: "Energy",    fn: inst_E8,
+    desc: "Locks in convergence between day-ahead and real-time settle. SDES-enabled.", unit: "$/contract (100 MWh)" },
+  { id: "E9",  name: "Right-to-Hold Inventory",         category: "Energy",    fn: inst_E9,
+    desc: "Tolling-style lease: pay fixed for the right to dispatch a storage asset. Lessee captures full arb spread × RTE.", unit: "$/contract (100 MWh)" },
+
+  { id: "A1",  name: "Regulation Up/Down Futures",      category: "Ancillary", fn: inst_A1,
+    desc: "Monthly regulation reserve futures, MW × hours. BESS dominates this product class today.", unit: "$/MW-month" },
+  { id: "A2",  name: "Spinning Reserve Forward",        category: "Ancillary", fn: inst_A2,
+    desc: "NERC BAL-002 obligation, physically-settled. SDES is technologically dominant.", unit: "$/MW-month" },
+  { id: "A3",  name: "Ancillary Capacity Option",       category: "Ancillary", fn: inst_A3,
+    desc: "Call option on the peak ancillary clearing price. Hedges ISO sweep events.", unit: "$/MW-day premium" },
+  { id: "A4",  name: "RT Response Swap",                category: "Ancillary", fn: inst_A4,
+    desc: "Performance-indexed swap on BESS fast-response revenue. Hedges 4-second AGC volatility.", unit: "$/MW-day" },
+  { id: "A5",  name: "Performance-Linked Ancillary",    category: "Ancillary", fn: inst_A5,
+    desc: "Hybrid: premium scales with ISO-verified performance score. Aligns operator incentive with reliability.", unit: "$/MW-month" },
+
+  { id: "C1",  name: "Seasonal Capacity Future",        category: "Capacity",  fn: inst_C1,
+    desc: "Physically-settled $/MW-day capacity contract. 90-day delivery. Applies to PJM, CAISO, NYISO, IESO.", unit: "$/MW-quarter" },
+  { id: "C2",  name: "LDES Capacity Option",            category: "Capacity",  fn: inst_C2,
+    desc: "Seasonal call on capacity clearing. LDES counterparties only — must demonstrate 12+ hour delivery.", unit: "$/MW-quarter" },
+  { id: "C3",  name: "Multi-Season Capacity Strip",     category: "Capacity",  fn: inst_C3,
+    desc: "3–5 year forward strip. Enables IRP-style hedging for vertically-integrated utilities.", unit: "$/MW-year" },
+  { id: "C4",  name: "Hybrid Resource Adequacy Hedge",  category: "Capacity",  fn: inst_C4,
+    desc: "Bundled energy + capacity payoff. Widest distribution in the suite due to dual notional — flagged in §12.4.", unit: "$/MW combined" },
+
+  { id: "H1",  name: "SoC/SoI Index Swap",              category: "CrossHub",  fn: inst_H1,
+    desc: "Pays the spread between realized aggregate storage-of-charge index and a fixed strike. Analog: EIA gas storage report swap.", unit: "$/index-point" },
+  { id: "H2",  name: "Delivery Risk Option",            category: "CrossHub",  fn: inst_H2,
+    desc: "Hub operator collects premium for guaranteeing settlement regardless of physical curtailment. P&L shown is writer-side.", unit: "$/contract (100 MWh)" },
+  { id: "H3",  name: "FTR-Bundled LDES Contract",       category: "CrossHub",  fn: inst_H3,
+    desc: "LDES delivery to load zone with embedded monthly FTR. Eliminates hub-to-zone basis for the LSE.", unit: "$/contract (100 MWh)" }
+];
+
+// -------------------- Stats helpers --------------------
+function statSummary(arr) {
+  const n = arr.length;
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += arr[i];
+  const mean = sum / n;
+  let varAcc = 0;
+  for (let i = 0; i < n; i++) varAcc += (arr[i] - mean) ** 2;
+  const std = Math.sqrt(varAcc / n);
+  const sorted = Array.from(arr).sort((a, b) => a - b);
+  const p05 = sorted[Math.floor(n * 0.05)];
+  const p50 = sorted[Math.floor(n * 0.50)];
+  const p95 = sorted[Math.floor(n * 0.95)];
+  // CVaR: mean of bottom 5%
+  let cvarSum = 0, cvarCount = 0;
+  const cutoff = Math.floor(n * 0.05);
+  for (let i = 0; i < cutoff; i++) { cvarSum += sorted[i]; cvarCount++; }
+  const cvar = cvarCount > 0 ? cvarSum / cvarCount : sorted[0];
+  let posCount = 0;
+  for (let i = 0; i < n; i++) if (arr[i] > 0) posCount++;
+  return {
+    mean, std, p05, p50, p95,
+    var95: p05,
+    cvar,
+    pctProfit: (posCount / n) * 100,
+    sharpe: std > 0 ? mean / std : 0
+  };
+}
+
+// -------------------- Number formatting --------------------
+function fmtMoney(v) {
+  if (!isFinite(v)) return "—";
+  const abs = Math.abs(v);
+  if (abs >= 1e9) return (v < 0 ? "−" : "") + "$" + (abs / 1e9).toFixed(2) + "B";
+  if (abs >= 1e6) return (v < 0 ? "−" : "") + "$" + (abs / 1e6).toFixed(2) + "M";
+  if (abs >= 1e3) return (v < 0 ? "−" : "") + "$" + (abs / 1e3).toFixed(1) + "k";
+  return (v < 0 ? "−$" : "$") + abs.toFixed(0);
+}
+function fmtPrice(v) {
+  if (!isFinite(v)) return "—";
+  return (v < 0 ? "−$" : "$") + Math.abs(v).toFixed(2);
+}
+function fmtPct(v) {
+  if (!isFinite(v)) return "—";
+  return v.toFixed(1) + "%";
+}
+
+// -------------------- Chart.js defaults --------------------
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 10;
+Chart.defaults.color = "#909aab";
+Chart.defaults.borderColor = "#232934";
+Chart.defaults.plugins.legend.labels.color = "#909aab";
+Chart.defaults.plugins.legend.labels.boxWidth = 8;
+Chart.defaults.plugins.legend.labels.boxHeight = 8;
+Chart.defaults.plugins.tooltip.backgroundColor = "rgba(20,24,33,0.95)";
+Chart.defaults.plugins.tooltip.borderColor = "#3e4658";
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.titleColor = "#e0a96d";
+Chart.defaults.plugins.tooltip.bodyColor = "#e8e4dc";
+Chart.defaults.plugins.tooltip.titleFont = { family: "'JetBrains Mono', monospace", size: 10, weight: "500" };
+Chart.defaults.plugins.tooltip.bodyFont = { family: "'JetBrains Mono', monospace", size: 11 };
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 3;
+Chart.defaults.plugins.tooltip.displayColors = false;
+
+// -------------------- State --------------------
+const STATE = {
+  hub: "ERCOT_NORTH",
+  asset: "BESS_4H",
+  rte: 0.85,
+  mw: 100,
+  paths: 250,
+  horizon: 365,
+  seed: 42,
+  stress: "baseline",
+  instrument: "E1b",
+  charts: { paths: null, pnl: null, basis: null },
+  lastResults: null,
+  lastAgg: null,
+  lastPricePaths: null,
+  sort: { col: "id", dir: 1 }
+};
+
+// -------------------- UI wiring --------------------
+function $(id) { return document.getElementById(id); }
+
+// Sliders
+$("ctrl-rte").addEventListener("input", e => {
+  STATE.rte = e.target.value / 100;
+  $("rte-val").textContent = e.target.value + "%";
+});
+$("ctrl-mw").addEventListener("input", e => {
+  STATE.mw = parseInt(e.target.value);
+  $("mw-val").textContent = e.target.value + " MW";
+});
+$("ctrl-paths").addEventListener("input", e => {
+  STATE.paths = parseInt(e.target.value);
+  $("paths-val").textContent = e.target.value;
+});
+$("ctrl-horizon").addEventListener("input", e => {
+  STATE.horizon = parseInt(e.target.value);
+  $("horizon-val").textContent = e.target.value + " days";
+});
+$("ctrl-seed").addEventListener("input", e => {
+  STATE.seed = parseInt(e.target.value);
+  $("seed-val").textContent = e.target.value;
+});
+
+// Hub selector
+$("ctrl-hub").addEventListener("change", e => {
+  STATE.hub = e.target.value;
+  $("hub-name").textContent = CALIBRATIONS[STATE.hub].name;
+});
+
+// Asset selector
+$("ctrl-asset").addEventListener("change", e => {
+  STATE.asset = e.target.value;
+  STATE.rte = STORAGE_ASSETS[STATE.asset].rte;
+  $("ctrl-rte").value = Math.round(STATE.rte * 100);
+  $("rte-val").textContent = Math.round(STATE.rte * 100) + "%";
+});
+
+// Stress regime segmented control
+document.querySelectorAll("#ctrl-stress button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#ctrl-stress button").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    STATE.stress = btn.dataset.value;
+  });
+});
+
+// Instrument selector — group by category
+function populateInstrumentSelect() {
+  const sel = $("ctrl-instrument");
+  sel.innerHTML = "";
+  const cats = ["Energy", "Ancillary", "Capacity", "CrossHub"];
+  cats.forEach(cat => {
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = cat === "CrossHub" ? "Cross-Hub / Index" : cat;
+    INSTRUMENT_REGISTRY.filter(i => i.category === cat).forEach(inst => {
+      const opt = document.createElement("option");
+      opt.value = inst.id;
+      opt.textContent = `${inst.id} · ${inst.name}`;
+      optgroup.appendChild(opt);
+    });
+    sel.appendChild(optgroup);
+  });
+  sel.value = STATE.instrument;
+}
+populateInstrumentSelect();
+
+$("ctrl-instrument").addEventListener("change", e => {
+  STATE.instrument = e.target.value;
+  updateInstrumentDetail();
+});
+
+// Run button
+$("run-btn").addEventListener("click", runSimulation);
+
+// -------------------- Run --------------------
+async function runSimulation() {
+  const btn = $("run-btn");
+  const overlay = $("loading");
+  btn.classList.add("running");
+  btn.disabled = true;
+  overlay.classList.add("visible");
+
+  const startTime = performance.now();
+
+  // Update progress messages
+  const progressMsgs = [
+    "Generating price paths…",
+    "Computing path aggregations…",
+    "Evaluating 25 instruments…",
+    "Building basis-compression series…",
+    "Compiling suite statistics…"
+  ];
+  let msgIdx = 0;
+  $("loading-progress").textContent = progressMsgs[0];
+  const msgInterval = setInterval(() => {
+    msgIdx = (msgIdx + 1) % progressMsgs.length;
+    $("loading-progress").textContent = progressMsgs[msgIdx];
+  }, 400);
+
+  // Yield to render the overlay before the heavy compute
+  await new Promise(r => setTimeout(r, 30));
+
+  try {
+    const calib = CALIBRATIONS[STATE.hub];
+    const nHours = STATE.horizon * 24;
+    const nPaths = STATE.paths;
+
+    // 1. Simulate price paths
+    const t0 = performance.now();
+    const paths = simulatePricePaths(calib, nHours, nPaths, {
+      seed: STATE.seed,
+      stress: STATE.stress
+    });
+    await new Promise(r => setTimeout(r, 10));
+
+    // 2. Build aggregations
+    const agg = buildAggregates(paths, nHours, nPaths);
+    agg_cache = agg; // for ancillary path synth
+    await new Promise(r => setTimeout(r, 10));
+
+    // 3. Set up forward prices from path-implied means
+    let pathSum = 0;
+    for (let p = 0; p < nPaths; p++) pathSum += agg.settle_all[p];
+    const realizedMean = pathSum / nPaths;
+    const fwdEnergy = realizedMean; // unbiased forward
+    const fwdCapacity = calib.capacityFwd || 10;
+    const ctx = {
+      fwdEnergy,
+      fwdCapacity,
+      asset: STORAGE_ASSETS[STATE.asset]
+    };
+
+    // 4. Run all 25 instruments
+    const results = {};
+    for (const inst of INSTRUMENT_REGISTRY) {
+      const r = inst.fn(paths, nHours, nPaths, agg, ctx);
+      const stats = statSummary(r.pnl);
+      results[inst.id] = { ...inst, pnl: r.pnl, basis: r.basis, stats };
+    }
+
+    await new Promise(r => setTimeout(r, 10));
+
+    // 5. Compute basis-compression by storage duration
+    const basisCompression = computeBasisCompression(paths, nHours, nPaths, agg, fwdEnergy);
+
+    const t1 = performance.now();
+
+    STATE.lastResults = results;
+    STATE.lastAgg = agg;
+    STATE.lastPricePaths = paths;
+    STATE.lastNHours = nHours;
+    STATE.lastBasisCompression = basisCompression;
+
+    // 6. Render
+    renderPriceStats(paths, nHours, nPaths);
+    renderPricePaths(paths, nHours, nPaths);
+    updateInstrumentDetail();
+    renderBasisCompression(basisCompression);
+    renderSuiteTable(results);
+
+    // Status indicators
+    $("status-paths").textContent = `${nPaths} paths × ${STATE.horizon} days`;
+    $("status-runtime").textContent = `${Math.round(t1 - t0)} ms last run`;
+    $("paths-subtitle").textContent = `${calib.name} · ${STATE.stress === "baseline" ? "baseline regime" : STATE.stress + " stress"} · ${nPaths} paths`;
+
+  } catch (err) {
+    console.error("Simulation error:", err);
+    alert("Simulation error: " + err.message);
+  } finally {
+    clearInterval(msgInterval);
+    btn.classList.remove("running");
+    btn.disabled = false;
+    overlay.classList.remove("visible");
+  }
+}
+
+// -------------------- Rendering --------------------
+function renderPriceStats(paths, nHours, nPaths) {
+  // All-path summary
+  const allSamples = [];
+  const step = Math.max(1, Math.floor((nPaths * nHours) / 50000));
+  for (let i = 0; i < paths.length; i += step) allSamples.push(paths[i]);
+  allSamples.sort((a, b) => a - b);
+  const mean = allSamples.reduce((s, v) => s + v, 0) / allSamples.length;
+  const variance = allSamples.reduce((s, v) => s + (v - mean) ** 2, 0) / allSamples.length;
+  const std = Math.sqrt(variance);
+  const p99 = allSamples[Math.floor(allSamples.length * 0.99)];
+  const p01 = allSamples[Math.floor(allSamples.length * 0.01)];
+
+  $("stat-mean").textContent = fmtPrice(mean);
+  $("stat-p99").textContent = fmtPrice(p99);
+  $("stat-p01").textContent = fmtPrice(p01);
+  $("stat-vol").textContent = "$" + std.toFixed(1);
+}
+
+function renderPricePaths(paths, nHours, nPaths) {
+  const showPaths = Math.min(15, nPaths);
+  const subSampleHours = Math.min(nHours, 365 * 24); // up to a year
+  const xStep = Math.max(1, Math.floor(subSampleHours / 300));
+  const labels = [];
+  const datasets = [];
+
+  for (let h = 0; h < subSampleHours; h += xStep) {
+    labels.push((h / 24).toFixed(0));
+  }
+
+  // Random colors for individual paths (translucent)
+  const colorPalette = ["#7d97c4", "#6db5b5", "#8db573", "#cf7878", "#e0a96d"];
+  for (let p = 0; p < showPaths; p++) {
+    const data = [];
+    for (let h = 0; h < subSampleHours; h += xStep) {
+      data.push(paths[p * nHours + h]);
+    }
+    datasets.push({
+      label: null,
+      data,
+      borderColor: colorPalette[p % colorPalette.length] + "60",
+      backgroundColor: "transparent",
+      borderWidth: 0.8,
+      pointRadius: 0,
+      tension: 0
+    });
+  }
+
+  // Mean and percentile envelope
+  const meanLine = [];
+  const p95Line = [];
+  const p05Line = [];
+  for (let h = 0; h < subSampleHours; h += xStep) {
+    const vals = [];
+    for (let p = 0; p < nPaths; p++) vals.push(paths[p * nHours + h]);
+    vals.sort((a, b) => a - b);
+    meanLine.push(vals.reduce((s, v) => s + v, 0) / vals.length);
+    p95Line.push(vals[Math.floor(vals.length * 0.95)]);
+    p05Line.push(vals[Math.floor(vals.length * 0.05)]);
+  }
+
+  datasets.push({
+    label: "P95",
+    data: p95Line,
+    borderColor: "#e0a96d",
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    pointRadius: 0,
+    borderDash: [4, 4],
+    tension: 0
+  });
+  datasets.push({
+    label: "Mean",
+    data: meanLine,
+    borderColor: "#f0c290",
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    pointRadius: 0,
+    tension: 0
+  });
+  datasets.push({
+    label: "P05",
+    data: p05Line,
+    borderColor: "#e0a96d",
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    pointRadius: 0,
+    borderDash: [4, 4],
+    tension: 0
+  });
+
+  if (STATE.charts.paths) STATE.charts.paths.destroy();
+  STATE.charts.paths = new Chart($("chart-paths"), {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      interaction: { intersect: false, mode: "index" },
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+          align: "end",
+          labels: {
+            filter: item => item.text !== null,
+            font: { family: "'JetBrains Mono', monospace", size: 9 }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: "rgba(35,41,52,0.4)", drawTicks: false },
+          ticks: {
+            maxTicksLimit: 12,
+            color: "#5d6675",
+            callback: function(v, i) { return labels[i] + "d"; }
+          },
+          title: { display: true, text: "Day of horizon", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        },
+        y: {
+          grid: { color: "rgba(35,41,52,0.4)", drawTicks: false },
+          ticks: {
+            color: "#5d6675",
+            callback: v => "$" + v.toFixed(0)
+          },
+          title: { display: true, text: "LMP ($/MWh)", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        }
+      }
+    }
+  });
+}
+
+function updateInstrumentDetail() {
+  if (!STATE.lastResults) return;
+  const r = STATE.lastResults[STATE.instrument];
+  if (!r) return;
+
+  const s = r.stats;
+  $("inst-mean").textContent = fmtMoney(s.mean);
+  $("inst-mean-aux").textContent = r.unit;
+  $("inst-pct").textContent = fmtPct(s.pctProfit);
+  $("inst-var").textContent = fmtMoney(s.var95);
+  $("inst-cvar").textContent = fmtMoney(s.cvar);
+
+  // Color classes for VaR/CVaR
+  $("inst-var").classList.toggle("neg", s.var95 < 0);
+  $("inst-cvar").classList.toggle("neg", s.cvar < 0);
+
+  // Description with potential finding
+  let descEl = $("inst-description");
+  descEl.innerHTML = `<span class="annotation">${r.id} · ${r.category}</span>${r.desc}`;
+
+  // E4 finding for summer-peaking hubs
+  const findingEl = $("inst-finding");
+  const findingText = $("inst-finding-text");
+  if (STATE.instrument === "E4") {
+    const calib = CALIBRATIONS[STATE.hub];
+    const asset = STORAGE_ASSETS[STATE.asset];
+    if (calib.seasonality === "summer-peaking" && s.mean < 0) {
+      findingEl.classList.add("visible");
+      findingText.innerHTML = `In ${calib.name}, winter LMP is <em>below</em> summer LMP — the paper's canonical "buy summer, deliver winter" direction loses money here. The trade must be <em>inverted</em> for summer-peaking ISOs (ERCOT, CAISO). This refinement should be folded into §12.1.E4 before the November submission.`;
+    } else if (calib.seasonality === "winter-peaking" && asset.rte < 0.65 && s.mean < 0) {
+      findingEl.classList.add("visible");
+      findingText.innerHTML = `${calib.name} is winter-peaking, so the canonical direction is correct — but at ${(asset.rte*100).toFixed(0)}% RTE, the round-trip haircut (≈${((1-asset.rte)*100).toFixed(0)}% of seasonal price) <em>exceeds</em> the ~$${(18).toFixed(0)}/MWh winter-summer spread. A second simulator finding: sub-65%-RTE seasonal storage cannot economically arbitrage today's winter-summer spreads even in a favorable hub. Worth noting in §7.6 alongside the SDES vs LDES discussion.`;
+    } else if (calib.seasonality === "winter-peaking" && s.mean > 0) {
+      findingEl.classList.add("visible");
+      findingText.innerHTML = `${calib.name} is winter-peaking and ${asset.name} (RTE ${(asset.rte*100).toFixed(0)}%) clears the carry-plus-RTE hurdle: the simulator confirms positive expected P&L of ${fmtMoney(s.mean)} per 100-MWh contract.`;
+    } else {
+      findingEl.classList.remove("visible");
+    }
+  } else if (STATE.instrument === "C4") {
+    findingEl.classList.add("visible");
+    findingText.innerHTML = `C4 carries the widest P&L dispersion in the suite — energy and capacity notionals stack. Recommend regulatory framing of <em>combined</em> margin posting rather than independent collateralization.`;
+  } else if (STATE.instrument === "E5" && s.pctProfit < 50) {
+    findingEl.classList.add("visible");
+    findingText.innerHTML = `E5 expected return is highly sensitive to jump-intensity calibration. With Poisson rate λ = ${CALIBRATIONS[STATE.hub].jumpIntensity}/yr, the option is profitable in only ${fmtPct(s.pctProfit)} of paths — fat-tail dependence noted for sensitivity analysis.`;
+  } else {
+    findingEl.classList.remove("visible");
+  }
+
+  $("inst-subtitle").textContent = `${r.id} · n=${r.pnl.length} paths`;
+
+  // Histogram
+  renderPnlHistogram(r.pnl);
+
+  // Mark selected row in table
+  document.querySelectorAll("#suite-tbody tr").forEach(tr => {
+    tr.classList.toggle("selected", tr.dataset.id === r.id);
+  });
+}
+
+function renderPnlHistogram(pnl) {
+  // Bin into 30 bins between p1 and p99
+  const sorted = Array.from(pnl).sort((a, b) => a - b);
+  const lo = sorted[Math.floor(sorted.length * 0.005)];
+  const hi = sorted[Math.floor(sorted.length * 0.995)];
+  const nBins = 35;
+  const width = (hi - lo) / nBins;
+  const bins = new Array(nBins).fill(0);
+  const labels = [];
+  for (let i = 0; i < nBins; i++) {
+    labels.push(lo + (i + 0.5) * width);
+  }
+  for (let i = 0; i < pnl.length; i++) {
+    const v = pnl[i];
+    if (v < lo || v > hi) continue;
+    const idx = Math.min(nBins - 1, Math.floor((v - lo) / width));
+    bins[idx]++;
+  }
+  // Color bars by sign
+  const barColors = labels.map(l => l >= 0 ? "rgba(127,176,105,0.7)" : "rgba(212,117,107,0.7)");
+  const borderColors = labels.map(l => l >= 0 ? "#7fb069" : "#d4756b");
+
+  if (STATE.charts.pnl) STATE.charts.pnl.destroy();
+  STATE.charts.pnl = new Chart($("chart-pnl"), {
+    type: "bar",
+    data: {
+      labels: labels.map(l => fmtMoney(l)),
+      datasets: [{
+        label: "Paths",
+        data: bins,
+        backgroundColor: barColors,
+        borderColor: borderColors,
+        borderWidth: 0.5,
+        barPercentage: 1.0,
+        categoryPercentage: 1.0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: items => `P&L: ${items[0].label}`,
+            label: item => `${item.raw} paths`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: "#5d6675",
+            maxTicksLimit: 7,
+            autoSkip: true
+          },
+          title: { display: true, text: "P&L bin", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        },
+        y: {
+          grid: { color: "rgba(35,41,52,0.4)" },
+          ticks: { color: "#5d6675" },
+          title: { display: true, text: "Path count", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        }
+      }
+    }
+  });
+}
+
+function computeBasisCompression(paths, nHours, nPaths, agg, fwdEnergy) {
+  // For each storage duration, simulate "available storage" and compute realized basis vs forward
+  const durations = [0, 2, 4, 8, 24, 72, 100, 1000];
+  const out = [];
+  for (const d of durations) {
+    // With storage of duration d, basis is dampened by a factor proportional to RTE × log(d)
+    // This is a stylized model — the actual paper uses 40% target compression
+    let basisSum = 0, basisAbsSum = 0;
+    const rte = d === 0 ? 1.0 : (d < 24 ? 0.85 : d < 100 ? 0.65 : d < 500 ? 0.5 : 0.35);
+    // Compression factor: 0 storage = full basis, infinite storage = 0 basis
+    const dampening = d === 0 ? 1.0 : Math.max(0.05, 1.0 - 0.42 * Math.log10(d + 1) * rte);
+    for (let p = 0; p < nPaths; p++) {
+      const basis = (agg.settle_24h[p] - fwdEnergy) * dampening;
+      basisSum += basis;
+      basisAbsSum += Math.abs(basis);
+    }
+    out.push({
+      duration: d,
+      meanAbs: basisAbsSum / nPaths,
+      label: d === 0 ? "None" : d < 24 ? d + "h" : d < 100 ? d + "h" : d + "h"
+    });
+  }
+  return out;
+}
+
+function renderBasisCompression(data) {
+  const labels = data.map(d => d.label);
+  const values = data.map(d => d.meanAbs);
+  const baseline = values[0];
+  const targetLine = data.map(() => baseline * 0.6); // 40% compression target
+
+  if (STATE.charts.basis) STATE.charts.basis.destroy();
+  STATE.charts.basis = new Chart($("chart-basis"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          type: "bar",
+          label: "|Realized basis|",
+          data: values,
+          backgroundColor: "rgba(224,169,109,0.5)",
+          borderColor: "#e0a96d",
+          borderWidth: 1,
+          barPercentage: 0.7
+        },
+        {
+          type: "line",
+          label: "P1 target (40% compression)",
+          data: targetLine,
+          borderColor: "#d4756b",
+          backgroundColor: "transparent",
+          borderWidth: 1.5,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          tension: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: {
+        legend: {
+          display: true,
+          position: "top",
+          align: "end"
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: "#5d6675" },
+          title: { display: true, text: "Storage duration", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        },
+        y: {
+          grid: { color: "rgba(35,41,52,0.4)" },
+          ticks: {
+            color: "#5d6675",
+            callback: v => "$" + v.toFixed(1)
+          },
+          title: { display: true, text: "Mean |basis| ($/MWh)", color: "#5d6675", font: { size: 9, family: "'JetBrains Mono', monospace" } }
+        }
+      }
+    }
+  });
+}
+
+function renderSuiteTable(results) {
+  const tbody = $("suite-tbody");
+  tbody.innerHTML = "";
+  const rows = Object.values(results);
+
+  // Sort
+  rows.sort((a, b) => {
+    let av, bv;
+    const c = STATE.sort.col;
+    if (c === "id")        { av = a.id;            bv = b.id; }
+    else if (c === "name") { av = a.name;          bv = b.name; }
+    else if (c === "category"){ av = a.category;   bv = b.category; }
+    else if (c === "mean") { av = a.stats.mean;    bv = b.stats.mean; }
+    else if (c === "pct")  { av = a.stats.pctProfit; bv = b.stats.pctProfit; }
+    else if (c === "var")  { av = a.stats.var95;   bv = b.stats.var95; }
+    else if (c === "cvar") { av = a.stats.cvar;    bv = b.stats.cvar; }
+    else if (c === "sharpe"){ av = a.stats.sharpe; bv = b.stats.sharpe; }
+    if (typeof av === "string") return STATE.sort.dir * av.localeCompare(bv);
+    return STATE.sort.dir * (av - bv);
+  });
+
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    tr.dataset.id = r.id;
+    if (r.id === STATE.instrument) tr.classList.add("selected");
+    const catTag = `<span class="tag tag-${r.category.toLowerCase().replace("hub", "hub")}">${r.category}</span>`;
+    const meanClass = r.stats.mean > 0 ? "pos" : "neg";
+    tr.innerHTML = `
+      <td>${r.id}</td>
+      <td>${catTag}</td>
+      <td>${r.name}</td>
+      <td class="numeric ${meanClass}">${fmtMoney(r.stats.mean)}</td>
+      <td class="numeric">${fmtPct(r.stats.pctProfit)}</td>
+      <td class="numeric neg">${fmtMoney(r.stats.var95)}</td>
+      <td class="numeric neg">${fmtMoney(r.stats.cvar)}</td>
+      <td class="numeric">${r.stats.sharpe.toFixed(2)}</td>
+    `;
+    tr.addEventListener("click", () => {
+      STATE.instrument = r.id;
+      $("ctrl-instrument").value = r.id;
+      updateInstrumentDetail();
+    });
+    tbody.appendChild(tr);
+  }
+
+  // Update sort arrows
+  document.querySelectorAll("#suite-table th").forEach(th => {
+    th.classList.toggle("sorted", th.dataset.sort === STATE.sort.col);
+    const arrow = th.querySelector(".sort-arrow");
+    if (arrow && th.dataset.sort === STATE.sort.col) {
+      arrow.textContent = STATE.sort.dir === 1 ? "▲" : "▼";
+    } else if (arrow) {
+      arrow.textContent = "▼";
+    }
+  });
+}
+
+// Column sorting
+document.querySelectorAll("#suite-table th[data-sort]").forEach(th => {
+  th.addEventListener("click", () => {
+    const col = th.dataset.sort;
+    if (STATE.sort.col === col) {
+      STATE.sort.dir *= -1;
+    } else {
+      STATE.sort.col = col;
+      STATE.sort.dir = (col === "id" || col === "name" || col === "category") ? 1 : -1;
+    }
+    if (STATE.lastResults) renderSuiteTable(STATE.lastResults);
+  });
+});
+
+// -------------------- Boot --------------------
+window.__propBoot = runSimulation;
+
+})();
+</script>
+
+</body>
+</html>

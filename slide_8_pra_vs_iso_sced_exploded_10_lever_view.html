@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide 8: Price Discovery Asymmetry — PRA vs. ISO SCED Exploded 10-Lever View & Twin Maps</title>
+<style>
+  :root {
+    --bg-dark: #050912;
+    --window-bg: #0b1324;
+    --window-border: #1e355e;
+    --card-bg: #080f1d;
+    --tulsa-gold: #c59b27;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --pra-blue: #38bdf8;
+    --pra-green: #10b981;
+    --energy-amber: #f59e0b;
+    --cong-red: #f43f5e;
+    --loss-cyan: #06b6d4;
+    --storage-purple: #a855f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Sticky Top Header */
+  header {
+    background: linear-gradient(90deg, #081121 0%, #13254a 55%, #081121 100%);
+    border-bottom: 2px solid var(--tulsa-gold);
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  }
+  .title-block h1 { font-size: 1.32rem; font-weight: 700; color: #fff; letter-spacing: 0.2px; }
+  .title-block p { font-size: 0.82rem; color: #cbd5e1; margin-top: 3px; }
+
+  .controls-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    background: #152746;
+    color: #e2e8f0;
+    border: 1px solid #2b4978;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.81rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #213c69; }
+  .btn.active { background: var(--tulsa-gold); color: #050912; border-color: #eab308; }
+  .btn.shock-btn { background: rgba(244, 63, 94, 0.18); border-color: #f43f5e; color: #fda4af; }
+  .btn.shock-btn.active { background: #e11d48; color: #fff; border-color: #fda4af; }
+  .btn.storage-btn.active { background: #9333ea; border-color: #c084fc; color: #fff; box-shadow: 0 0 14px rgba(168,85,247,0.5); }
+
+  /* Two Clean Window Blocks Side-by-Side (Spacious Vertical Scroll) */
+  main {
+    padding: 20px 28px 32px 28px;
+    display: grid;
+    grid-template-columns: 44% 56%;
+    gap: 20px;
+    max-width: 1920px;
+    width: 100%;
+    margin: 0 auto;
+    align-items: start;
+  }
+
+  .window-block {
+    background: var(--window-bg);
+    border: 1px solid var(--window-border);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  }
+  .window-block.pra-window { border-top: 5px solid var(--pra-green); }
+  .window-block.iso-window { border-top: 5px solid var(--energy-amber); }
+
+  .window-header {
+    background: rgba(15, 29, 54, 0.9);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--window-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .window-title { font-size: 1.1rem; font-weight: 800; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; }
+  .window-badge {
+    font-size: 0.73rem;
+    font-weight: 700;
+    padding: 4px 11px;
+    border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .badge-pra { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.45); }
+  .badge-iso { background: rgba(244, 63, 94, 0.20); color: #fda4af; border: 1px solid rgba(244,63,94,0.5); }
+
+  .window-body {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Formula Display Boxes */
+  .formula-stage {
+    background: #060b16;
+    border: 1px solid #1b3158;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .formula-stage-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .math-line-main {
+    font-family: 'Courier New', monospace;
+    font-size: 1.02rem;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding: 4px 0;
+  }
+
+  .math-pill {
+    padding: 5px 9px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.92rem;
+  }
+  .pill-energy { background: rgba(245, 158, 11, 0.18); border: 1px solid var(--energy-amber); color: #fde68a; }
+  .pill-cong   { background: rgba(244, 63, 94, 0.18); border: 1px solid var(--cong-red); color: #fda4af; }
+  .pill-loss   { background: rgba(6, 182, 212, 0.18); border: 1px solid var(--loss-cyan); color: #a5f3fc; }
+  .pill-zero   { background: rgba(148, 163, 184, 0.14); border: 1px dashed #64748b; color: #94a3b8; }
+  .pill-pra1   { background: rgba(56, 189, 248, 0.18); border: 1px solid var(--pra-blue); color: #bae6fd; }
+  .pill-pra2   { background: rgba(16, 185, 129, 0.18); border: 1px solid var(--pra-green); color: #a7f3d0; }
+
+  /* Exploded Formula Sub-Line */
+  .exploded-formula-banner {
+    background: #081122;
+    border: 1px dashed #29477d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.81rem;
+    line-height: 1.55;
+    color: #cbd5e1;
+  }
+
+  /* 3-Column Exploded SCED Sub-Variables Grid */
+  .exploded-3col-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr 0.92fr;
+    gap: 12px;
+  }
+
+  .comp-column {
+    background: var(--card-bg);
+    border: 1px solid #182b4d;
+    border-radius: 9px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .comp-column.col-energy { border-top: 3px solid var(--energy-amber); }
+  .comp-column.col-cong   { border-top: 3px solid var(--cong-red); }
+  .comp-column.col-loss   { border-top: 3px solid var(--loss-cyan); }
+
+  .comp-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid #162644;
+    padding-bottom: 6px;
+  }
+  .comp-col-title { font-size: 0.80rem; font-weight: 800; text-transform: uppercase; }
+  .comp-col-val { font-family: 'Courier New', monospace; font-size: 0.96rem; font-weight: 800; }
+
+  .subvar-item {
+    background: #050a14;
+    border: 1px solid #14223d;
+    border-radius: 6px;
+    padding: 7px 9px;
+  }
+  .subvar-top {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 2px;
+  }
+  .subvar-readout { font-family: 'Courier New', monospace; font-weight: 700; }
+  .subvar-desc { font-size: 0.67rem; color: var(--text-muted); margin-bottom: 5px; }
+  input[type=range] {
+    width: 100%;
+    height: 5px;
+    accent-color: var(--tulsa-gold);
+    cursor: pointer;
+  }
+
+  /* Matching Twin North American Maps (Full Un-Crunched Height) */
+  .map-section-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--tulsa-gold);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 4px;
+    border-top: 1px solid #182b4d;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .twin-map-card {
+    background: #050a14;
+    border: 1px solid #1c365e;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    height: 430px;
+    min-height: 430px;
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
+  }
+  .twin-map-card canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .canvas-label {
+    position: absolute;
+    top: 10px; left: 12px; right: 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    pointer-events: none;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .canvas-tag {
+    background: rgba(5, 9, 18, 0.90);
+    border: 1px solid #243e69;
+    padding: 4px 9px;
+    border-radius: 5px;
+    backdrop-filter: blur(4px);
+  }
+
+  .map-legend-bottom {
+    position: absolute;
+    bottom: 10px; left: 12px; right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+  }
+  .legend-strip {
+    background: rgba(5, 9, 18, 0.90);
+    border: 1px solid #1e3358;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.69rem;
+    color: #cbd5e1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  /* Lower Analytical Charts Section */
+  .lower-chart-card {
+    background: #050912;
+    border: 1px solid #192d52;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    height: 235px;
+    min-height: 235px;
+  }
+  .lower-chart-card canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  footer {
+    background: #081120;
+    border-top: 1px solid var(--window-border);
+    padding: 12px 28px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  @media (max-width: 1400px) {
+    main { grid-template-columns: 1fr; }
+    .exploded-3col-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <h1>Slide 8: Price Discovery Asymmetry — PRA Spot Assessment vs. ISO SCED Exploded 10-Lever View</h1>
+    <p>Side-by-Side Formulas, Exploded Sub-Variables &amp; Twin North American Infrastructure Maps (Natural Gas PRA Hubs vs. Power ISO SCED Nodes)</p>
+  </div>
+  <div class="controls-bar">
+    <button class="btn active" id="btnNormal" onclick="applyPreset('normal')">✓ Nominal Baseline State</button>
+    <button class="btn shock-btn" id="btnShock" onclick="applyPreset('shock')">⚡ Scarcity + N-1 Congestion Shock</button>
+    <button class="btn storage-btn" id="btnStorage" onclick="toggleStorage()">🔋 SDES + LDES Hub Mode: OFF</button>
+  </div>
+</header>
+
+<main>
+  <!-- ===================================================================== -->
+  <!-- WINDOW BLOCK 1 (LEFT): PRICE REPORTING AGENCY (PRA) SPOT ASSESSMENT   -->
+  <!-- ===================================================================== -->
+  <section class="window-block pra-window">
+    <div class="window-header">
+      <div class="window-title" style="color:var(--pra-green);">
+        <span>1. Price Reporting Agency (PRA) Block</span>
+      </div>
+      <span class="window-badge badge-pra">Platts · Argus · NGI (Natural Gas &amp; Oil)</span>
+    </div>
+
+    <div class="window-body">
+      <!-- Clean Formula + Exploded Sub-Variables -->
+      <div class="formula-stage">
+        <div class="formula-stage-label">
+          <span>Clean PRA Assessment Formula (Section 1.2.1)</span>
+          <span style="color:var(--pra-green);">Forward Weight (1 − λ) &gt; 0 Always!</span>
+        </div>
+        <div class="math-line-main">
+          <span>P_assessed =</span>
+          <span class="math-pill pill-pra1" id="praTerm1Pill">λ · P_trans ($2.11)</span>
+          <span>+</span>
+          <span class="math-pill pill-pra2" id="praTerm2Pill">(1 − λ) · F_{t,T} ($1.31)</span>
+          <span>=</span>
+          <span id="praFinalOut" style="color:#fff; text-decoration:underline;">$3.43/MMBtu</span>
+        </div>
+
+        <!-- Exploded PRA Sub-Variables -->
+        <div class="exploded-formula-banner">
+          <div style="color:#6ee7b7; font-weight:700;">
+            P_assessed = [Physical Spot Transactions] + [Forward Curve Anchor]
+          </div>
+          <div style="margin-top:4px; font-size:0.76rem;">
+            <strong>P_assessed =</strong>
+            <span style="color:#bae6fd;">λ · f(ICE_NGX_Physical, Bilateral_MOC, LinePack_Noms)</span>
+            <strong> + </strong>
+            <span style="color:#a7f3d0;">(1 − λ) · f(NYMEX_Prompt_Futures, EFP_Basis, Cavern_Carry)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive PRA Inputs -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="comp-column" style="border-top:3px solid var(--pra-blue);">
+          <div class="comp-col-header">
+            <span class="comp-col-title" style="color:var(--pra-blue);">Physical Leg (λ · P_trans)</span>
+            <span class="comp-col-val" id="praPhysVal" style="color:var(--pra-blue);">$2.11</span>
+          </div>
+          <div class="subvar-item">
+            <div class="subvar-top"><span>Physical Liquidity Weight (λ)</span><span class="subvar-readout" id="vPraLambda" style="color:var(--pra-blue);">0.65</span></div>
+            <div class="subvar-desc">Drops during thin physical volume; never 1.0</div>
+            <input type="range" id="sPraLambda" min="0.15" max="0.90" step="0.05" value="0.65" oninput="updateAll()">
+          </div>
+          <div class="subvar-item">
+            <div class="subvar-top"><span>Physical Spot Deals (P_trans)</span><span class="subvar-readout" id="vPraSpot" style="color:var(--pra-blue);">$3.25</span></div>
+            <div class="subvar-desc">ICE NGX + bilateral MOC verified deals</div>
+            <input type="range" id="sPraSpot" min="1.50" max="8.00" step="0.05" value="3.25" oninput="updateAll()">
+          </div>
+          <div class="subvar-item">
+            <div class="subvar-top"><span>Pipeline Takeaway Stress</span><span class="subvar-readout" id="vPraPipe" style="color:var(--pra-blue);">Nominal</span></div>
+            <div class="subvar-desc">Regional basis spread (Waha / SoCal / Algonquin)</div>
+            <input type="range" id="sPraPipe" min="0" max="2" step="1" value="0" oninput="updateAll()">
+          </div>
+        </div>
+
+        <div class="comp-column" style="border-top:3px solid var(--pra-green);">
+          <div class="comp-col-header">
+            <span class="comp-col-title" style="color:var(--pra-green);">Forward Anchor (1−λ)·F_{t,T}</span>
+            <span class="comp-col-val" id="praFwdWeightVal" style="color:var(--pra-green);">Wt: 0.35</span>
+          </div>
+          <div class="subvar-item">
+            <div class="subvar-top"><span>Near-Month Futures (F_{t,T})</span><span class="subvar-readout" id="vPraFut" style="color:var(--pra-green);">$3.75</span></div>
+            <div class="subvar-desc">NYMEX Henry Hub prompt futures price</div>
+            <input type="range" id="sPraFut" min="1.50" max="8.00" step="0.05" value="3.75" oninput="updateAll()">
+          </div>
+          <div class="subvar-item">
+            <div class="subvar-top"><span>Salt Cavern Working Inventory</span><span class="subvar-readout" id="vPraInv" style="color:var(--pra-green);">81% Full</span></div>
+            <div class="subvar-desc">4,600 Bcf storage dampens spot/basis volatility</div>
+            <input type="range" id="sPraInv" min="25" max="98" step="1" value="81" oninput="updateAll()">
+          </div>
+          <div style="background:#060c18; border:1px solid #1e293b; border-radius:5px; padding:7px 9px; font-size:0.68rem; color:#94a3b8; margin-top:auto; line-height:1.38;">
+            <strong style="color:#6ee7b7;">Why Gas Hubs Stay Anchored:</strong><br>
+            Every regional hub trades as a basis differential ($P_{\text{Hub}} = P_{\text{HH}} \pm \text{Basis}$) buffered by 4,600 Bcf of cavern storage and $(1-\lambda)>0$ forward carry.
+          </div>
+        </div>
+      </div>
+
+      <!-- TWIN MAP 1 (LEFT): NATURAL GAS NORTH AMERICA MAP (GIS ACCURATE) -->
+      <div class="map-section-title">
+        <span>Map 1: Natural Gas — Local Hub Price Discovery &amp; Interstate Trunklines ($/MMBtu)</span>
+        <span style="font-size:0.74rem; color:#6ee7b7;">Network = Cost Adder</span>
+      </div>
+
+      <div class="twin-map-card">
+        <canvas id="gasMapCanvas"></canvas>
+        <div class="canvas-label">
+          <span class="canvas-tag">GIS Gas Trunklines: AECO · PNW/PG&amp;E · SoCal · Permian (Waha) · Henry Hub · Chicago · Appalachia · Algonquin</span>
+          <span class="canvas-tag" id="gasMapStatusTag" style="color:#6ee7b7;">Line-Pack &amp; Salt Caverns: 81%</span>
+        </div>
+        <div class="map-legend-bottom">
+          <div class="legend-strip">
+            <span><i class="dot" style="background:#10b981;"></i>Interstate Trunkline (15–30 mph CH4)</span>
+            <span><i class="dot" style="background:#38bdf8;"></i>Salt Cavern Storage (4,600 Bcf)</span>
+            <span><i class="dot" style="background:#fde047;"></i>PRA Assessed Hub Price ($/MMBtu)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower Chart 1: PRA Spot-to-Forward Convergence Trace -->
+      <div class="map-section-title">
+        <span>PRA Triangulation Trace: Physical Trades vs. Forward Curve &amp; Assessed Spot</span>
+        <span id="praBufferNote" style="font-size:0.72rem; color:#a7f3d0;">(1 − λ) &gt; 0 &amp; 81% Cavern Buffer</span>
+      </div>
+
+      <div class="lower-chart-card">
+        <canvas id="praCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- WINDOW BLOCK 2 (RIGHT): ISO / RTO SCED BLOCK & EXPLODED 10-LEVER VIEW -->
+  <!-- ===================================================================== -->
+  <section class="window-block iso-window">
+    <div class="window-header">
+      <div class="window-title" style="color:var(--energy-amber);">
+        <span>2. ISO / RTO SCED Optimization Block (Exploded 10-Variable View)</span>
+      </div>
+      <span class="window-badge badge-iso" id="isoModeBadge">Forward Curve Weight = ZERO (Endogenous)</span>
+    </div>
+
+    <div class="window-body">
+      <!-- Clean Formula + Exploded Sub-Variable Equation -->
+      <div class="formula-stage">
+        <div class="formula-stage-label">
+          <span>Level 1 (Accounting Identity) → Level 2 (Exploded Generative SCED Inputs)</span>
+          <span id="finalLmpBanner" style="color:#fde68a; font-family:monospace; font-size:0.85rem;">Constrained Load Bus (Bus 4) LMP = $72.04/MWh</span>
+        </div>
+
+        <!-- Line 1: Clean 3-Part Formula with Consistent Additive Sign -->
+        <div class="math-line-main">
+          <span>LMP_n =</span>
+          <span class="math-pill pill-energy" id="isoEnergyPill">Energy Cost (λ = $55.85)</span>
+          <span>+</span>
+          <span class="math-pill pill-cong" id="isoCongPill">Congestion Cost (Σ μ_k·PTDF = +$13.44)</span>
+          <span>+</span>
+          <span class="math-pill pill-loss" id="isoLossPill">Loss Component (−ν_n = +$2.75)</span>
+          <span>+</span>
+          <span class="math-pill pill-zero" id="isoFwdPill">0 · F_{t,T}</span>
+        </div>
+
+        <!-- Line 2 & 3: Exploded Equation -->
+        <div class="exploded-formula-banner">
+          <div style="color:#fde68a; font-weight:700;">
+            LMP_n = [Energy Cost (λ)] + [Congestion Cost (Σ μ_k·PTDF_{k,n})] + [Marginal Loss Adder (−ν_n)]
+          </div>
+          <div style="margin-top:4px; font-size:0.76rem;">
+            <strong>LMP_n = </strong>
+            <span style="color:#fde68a;">f_Energy(<strong>L1</strong> NetLoad, <strong>L4</strong> OfferStack, <strong>L5</strong> RampLimits, <strong>L7</strong> Reserves, <strong>L10</strong> ScarcityAdder)</span>
+            <strong> + </strong>
+            <span style="color:#fda4af;">f_Congestion(<strong>L2</strong> Topology/Breakers, <strong>L3</strong> FlowgateLimits, <strong>L8</strong> SeamLoopFlow)</span>
+            <strong> + </strong>
+            <span style="color:#a5f3fc;">f_Loss(<strong>L6</strong> I²R_Resistance, <strong>L9</strong> SlackBusRef)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-Column Exploded View of the 10 SCED Input Levers -->
+      <div class="exploded-3col-grid">
+        <!-- COLUMN A: ENERGY COST SUB-VARIABLES (5 LEVERS) -->
+        <div class="comp-column col-energy">
+          <div class="comp-col-header">
+            <span class="comp-col-title" style="color:var(--energy-amber);">A. Energy Cost (λ) Sub-Variables</span>
+            <span class="comp-col-val" id="colEnergyVal" style="color:var(--energy-amber);">$55.85</span>
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L1. Net Load (Demand − RE)</span><span class="subvar-readout" id="vL1" style="color:#fde68a;">62 GW</span></div>
+            <div class="subvar-desc">Zonal load minus must-take wind/solar &amp; BTM</div>
+            <input type="range" id="sL1" min="35" max="90" value="62" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L4. Generation Offer Stack</span><span class="subvar-readout" id="vL4" style="color:#fde68a;">$38/MWh</span></div>
+            <div class="subvar-desc">Marginal heat-rate offers, derates &amp; status</div>
+            <input type="range" id="sL4" min="18" max="140" value="38" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L5. Unit Ramp Headroom</span><span class="subvar-readout" id="vL5" style="color:#fde68a;">450 MW/m</span></div>
+            <div class="subvar-desc">Ramp-up/down limits, min-run &amp; start times</div>
+            <input type="range" id="sL5" min="80" max="800" step="10" value="450" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L7. Reserve &amp; AS Requirement</span><span class="subvar-readout" id="vL7" style="color:#fde68a;">3,500 MW</span></div>
+            <div class="subvar-desc">Spin/Reg held back (opportunity cost → λ)</div>
+            <input type="range" id="sL7" min="1500" max="8000" step="250" value="3500" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L10. RT Scarcity / ORDC Adder</span><span class="subvar-readout" id="vL10" style="color:#fde68a;">$0/MWh</span></div>
+            <div class="subvar-desc">Fast-start relaxation &amp; shortage pricing</div>
+            <input type="range" id="sL10" min="0" max="1000" step="25" value="0" oninput="updateAll()">
+          </div>
+        </div>
+
+        <!-- COLUMN B: CONGESTION COST SUB-VARIABLES (3 LEVERS) -->
+        <div class="comp-column col-cong">
+          <div class="comp-col-header">
+            <span class="comp-col-title" style="color:var(--cong-red);">B. Congestion (Σ μ·PTDF) Inputs</span>
+            <span class="comp-col-val" id="colCongVal" style="color:var(--cong-red);">+$13.44</span>
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L2. Topology &amp; N-1 State</span><span class="subvar-readout" id="vL2" style="color:#fda4af;">All Lines In</span></div>
+            <div class="subvar-desc">Breaker/switch status &amp; enforced N-1 list (PTDF)</div>
+            <input type="range" id="sL2" min="0" max="2" step="1" value="0" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L3. Flowgate Thermal/Stab Limit</span><span class="subvar-readout" id="vL3" style="color:#fda4af;">1,800 MVA</span></div>
+            <div class="subvar-desc">Line MVA / voltage / angle nomogram (sets μ_k)</div>
+            <input type="range" id="sL3" min="1000" max="3000" step="100" value="1800" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L8. External Seam &amp; Loop Flow</span><span class="subvar-readout" id="vL8" style="color:#fda4af;">+350 MW</span></div>
+            <div class="subvar-desc">Intertie schedules &amp; parallel path loop flows</div>
+            <input type="range" id="sL8" min="-800" max="1500" step="50" value="350" oninput="updateAll()">
+          </div>
+
+          <div style="background:#060c18; border:1px solid #1e293b; border-radius:5px; padding:7px 9px; font-size:0.68rem; color:#94a3b8; margin-top:auto; line-height:1.38;">
+            <strong style="color:#fda4af;">How Congestion Emerges:</strong><br>
+            1. <strong>L2 Topology</strong> builds the $Y_{\text{bus}}$ admittance matrix to solve shift factors $\text{PTDF}_{k,n}$.<br>
+            2. When flow from <strong>L1 + L8</strong> exceeds <strong>L3 Limit</strong>, shadow price $\mu_k > 0$ spikes constrained load buses.
+          </div>
+        </div>
+
+        <!-- COLUMN C: TRANSMISSION LOSS & REFERENCE SUB-VARIABLES (2 LEVERS) -->
+        <div class="comp-column col-loss">
+          <div class="comp-col-header">
+            <span class="comp-col-title" style="color:var(--loss-cyan);">C. Loss Cost (−ν_n) Inputs</span>
+            <span class="comp-col-val" id="colLossVal" style="color:var(--loss-cyan);">+$2.75</span>
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L6. Line Resistance (I²R Loss)</span><span class="subvar-readout" id="vL6" style="color:#a5f3fc;">3.4%</span></div>
+            <div class="subvar-desc">Incremental loss factors (MLF_n = ∂P_loss/∂P_n)</div>
+            <input type="range" id="sL6" min="1.0" max="8.0" step="0.2" value="3.4" oninput="updateAll()">
+          </div>
+
+          <div class="subvar-item">
+            <div class="subvar-top"><span>L9. Reference / Slack Bus</span><span class="subvar-readout" id="vL9" style="color:#a5f3fc;">Dist. Load Slack</span></div>
+            <div class="subvar-desc">Reference bus choice allocates λ vs. μ &amp; ν</div>
+            <input type="range" id="sL9" min="0" max="1" step="1" value="0" oninput="updateAll()">
+          </div>
+
+          <div style="background:#060c18; border:1px solid #1e293b; border-radius:5px; padding:7px 9px; font-size:0.68rem; color:#94a3b8; margin-top:auto; line-height:1.38;">
+            <strong style="color:#a5f3fc;">Why −ν_n is a Positive Adder at Load Buses:</strong><br>
+            Because marginal loss factor $\nu_n = -\lambda \cdot \text{MLF}_n$ is negative at distant delivery buses, subtracting $\nu_n$ yields a positive loss adder $-\nu_n = +\$2.75/\text{MWh}$ that scales directly with $\lambda$.
+          </div>
+        </div>
+      </div>
+
+      <!-- TWIN MAP 2 (RIGHT): POWER ISO SCED NORTH AMERICA MAP (GIS ACCURATE) -->
+      <div class="map-section-title">
+        <span>Map 2: Electricity — Illustrative 5-Bus SCED Network Overlay &amp; Emergent Nodal LMPs ($/MWh)</span>
+        <span style="font-size:0.74rem; color:#fde68a;">Network Defines the Price Field</span>
+      </div>
+
+      <div class="twin-map-card">
+        <canvas id="isoGridCanvas"></canvas>
+        <div class="canvas-label">
+          <span class="canvas-tag">Illustrative 5-Bus SCED Mesh (Bus 4 = Target Load Zone Synchronized with Top Formula &amp; Waterfall)</span>
+          <span class="canvas-tag" id="corridorTag">Flowgate 2→4: 1,950 / 1,800 MVA (Binding!)</span>
+        </div>
+        <div class="map-legend-bottom">
+          <div class="legend-strip">
+            <span><i class="dot" style="background:#38bdf8;"></i>HV AC Corridor (~99% Light Speed EM Flux)</span>
+            <span><i class="dot" style="background:#f43f5e;"></i>Binding Flowgate / N-1 Outage</span>
+            <span><i class="dot" style="background:#fde047;"></i>Emergent Nodal LMP ($/MWh &amp; PTDF)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lower Chart 2: Exploded LMP Component Waterfall Bar Chart -->
+      <div class="map-section-title">
+        <span>Exploded Bus 4 LMP Component Stack ($/MWh): Energy (λ) + Congestion (Σ μ·PTDF) + Losses (−ν_4)</span>
+        <span id="storageEffectTag" style="font-size:0.72rem; color:#fda4af;">Wire-Only (No Carry Anchor)</span>
+      </div>
+
+      <div class="lower-chart-card">
+        <canvas id="isoStackCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div><strong>Slide 8 Twin-Map Takeaway:</strong> In Natural Gas (Left Map), each hub prices locally as $P_{\text{HH}} \pm \text{Basis}$ anchored by forward curves and salt caverns. In Power (Right Map), you must solve the entire interconnected network's 10 SCED variables simultaneously before any nodal LMP exists.</div>
+  <div>Mat Davis | University of Tulsa | RE+ &amp; USAEE 2026</div>
+</footer>
+
+<script>
+  // ============================================================================
+  // 1. EMBEDDED HIGH-RESOLUTION GIS BOUNDARIES (ZERO EXTERNAL DEPENDENCIES)
+  // ============================================================================
+  const GEO_DATA = {
+    northAmerica: [
+      [-136.0, 57.5], [-134.5, 56.0], [-132.8, 54.3], [-130.5, 54.0], [-128.6, 52.2], [-127.8, 50.8],
+      [-125.5, 49.6], [-123.2, 49.2], [-122.6, 48.0], [-124.7, 48.4], [-124.2, 47.0], [-124.0, 46.2],
+      [-124.1, 44.6], [-124.5, 42.8], [-124.2, 41.8], [-124.4, 40.4], [-123.8, 39.0], [-122.5, 37.8],
+      [-122.0, 36.9], [-121.9, 36.6], [-120.6, 35.1], [-120.5, 34.4], [-119.2, 34.1], [-118.4, 34.0],
+      [-117.9, 33.6], [-117.2, 32.7], [-116.7, 31.8], [-115.9, 30.5], [-114.3, 28.1], [-115.1, 27.8],
+      [-113.5, 26.8], [-112.2, 25.0], [-110.0, 22.9], [-109.4, 23.5], [-110.7, 25.2], [-111.3, 26.8],
+      [-112.9, 28.8], [-114.5, 31.2], [-114.8, 31.8], [-113.2, 31.2], [-112.2, 29.3], [-110.5, 27.4],
+      [-109.2, 25.6], [-106.4, 23.2], [-105.3, 20.6], [-103.5, 18.4], [-101.5, 17.6], [-98.5, 16.2],
+      [-95.2, 16.1], [-92.2, 14.5], [-89.5, 13.5], [-87.8, 12.8], [-85.8, 11.0], [-83.5, 9.5],
+      [-80.0, 8.5], [-77.5, 8.0], [-78.2, 9.4], [-82.5, 9.4], [-83.6, 11.2], [-83.2, 14.8],
+      [-84.5, 15.9], [-86.8, 15.8], [-88.2, 15.7], [-88.2, 17.5], [-87.8, 19.5], [-86.8, 21.2],
+      [-88.5, 21.5], [-90.4, 20.9], [-90.6, 19.8], [-92.2, 18.5], [-94.5, 18.2], [-96.1, 19.2],
+      [-97.4, 21.5], [-97.8, 22.3], [-97.7, 24.2], [-97.1, 26.0], [-97.4, 27.7], [-96.4, 28.5],
+      [-95.3, 28.9], [-94.8, 29.4], [-93.8, 29.7], [-92.2, 29.6], [-90.8, 29.1], [-89.1, 29.0],
+      [-89.6, 29.9], [-88.8, 30.4], [-87.5, 30.3], [-86.4, 30.4], [-85.3, 29.7], [-84.1, 30.1],
+      [-82.8, 28.9], [-82.7, 27.5], [-82.1, 26.5], [-81.1, 25.1], [-80.2, 25.3], [-80.0, 26.7],
+      [-80.6, 28.5], [-81.3, 30.0], [-81.4, 31.1], [-80.8, 32.1], [-79.9, 32.8], [-78.9, 33.7],
+      [-77.8, 34.2], [-76.5, 34.7], [-75.5, 35.2], [-75.9, 36.9], [-76.3, 37.6], [-76.4, 38.8],
+      [-75.9, 39.4], [-75.5, 38.8], [-75.1, 38.8], [-74.9, 39.0], [-74.1, 40.1], [-74.0, 40.6],
+      [-72.2, 41.0], [-73.6, 41.1], [-71.4, 41.4], [-70.7, 41.6], [-69.9, 41.7], [-70.2, 42.1],
+      [-70.8, 42.3], [-70.6, 42.9], [-70.2, 43.6], [-68.8, 44.3], [-67.0, 45.0], [-65.2, 45.2],
+      [-66.1, 43.8], [-64.2, 44.5], [-61.0, 45.6], [-64.5, 46.2], [-64.5, 47.0], [-65.8, 48.0],
+      [-64.2, 48.8], [-66.5, 49.2], [-69.5, 48.2], [-71.2, 46.8], [-68.0, 49.5], [-64.0, 50.3],
+      [-58.5, 51.2], [-55.6, 51.6], [-56.0, 53.2], [-59.5, 55.2], [-62.0, 57.5], [-65.0, 59.5],
+      [-68.0, 58.8], [-70.0, 60.5], [-77.5, 61.5], [-78.5, 58.5], [-79.5, 54.5], [-80.5, 51.5],
+      [-82.5, 53.0], [-82.5, 55.2], [-88.5, 56.8], [-92.5, 57.2], [-94.5, 58.8], [-94.0, 61.0],
+      [-105.0, 61.0], [-120.0, 60.5], [-136.0, 59.5]
+    ],
+    vancouverIsland: [
+      [-128.4, 50.7], [-125.2, 50.0], [-123.3, 48.4], [-124.7, 48.5], [-126.5, 49.5], [-128.4, 50.7]
+    ],
+    newfoundland: [
+      [-59.4, 47.6], [-57.5, 50.2], [-55.5, 51.5], [-53.0, 48.6], [-52.6, 46.6], [-55.8, 46.8], [-59.4, 47.6]
+    ],
+    cuba: [
+      [-84.9, 21.8], [-82.5, 23.1], [-79.5, 22.8], [-75.5, 20.8], [-74.1, 20.1], [-77.5, 19.9], [-78.2, 20.7], [-82.0, 22.2], [-84.9, 21.8]
+    ],
+    lakeSuperior: [
+      [-92.1, 46.7], [-90.5, 47.8], [-88.2, 48.9], [-86.2, 48.6], [-84.6, 46.5], [-86.8, 46.4], [-88.4, 47.0], [-90.8, 46.8], [-92.1, 46.7]
+    ],
+    lakeMichigan: [
+      [-87.1, 45.8], [-85.1, 45.8], [-86.2, 43.0], [-86.5, 41.7], [-87.5, 41.6], [-87.9, 43.0], [-87.6, 44.5], [-87.1, 45.8]
+    ],
+    lakeHuron: [
+      [-84.6, 45.9], [-81.5, 46.0], [-79.9, 44.8], [-81.7, 43.2], [-82.4, 43.0], [-83.9, 43.6], [-83.4, 45.0], [-84.6, 45.9]
+    ],
+    lakeErie: [
+      [-83.4, 41.8], [-81.5, 42.6], [-78.9, 42.9], [-79.8, 42.2], [-81.8, 41.5], [-83.2, 41.5], [-83.4, 41.8]
+    ],
+    lakeOntario: [
+      [-79.8, 43.3], [-78.0, 43.9], [-76.1, 44.2], [-76.2, 43.4], [-79.2, 43.2], [-79.8, 43.3]
+    ],
+    usCanadaBorder: [
+      [-123.2, 49.0], [-117.0, 49.0], [-110.0, 49.0], [-104.0, 49.0], [-95.2, 49.0],
+      [-94.6, 48.7], [-92.5, 48.5], [-89.5, 48.0], [-84.6, 46.5], [-82.5, 45.5],
+      [-82.4, 43.0], [-83.1, 42.0], [-79.0, 42.9], [-76.2, 44.2], [-74.7, 45.0],
+      [-71.5, 45.0], [-70.2, 45.8], [-69.2, 47.4], [-67.8, 47.1], [-67.0, 45.0]
+    ],
+    usMexicoBorder: [
+      [-117.1, 32.5], [-114.7, 32.7], [-114.8, 32.5], [-111.1, 31.3], [-108.2, 31.3],
+      [-108.2, 31.8], [-106.5, 31.8], [-104.5, 29.5], [-103.0, 29.0], [-101.4, 29.8],
+      [-99.5, 27.5], [-97.1, 26.0]
+    ]
+  };
+
+  // ============================================================================
+  // 2. ASPECT-RATIO-CORRECTED GEOGRAPHIC PROJECTOR (NO SQUISHING OR STRETCHING)
+  // ============================================================================
+  function createProjector(targetBounds, w, h) {
+    const midLat = (targetBounds.minLat + targetBounds.maxLat) * 0.5;
+    const cosLat = Math.cos(midLat * Math.PI / 180);
+
+    const lonSpan = targetBounds.maxLon - targetBounds.minLon;
+    const latSpan = targetBounds.maxLat - targetBounds.minLat;
+
+    const geoAspect = (lonSpan * cosLat) / latSpan;
+    const canvasAspect = w / h;
+
+    let effLonSpan = lonSpan;
+    let effLatSpan = latSpan;
+
+    if (canvasAspect > geoAspect) {
+      effLonSpan = (latSpan * canvasAspect) / cosLat;
+    } else {
+      effLatSpan = (lonSpan * cosLat) / canvasAspect;
+    }
+
+    const centerLon = (targetBounds.minLon + targetBounds.maxLon) * 0.5;
+    const centerLat = (targetBounds.minLat + targetBounds.maxLat) * 0.5;
+
+    const minLon = centerLon - effLonSpan * 0.5;
+    const maxLon = centerLon + effLonSpan * 0.5;
+    const minLat = centerLat - effLatSpan * 0.5;
+    const maxLat = centerLat + effLatSpan * 0.5;
+
+    return {
+      minLon, maxLon, minLat, maxLat,
+      pt(lon, lat) {
+        return {
+          x: ((lon - minLon) / (maxLon - minLon)) * w,
+          y: ((maxLat - lat) / (maxLat - minLat)) * h
+        };
+      }
+    };
+  }
+
+  function drawPolygonList(ctx, proj, polygons, fillStyle, strokeStyle, lineWidth) {
+    ctx.save();
+    if (fillStyle) ctx.fillStyle = fillStyle;
+    if (strokeStyle) {
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = lineWidth || 1;
+    }
+    polygons.forEach(poly => {
+      if (!poly || poly.length < 2) return;
+      ctx.beginPath();
+      for (let i = 0; i < poly.length; i++) {
+        const p = proj.pt(poly[i][0], poly[i][1]);
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      if (fillStyle) ctx.fill();
+      if (strokeStyle) ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  function drawPolyline(ctx, proj, coords, strokeStyle, lineWidth, dashArray) {
+    if (!coords || coords.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = lineWidth || 1;
+    if (dashArray) ctx.setLineDash(dashArray);
+    ctx.beginPath();
+    for (let i = 0; i < coords.length; i++) {
+      const p = proj.pt(coords[i][0], coords[i][1]);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function fillStrokeRoundRect(ctx, x, y, w, h, r, fill, stroke, lineWidth) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lineWidth || 1; ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function drawSharedGISMapBase(ctx, w, h, s, isPowerMap) {
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+    if (isPowerMap) {
+      bgGrad.addColorStop(0, '#050b14');
+      bgGrad.addColorStop(1, '#071220');
+    } else {
+      bgGrad.addColorStop(0, '#040c11');
+      bgGrad.addColorStop(1, '#07161c');
+    }
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // Aspect-ratio-preserving North America bounds
+    const proj = createProjector({ minLon: -127, maxLon: -67, minLat: 24.5, maxLat: 55.5 }, w, h);
+
+    // Subtle Lat/Lon Graticule
+    ctx.save();
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.08)';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.30)';
+    ctx.font = `${8.0 * s}px Consolas, Courier New, monospace`;
+    ctx.lineWidth = 1;
+
+    const startLon = Math.ceil(proj.minLon / 10) * 10;
+    for (let lon = startLon; lon <= proj.maxLon; lon += 10) {
+      const pTop = proj.pt(lon, proj.maxLat);
+      const pBot = proj.pt(lon, proj.minLat);
+      ctx.beginPath(); ctx.moveTo(pTop.x, 0); ctx.lineTo(pBot.x, h); ctx.stroke();
+    }
+    const startLat = Math.ceil(proj.minLat / 10) * 10;
+    for (let lat = startLat; lat <= proj.maxLat; lat += 10) {
+      const pLeft = proj.pt(proj.minLon, lat);
+      const pRight = proj.pt(proj.maxLon, lat);
+      ctx.beginPath(); ctx.moveTo(0, pLeft.y); ctx.lineTo(w, pRight.y); ctx.stroke();
+    }
+    ctx.restore();
+
+    // High-Resolution North America Landmass + Islands
+    drawPolygonList(
+      ctx,
+      proj,
+      [GEO_DATA.northAmerica, GEO_DATA.vancouverIsland, GEO_DATA.newfoundland, GEO_DATA.cuba],
+      '#0b1f1c',
+      '#1e4d42',
+      1.35 * s
+    );
+
+    // 5 Great Lakes Cutout
+    drawPolygonList(
+      ctx,
+      proj,
+      [GEO_DATA.lakeSuperior, GEO_DATA.lakeMichigan, GEO_DATA.lakeHuron, GEO_DATA.lakeErie, GEO_DATA.lakeOntario],
+      '#050c14',
+      '#184138',
+      0.85 * s
+    );
+
+    // US-Canada & US-Mexico International Borders (No Interconnection Seam Lines)
+    drawPolyline(ctx, proj, GEO_DATA.usCanadaBorder, 'rgba(148, 163, 184, 0.28)', 1.05 * s, [4 * s, 4 * s]);
+    drawPolyline(ctx, proj, GEO_DATA.usMexicoBorder, 'rgba(148, 163, 184, 0.22)', 1.0 * s, [3 * s, 3 * s]);
+
+    return proj;
+  }
+
+  function drawMapNodeBadge(ctx, x, y, title, priceStr, subStr, borderColor, priceColor, offsetX, offsetY, w, h) {
+    const s = window.devicePixelRatio || 1;
+    ctx.save();
+
+    // Node circle on map
+    ctx.fillStyle = borderColor;
+    ctx.beginPath();
+    ctx.arc(x, y, 5.2 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.4 * s;
+    ctx.stroke();
+
+    // Measure text for callout card
+    ctx.font = `bold ${9.0 * s}px Segoe UI, sans-serif`;
+    const wTitle = ctx.measureText(title).width;
+    ctx.font = `bold ${10.2 * s}px Courier New, monospace`;
+    const wPrice = ctx.measureText(priceStr).width;
+    ctx.font = `${7.8 * s}px Courier New, monospace`;
+    const wSub = subStr ? ctx.measureText(subStr).width : 0;
+
+    const cardW = Math.max(wTitle + 12 * s, wPrice + wSub + 16 * s);
+    const cardH = 33 * s;
+
+    let cx = x + (offsetX || 0) * s - cardW / 2;
+    let cy = y + (offsetY || -44) * s;
+
+    // Clamp inside safe viewport bounds so cards never clip off screen
+    cx = Math.max(8 * s, Math.min(w - cardW - 8 * s, cx));
+    cy = Math.max(36 * s, Math.min(h - cardH - 36 * s, cy));
+
+    // Leader line from node to card
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 1.2 * s;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(cx + cardW / 2, cy + cardH / 2);
+    ctx.stroke();
+
+    // Card box
+    fillStrokeRoundRect(ctx, cx, cy, cardW, cardH, 5 * s, 'rgba(6, 12, 24, 0.93)', borderColor, 1.3 * s);
+
+    // Title
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = `bold ${8.9 * s}px Segoe UI, sans-serif`;
+    ctx.fillText(title, cx + 6 * s, cy + 12 * s);
+
+    // Price
+    ctx.fillStyle = priceColor || '#fde68a';
+    ctx.font = `bold ${10.0 * s}px Courier New, monospace`;
+    ctx.fillText(priceStr, cx + 6 * s, cy + 25.5 * s);
+
+    // Sub-label (Basis or PTDF)
+    if (subStr) {
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${7.7 * s}px Courier New, monospace`;
+      ctx.fillText(subStr, cx + cardW - wSub - 5.5 * s, cy + 25.5 * s);
+    }
+
+    ctx.restore();
+  }
+
+  // ============================================================================
+  // 3. STATE & INTERACTIVE CONTROLS
+  // ============================================================================
+  let storageEnabled = false;
+  const gasMapCanvas = document.getElementById('gasMapCanvas');
+  const praCanvas = document.getElementById('praCanvas');
+  const isoGridCanvas = document.getElementById('isoGridCanvas');
+  const isoStackCanvas = document.getElementById('isoStackCanvas');
+
+  let praHist = [];
+  const maxHist = 180;
+
+  function ensureCanvasSizes() {
+    const dpr = window.devicePixelRatio || 1;
+    [gasMapCanvas, praCanvas, isoGridCanvas, isoStackCanvas].forEach(c => {
+      const parent = c.parentElement;
+      const cw = (parent && parent.clientWidth > 40) ? parent.clientWidth : 600;
+      const ch = (parent && parent.clientHeight > 40) ? parent.clientHeight : 300;
+      const tw = Math.round(cw * dpr);
+      const th = Math.round(ch * dpr);
+      if (c.width !== tw || c.height !== th) {
+        c.width = tw;
+        c.height = th;
+      }
+    });
+  }
+  window.addEventListener('resize', ensureCanvasSizes);
+
+  function toggleStorage() {
+    storageEnabled = !storageEnabled;
+    const btn = document.getElementById('btnStorage');
+    const badge = document.getElementById('isoModeBadge');
+    const fwdPill = document.getElementById('isoFwdPill');
+    const stTag = document.getElementById('storageEffectTag');
+
+    if (storageEnabled) {
+      btn.classList.add('active');
+      btn.textContent = '🔋 SDES + LDES Hub Mode: ON (Carry Enforced)';
+      badge.textContent = 'Storage Carry Arbitrage Anchors Forward Curve!';
+      badge.style.background = 'rgba(168, 85, 247, 0.22)';
+      badge.style.color = '#e9d5ff';
+      badge.style.borderColor = '#a855f7';
+      fwdPill.textContent = 'SoC/SoI Carry Anchor Active!';
+      fwdPill.style.borderColor = '#c084fc';
+      fwdPill.style.color = '#e9d5ff';
+      stTag.textContent = 'Hub Storage Relieves μ_k & λ!';
+      stTag.style.color = '#d8b4fe';
+    } else {
+      btn.classList.remove('active');
+      btn.textContent = '🔋 SDES + LDES Hub Mode: OFF';
+      badge.textContent = 'Forward Curve Weight = ZERO (Endogenous)';
+      badge.style.background = 'rgba(244, 63, 94, 0.20)';
+      badge.style.color = '#fda4af';
+      badge.style.borderColor = 'rgba(244,63,94,0.5)';
+      fwdPill.textContent = '0 · F_{t,T}';
+      fwdPill.style.borderColor = '#64748b';
+      fwdPill.style.color = '#94a3b8';
+      stTag.textContent = 'Wire-Only (No Carry Anchor)';
+      stTag.style.color = '#fda4af';
+    }
+    updateAll();
+  }
+
+  function applyPreset(mode) {
+    document.getElementById('btnNormal').classList.toggle('active', mode === 'normal');
+    document.getElementById('btnShock').classList.toggle('active', mode === 'shock');
+
+    if (mode === 'normal') {
+      document.getElementById('sPraLambda').value = 0.65;
+      document.getElementById('sPraSpot').value = 3.25;
+      document.getElementById('sPraFut').value = 3.75;
+      document.getElementById('sPraInv').value = 81;
+      document.getElementById('sPraPipe').value = 0;
+
+      document.getElementById('sL1').value = 62;
+      document.getElementById('sL4').value = 38;
+      document.getElementById('sL5').value = 450;
+      document.getElementById('sL7').value = 3500;
+      document.getElementById('sL10').value = 0;
+      document.getElementById('sL2').value = 0;
+      document.getElementById('sL3').value = 1800;
+      document.getElementById('sL8').value = 350;
+      document.getElementById('sL6').value = 3.4;
+      document.getElementById('sL9').value = 0;
+    } else if (mode === 'shock') {
+      document.getElementById('sPraLambda').value = 0.45;
+      document.getElementById('sPraSpot').value = 4.60;
+      document.getElementById('sPraFut').value = 4.15;
+      document.getElementById('sPraInv').value = 64;
+      document.getElementById('sPraPipe').value = 2;
+
+      document.getElementById('sL1').value = 82;
+      document.getElementById('sL4').value = 88;
+      document.getElementById('sL5').value = 150;
+      document.getElementById('sL7').value = 6500;
+      document.getElementById('sL10').value = 250;
+      document.getElementById('sL2').value = 1;
+      document.getElementById('sL3').value = 1400;
+      document.getElementById('sL8').value = 850;
+      document.getElementById('sL6').value = 5.6;
+      document.getElementById('sL9').value = 0;
+    }
+    updateAll();
+  }
+
+  // ============================================================================
+  // 4. EXACT MATHEMATICAL ENGINE (FIXES #1, #2, #3)
+  // ============================================================================
+  function getState() {
+    // FIX #1: Exact PRA Formula Arithmetic (No hidden effSpot pre-blending!)
+    const praLam = parseFloat(document.getElementById('sPraLambda').value);
+    const praSpot = parseFloat(document.getElementById('sPraSpot').value);
+    const praFut = parseFloat(document.getElementById('sPraFut').value);
+    const praInv = parseFloat(document.getElementById('sPraInv').value);
+    const praPipe = parseInt(document.getElementById('sPraPipe').value);
+
+    const praTerm1 = praLam * praSpot;
+    const praTerm2 = (1 - praLam) * praFut;
+    const praAssessed = praTerm1 + praTerm2;
+
+    // Cavern inventory dampens physical spot volatility & regional basis blowouts
+    const cavernDampFactor = 1.0 - (praInv / 100) * 0.45;
+
+    // ISO 10 Levers
+    const L1 = parseFloat(document.getElementById('sL1').value);
+    const L2 = parseInt(document.getElementById('sL2').value);
+    const L3 = parseFloat(document.getElementById('sL3').value);
+    const L4 = parseFloat(document.getElementById('sL4').value);
+    const L5 = parseFloat(document.getElementById('sL5').value);
+    const L6 = parseFloat(document.getElementById('sL6').value);
+    const L7 = parseFloat(document.getElementById('sL7').value);
+    const L8 = parseFloat(document.getElementById('sL8').value);
+    const L9 = parseInt(document.getElementById('sL9').value);
+    const L10 = parseFloat(document.getElementById('sL10').value);
+
+    const storDamp = storageEnabled ? 0.30 : 1.0;
+
+    // 1. System Energy Cost (lambda) from L1, L4, L5, L7, L10
+    const rampPenalty = Math.max(0, (520 - L5) * 0.075 * (L1 / 60)) * storDamp;
+    const reserveOpp  = (L7 / 1000) * 2.8 * (L1 > 70 ? 2.0 : 1.0) * storDamp;
+    let energyLambda  = L4 * (L1 / 58) + rampPenalty + reserveOpp + (L10 * storDamp);
+    if (L9 === 1) energyLambda *= 0.93;
+
+    // 2. Congestion Cost (sum mu_k * PTDF) from L2, L3, L8
+    const topoMult = L2 === 0 ? 1.0 : (L2 === 1 ? 1.38 : 1.72);
+    let corridorMVA = (L1 * 27.5 + L8 * 0.70) * topoMult;
+    if (storageEnabled) corridorMVA *= 0.76;
+
+    const overloadMVA = Math.max(0, corridorMVA - L3);
+    const shadowMu = overloadMVA * 0.14 * topoMult * storDamp;
+
+    // FIX #3: Target Load Bus (Bus 4) PTDF & Loss Synchronized Everywhere
+    const ptdfShift = L9 === 1 ? 0.15 : 0.0;
+    const loadBusPTDF = 0.64 + ptdfShift;
+    const congCost = shadowMu * loadBusPTDF;
+
+    // 3. Transmission Loss Cost (-nu_n = +lambda * MLF_n) from L6, L9
+    const mlf = (L6 / 100) * (L9 === 0 ? 1.45 : 1.85);
+    const lossCost = energyLambda * mlf;
+
+    const totalLMP = energyLambda + congCost + lossCost;
+
+    return {
+      pra: { praLam, praSpot, praFut, praInv, praPipe, praTerm1, praTerm2, praAssessed, cavernDampFactor },
+      iso: { L1, L2, L3, L4, L5, L6, L7, L8, L9, L10, ptdfShift, loadBusPTDF, energyLambda, corridorMVA, shadowMu, congCost, lossCost, totalLMP }
+    };
+  }
+
+  function updateAll() {
+    const st = getState();
+    const P = st.pra;
+    const I = st.iso;
+
+    // Update PRA UI (Exact multiplication match!)
+    document.getElementById('vPraLambda').textContent = P.praLam.toFixed(2);
+    document.getElementById('vPraSpot').textContent = `$${P.praSpot.toFixed(2)}`;
+    document.getElementById('vPraFut').textContent = `$${P.praFut.toFixed(2)}`;
+    document.getElementById('vPraInv').textContent = `${P.praInv}% Full`;
+    document.getElementById('vPraPipe').textContent = P.praPipe === 0 ? 'Nominal' : (P.praPipe === 1 ? 'Moderate Basis' : 'Winter Pipe Freeze');
+
+    document.getElementById('praPhysVal').textContent = `$${P.praTerm1.toFixed(2)}`;
+    document.getElementById('praFwdWeightVal').textContent = `Wt: ${(1 - P.praLam).toFixed(2)}`;
+    document.getElementById('praTerm1Pill').textContent = `λ · P_trans ($${P.praTerm1.toFixed(2)})`;
+    document.getElementById('praTerm2Pill').textContent = `(1 − λ) · F_{t,T} ($${P.praTerm2.toFixed(2)})`;
+    document.getElementById('praFinalOut').textContent = `$${P.praAssessed.toFixed(2)}/MMBtu`;
+    document.getElementById('gasMapStatusTag').textContent = `Line-Pack & Salt Caverns: ${P.praInv}%`;
+    document.getElementById('praBufferNote').textContent = `(1 − λ) = ${(1 - P.praLam).toFixed(2)} & ${P.praInv}% Cavern Buffer`;
+
+    // Update ISO 10 Levers UI
+    document.getElementById('vL1').textContent = `${I.L1} GW`;
+    document.getElementById('vL4').textContent = `$${I.L4}/MWh`;
+    document.getElementById('vL5').textContent = `${I.L5} MW/m`;
+    document.getElementById('vL7').textContent = `${I.L7} MW`;
+    document.getElementById('vL10').textContent = `$${I.L10}/MWh`;
+
+    document.getElementById('vL2').textContent = I.L2 === 0 ? 'All Lines In' : (I.L2 === 1 ? 'N-1 Line Out' : 'N-1-1 Outage');
+    document.getElementById('vL3').textContent = `${I.L3} MVA`;
+    document.getElementById('vL8').textContent = `${I.L8 >= 0 ? '+' : ''}${I.L8} MW`;
+
+    document.getElementById('vL6').textContent = `${I.L6.toFixed(1)}%`;
+    document.getElementById('vL9').textContent = I.L9 === 0 ? 'Dist. Load Slack' : 'Gen Bus Slack';
+
+    document.getElementById('colEnergyVal').textContent = `$${I.energyLambda.toFixed(2)}`;
+    document.getElementById('colCongVal').textContent = `+$${I.congCost.toFixed(2)}`;
+    document.getElementById('colLossVal').textContent = `+$${I.lossCost.toFixed(2)}`;
+
+    // FIX #2: Consistent Additive Equation Pills
+    document.getElementById('isoEnergyPill').textContent = `Energy Cost (λ = $${I.energyLambda.toFixed(2)})`;
+    document.getElementById('isoCongPill').textContent = `Congestion Cost (Σ μ_k·PTDF = +$${I.congCost.toFixed(2)})`;
+    document.getElementById('isoLossPill').textContent = `Loss Component (−ν_n = +$${I.lossCost.toFixed(2)})`;
+    document.getElementById('finalLmpBanner').textContent = `Constrained Load Bus (Bus 4) LMP = $${I.totalLMP.toFixed(2)}/MWh`;
+
+    const cTag = document.getElementById('corridorTag');
+    const isBind = I.corridorMVA > I.L3;
+    cTag.textContent = `Flowgate 2→4: ${I.corridorMVA.toFixed(0)} / ${I.L3.toFixed(0)} MVA (${isBind ? 'BINDING! μ=$' + I.shadowMu.toFixed(1) : 'Uncongested'})`;
+    cTag.style.color = isBind ? '#fda4af' : '#a7f3d0';
+  }
+
+  function seedHistory() {
+    const st = getState();
+    const P = st.pra;
+    for (let i = 0; i < 90; i++) {
+      const t = i * 0.12;
+      const jitter = Math.sin(t * 2.8) * 0.07 * P.cavernDampFactor;
+      const futJit = -Math.sin(t * 1.9) * 0.025;
+      const sVal = P.praSpot + jitter;
+      const fVal = P.praFut + futJit;
+      praHist.push({
+        spot: sVal,
+        fut: fVal,
+        assessed: P.praLam * sVal + (1 - P.praLam) * fVal
+      });
+    }
+  }
+
+  // ============================================================================
+  // 5. MAIN ANIMATION LOOP (TWIN GIS MAPS & LOWER CHARTS)
+  // ============================================================================
+  function animate(now) {
+    ensureCanvasSizes();
+    const tSec = now / 1000;
+    const st = getState();
+    const P = st.pra;
+    const I = st.iso;
+
+    // Push live PRA triangulation trace point (inventory dampens spot noise)
+    const spotJitter = Math.sin(tSec * 2.8) * 0.08 * P.cavernDampFactor;
+    const futJitter = -Math.sin(tSec * 1.9) * 0.025;
+    const liveSpot = P.praSpot + spotJitter;
+    const liveFut = P.praFut + futJitter;
+    praHist.push({
+      spot: liveSpot,
+      fut: liveFut,
+      assessed: P.praLam * liveSpot + (1 - P.praLam) * liveFut
+    });
+    if (praHist.length > maxHist) praHist.shift();
+
+    // =========================================================================
+    // MAP 1 (LEFT): NATURAL GAS NORTH AMERICA GIS MAP
+    // =========================================================================
+    {
+      const ctx = gasMapCanvas.getContext('2d');
+      const w = gasMapCanvas.width, h = gasMapCanvas.height, s = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, w, h);
+
+      const proj = drawSharedGISMapBase(ctx, w, h, s, false);
+
+      // Geographically Accurate Gas Hubs (Lon, Lat)
+      const aecoPt  = proj.pt(-113.5, 51.2); // 1. AECO Alberta
+      const pnwPt   = proj.pt(-121.8, 39.5); // PNW / Malin / PG&E Gate
+      const socalPt = proj.pt(-117.8, 34.0); // SoCal Citygate
+      const wahaPt  = proj.pt(-103.1, 31.4); // 2. Permian (Waha)
+      const hhPt    = proj.pt(-92.1,  30.0); // Henry Hub (Erath, LA)
+      const chiPt   = proj.pt(-87.8,  41.8); // Chicago / Dawn Midwest
+      const appPt   = proj.pt(-79.9,  39.8); // 3. Appalachia (Eastern Gas South / M2)
+      const algPt   = proj.pt(-71.4,  42.3); // Algonquin Citygate / Transco Z6 NY
+
+      // Underground Salt Cavern Reservoir Dome at Henry Hub
+      ctx.save();
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5 * s;
+      ctx.beginPath();
+      ctx.ellipse(hhPt.x, hhPt.y + 15 * s, 26 * s, 7.5 * s, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // Interstate Pipeline Corridors
+      const gasPipes = [
+        [aecoPt, pnwPt],   // GTN / Foothills -> PNW & NorCal
+        [aecoPt, chiPt],   // TC Energy / Northern Border -> Midwest
+        [wahaPt, socalPt], // El Paso / Transwestern -> SoCal & AZ
+        [wahaPt, hhPt],    // Permian Highway / Matterhorn -> Henry Hub
+        [wahaPt, chiPt],   // NGPL / Panhandle -> Midwest
+        [hhPt, chiPt],     // Midcontinent Spine
+        [appPt, hhPt],     // Transco / TGP Backhaul -> Gulf
+        [appPt, algPt]     // TETCO / Algonquin -> NE Citygate
+      ];
+
+      ctx.save();
+      gasPipes.forEach((pr, idx) => {
+        // Outer pressurized casing
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.28)';
+        ctx.lineWidth = 6.5 * s;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(pr[0].x, pr[0].y);
+        ctx.lineTo(pr[1].x, pr[1].y);
+        ctx.stroke();
+
+        // Inner trunkline core
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2.0 * s;
+        ctx.beginPath();
+        ctx.moveTo(pr[0].x, pr[0].y);
+        ctx.lineTo(pr[1].x, pr[1].y);
+        ctx.stroke();
+
+        // Flowing CH4 line-pack molecules (15-30 mph)
+        for (let k = 0; k < 5; k++) {
+          const prog = ((tSec * 0.16) + k / 5 + idx * 0.13) % 1.0;
+          const mx = pr[0].x + prog * (pr[1].x - pr[0].x);
+          const my = pr[0].y + prog * (pr[1].y - pr[0].y);
+          ctx.fillStyle = '#a7f3d0';
+          ctx.beginPath();
+          ctx.arc(mx, my, 2.7 * s, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      ctx.restore();
+
+      // Regional Hub Prices (Local Netback = Henry Hub ± Basis, moderated by cavern inventory)
+      const hhPrice = P.praAssessed;
+      const pipeMult = (1 + P.praPipe * 0.85) * (0.75 + 0.35 * P.cavernDampFactor);
+      const aecoPrice  = Math.max(0.80, hhPrice - 1.35 * pipeMult);
+      const wahaPrice  = Math.max(0.40, hhPrice - 1.55 * pipeMult);
+      const appPrice   = Math.max(0.90, hhPrice - 0.85 * pipeMult);
+      const pnwPrice   = hhPrice + 0.45 * pipeMult;
+      const socalPrice = hhPrice + 1.10 * pipeMult;
+      const chiPrice   = hhPrice + 0.55 * pipeMult;
+      const algPrice   = hhPrice + 2.40 * (P.praPipe === 2 ? 3.1 : pipeMult);
+
+      drawMapNodeBadge(ctx, aecoPt.x, aecoPt.y, '1. AECO (Alberta)', `$${aecoPrice.toFixed(2)}`, 'Basis:-$' + (hhPrice - aecoPrice).toFixed(2), '#10b981', '#6ee7b7', 35, -36, w, h);
+      drawMapNodeBadge(ctx, pnwPt.x, pnwPt.y, 'PNW / PG&E Gate', `$${pnwPrice.toFixed(2)}`, 'GTN Feed', '#38bdf8', '#fde68a', 42, -38, w, h);
+      drawMapNodeBadge(ctx, socalPt.x, socalPt.y, 'SoCal Citygate', `$${socalPrice.toFixed(2)}`, 'Basis:+$' + (socalPrice - hhPrice).toFixed(2), '#38bdf8', '#fde68a', 35, 14, w, h);
+      drawMapNodeBadge(ctx, wahaPt.x, wahaPt.y, '2. Permian (Waha)', `$${wahaPrice.toFixed(2)}`, 'Basis:-$' + (hhPrice - wahaPrice).toFixed(2), '#10b981', '#6ee7b7', -15, 14, w, h);
+      drawMapNodeBadge(ctx, hhPt.x, hhPt.y, 'Henry Hub (LA)', `$${hhPrice.toFixed(2)}`, `Caverns:${P.praInv}%`, '#f59e0b', '#fde047', 40, 14, w, h);
+      drawMapNodeBadge(ctx, chiPt.x, chiPt.y, 'Chicago / Dawn', `$${chiPrice.toFixed(2)}`, 'Basis:+$' + (chiPrice - hhPrice).toFixed(2), '#38bdf8', '#fde68a', -15, -42, w, h);
+      drawMapNodeBadge(ctx, appPt.x, appPt.y, '3. Appalachia (M2)', `$${appPrice.toFixed(2)}`, 'Basis:-$' + (hhPrice - appPrice).toFixed(2), '#10b981', '#6ee7b7', 45, 12, w, h);
+      drawMapNodeBadge(ctx, algPt.x, algPt.y, 'Algonquin / Z6 NY', `$${algPrice.toFixed(2)}`, P.praPipe === 2 ? 'Pipe Constrained!' : 'NE Citygate', P.praPipe === 2 ? '#f43f5e' : '#38bdf8', '#fde68a', -35, -42, w, h);
+    }
+
+    // =========================================================================
+    // MAP 2 (RIGHT): POWER ISO SCED NORTH AMERICA GIS MAP (BUS 4 SYNCHRONIZED!)
+    // =========================================================================
+    {
+      const ctx = isoGridCanvas.getContext('2d');
+      const w = isoGridCanvas.width, h = isoGridCanvas.height, s = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, w, h);
+
+      const proj = drawSharedGISMapBase(ctx, w, h, s, true);
+
+      // 5-Bus SCED Network Overlay (Bus 4 matches Top Banner & Waterfall Chart to the penny!)
+      const busDefs = [
+        { name: 'Bus 1: West Wind/Solar Gen',   lon: -119.5, lat: 37.5, ptdf: -0.52 + I.ptdfShift, lossMult: -0.40, ox: 42,  oy: -42 },
+        { name: 'Bus 2: Midcont. Storage Hub',  lon: -94.5,  lat: 41.8, ptdf: -0.18 + I.ptdfShift, lossMult: -0.10, ox: -15, oy: -42 },
+        { name: 'Bus 3: South Thermal Peaker',  lon: -96.8,  lat: 31.5, ptdf:  0.08 + I.ptdfShift, lossMult:  0.25, ox: 20,  oy: 14  },
+        { name: 'Bus 4: East Load Zone [Ref]',  lon: -78.5,  lat: 39.5, ptdf:  I.loadBusPTDF,      lossMult:  1.00, ox: 25,  oy: 14  },
+        { name: 'Bus 5: NE Constrained Pocket', lon: -71.5,  lat: 42.4, ptdf:  0.82 + I.ptdfShift, lossMult:  1.25, ox: -40, oy: -42 }
+      ];
+
+      const buses = busDefs.map(b => {
+        const pt = proj.pt(b.lon, b.lat);
+        const nodeCong = I.shadowMu * b.ptdf;
+        const nodeLoss = I.lossCost * b.lossMult;
+        const lmp = I.energyLambda + nodeCong + nodeLoss;
+        return { ...b, x: pt.x, y: pt.y, nodeCong, nodeLoss, lmp };
+      });
+
+      const edges = [
+        { a: 0, b: 1, out: false, fg: false },
+        { a: 0, b: 2, out: false, fg: false },
+        { a: 1, b: 2, out: I.L2 >= 2, fg: false },
+        { a: 1, b: 3, out: false, fg: true },      // Monitored binding flowgate (Corridor 2->4)
+        { a: 2, b: 3, out: I.L2 >= 1, fg: false }, // N-1 outage line (Corridor 3->4)
+        { a: 3, b: 4, out: false, fg: false }
+      ];
+
+      edges.forEach((e, idx) => {
+        const pA = buses[e.a], pB = buses[e.b];
+        if (e.out) {
+          ctx.save();
+          ctx.setLineDash([6 * s, 6 * s]);
+          ctx.strokeStyle = '#f43f5e';
+          ctx.lineWidth = 2.4 * s;
+          ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.stroke();
+
+          const mx = (pA.x + pB.x) * 0.5;
+          const my = (pA.y + pB.y) * 0.5;
+          fillStrokeRoundRect(ctx, mx - 54 * s, my - 9 * s, 108 * s, 18 * s, 4 * s, 'rgba(69, 10, 26, 0.94)', '#f43f5e', 1.2 * s);
+          ctx.fillStyle = '#fecdd3';
+          ctx.font = `bold ${8.5 * s}px Segoe UI, sans-serif`;
+          ctx.fillText('✖ N-1 LINE OUTAGE', mx - 46 * s, my + 3 * s);
+          ctx.restore();
+          return;
+        }
+
+        const isBind = e.fg && I.corridorMVA > I.L3;
+        const lineCol = isBind ? '#ff2a55' : (storageEnabled ? '#c084fc' : '#38bdf8');
+
+        ctx.save();
+        ctx.strokeStyle = lineCol;
+        ctx.lineWidth = (e.fg ? 3.6 : 2.3) * s;
+        ctx.shadowColor = lineCol;
+        ctx.shadowBlur = isBind ? 14 * s : 6 * s;
+        ctx.beginPath(); ctx.moveTo(pA.x, pA.y); ctx.lineTo(pB.x, pB.y); ctx.stroke();
+
+        // Speed-of-light EM Poynting flux pulses (~99% c — 18x faster than gas molecules!)
+        for (let k = 0; k < 4; k++) {
+          const prog = ((tSec * 2.9) + k / 4 + idx * 0.17) % 1.0;
+          const fx = pA.x + prog * (pB.x - pA.x);
+          const fy = pA.y + prog * (pB.y - pA.y);
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath(); ctx.arc(fx, fy, 3.0 * s, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      // Draw Scarcity Heat Contours or Storage Hub Telemetry + Nodal LMP Badges
+      buses.forEach((b, idx) => {
+        // Scarcity heat halo when LMP spikes
+        if (!storageEnabled && b.lmp >= 150) {
+          ctx.save();
+          const pulseR = (14 + 6 * Math.sin(tSec * 14 + idx)) * s;
+          const radGrad = ctx.createRadialGradient(b.x, b.y, 2 * s, b.x, b.y, pulseR * 1.6);
+          radGrad.addColorStop(0, 'rgba(255, 42, 85, 0.65)');
+          radGrad.addColorStop(1, 'rgba(244, 63, 94, 0)');
+          ctx.fillStyle = radGrad;
+          ctx.beginPath(); ctx.arc(b.x, b.y, pulseR * 1.6, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+
+        const isStor = storageEnabled && (idx === 1 || idx === 3);
+        const isTargetBus4 = (idx === 3);
+        const bCol = isStor ? '#c084fc' : (b.lmp > 120 ? '#f43f5e' : (isTargetBus4 ? '#f59e0b' : '#38bdf8'));
+
+        drawMapNodeBadge(
+          ctx, b.x, b.y,
+          b.name,
+          `$${b.lmp.toFixed(2)}/MWh`,
+          `PTDF:${b.ptdf >= 0 ? '+' : ''}${b.ptdf.toFixed(2)}`,
+          bCol,
+          '#fde047',
+          b.ox, b.oy,
+          w, h
+        );
+      });
+    }
+
+    // =========================================================================
+    // LOWER CHART 1 (LEFT): PRA TRIANGULATION CONVERGENCE CHART
+    // =========================================================================
+    {
+      const ctx = praCanvas.getContext('2d');
+      const w = praCanvas.width, h = praCanvas.height, s = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, w, h);
+
+      const minV = 1.2, maxV = 8.5;
+      const yOf = v => h - (((Math.max(minV, Math.min(maxV, v)) - minV) / (maxV - minV)) * (h * 0.70) + h * 0.18);
+
+      // Subtle reference gridlines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.50)';
+      ctx.font = `${8.0 * s}px Consolas, monospace`;
+      [2.0, 4.0, 6.0, 8.0].forEach(val => {
+        const y = yOf(val);
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+        ctx.fillText(`$${val.toFixed(2)}`, 6 * s, y - 3 * s);
+      });
+      ctx.restore();
+
+      if (praHist.length > 2) {
+        ctx.beginPath();
+        praHist.forEach((pt, i) => {
+          const x = (i / (maxHist - 1)) * w, y = yOf(pt.fut);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        for (let i = praHist.length - 1; i >= 0; i--) {
+          const x = (i / (maxHist - 1)) * w, y = yOf(praHist[i].spot);
+          ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+        ctx.fill();
+
+        // Forward Curve Line
+        ctx.beginPath();
+        praHist.forEach((pt, i) => {
+          const x = (i / (maxHist - 1)) * w, y = yOf(pt.fut);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2.0 * s; ctx.stroke();
+
+        // Physical Spot Line
+        ctx.save();
+        ctx.setLineDash([4 * s, 4 * s]);
+        ctx.beginPath();
+        praHist.forEach((pt, i) => {
+          const x = (i / (maxHist - 1)) * w, y = yOf(pt.spot);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.8 * s; ctx.stroke();
+        ctx.restore();
+
+        // Assessed PRA Price
+        ctx.beginPath();
+        praHist.forEach((pt, i) => {
+          const x = (i / (maxHist - 1)) * w, y = yOf(pt.assessed);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2.6 * s; ctx.stroke();
+      }
+
+      ctx.fillStyle = '#38bdf8'; ctx.font = `bold ${9.0 * s}px Segoe UI, sans-serif`;
+      ctx.fillText(`--- Physical Deals P_trans ($${P.praSpot.toFixed(2)})`, 12 * s, h - 9 * s);
+      ctx.fillStyle = '#10b981';
+      ctx.fillText(`— Forward Curve F_{t,T} ($${P.praFut.toFixed(2)})`, 210 * s, h - 9 * s);
+      ctx.fillStyle = '#fde047';
+      ctx.fillText(`— PRA Assessed Spot ($${P.praAssessed.toFixed(2)}/MMBtu)`, 405 * s, h - 9 * s);
+    }
+
+    // =========================================================================
+    // LOWER CHART 2 (RIGHT): ISO EXPLODED COMPONENT WATERFALL BAR CHART (BUS 4)
+    // =========================================================================
+    {
+      const ctx = isoStackCanvas.getContext('2d');
+      const w = isoStackCanvas.width, h = isoStackCanvas.height, s = window.devicePixelRatio || 1;
+      ctx.clearRect(0, 0, w, h);
+
+      const baseY = h * 0.78;
+      const maxScale = Math.max(120, I.totalLMP * 1.22);
+      const scaleH = v => (Math.max(0, v) / maxScale) * (h * 0.60);
+
+      const bars = [
+        { label: 'Energy Cost (λ)', val: I.energyLambda, col: '#f59e0b', sub: 'Levers L1, L4, L5, L7, L10' },
+        { label: 'Congestion (Σ μ·PTDF_4)', val: I.congCost, col: '#f43f5e', sub: 'Levers L2, L3, L8' },
+        { label: 'Loss Adder (−ν_4)', val: I.lossCost, col: '#06b6d4', sub: 'Levers L6, L9' },
+        { label: 'Bus 4 Final Load LMP', val: I.totalLMP, col: storageEnabled ? '#a855f7' : '#10b981', sub: 'Exact Sum (Fwd Wt = 0)' }
+      ];
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5 * s;
+      ctx.beginPath(); ctx.moveTo(w * 0.04, baseY); ctx.lineTo(w * 0.96, baseY); ctx.stroke();
+
+      const colW = (w * 0.88) / bars.length;
+      bars.forEach((b, i) => {
+        const bx = w * 0.07 + i * colW;
+        const bw = colW * 0.56;
+        const bh = scaleH(b.val);
+
+        ctx.fillStyle = b.col + 'cc';
+        ctx.strokeStyle = b.col;
+        ctx.lineWidth = 1.8 * s;
+        ctx.fillRect(bx, baseY - bh, bw, bh);
+        ctx.strokeRect(bx, baseY - bh, bw, bh);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${10.2 * s}px Courier New, monospace`;
+        ctx.fillText(`$${b.val.toFixed(2)}/MWh`, bx, baseY - bh - 7 * s);
+
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = `bold ${9.0 * s}px Segoe UI, sans-serif`;
+        ctx.fillText(b.label, bx, baseY + 15 * s);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = `${8.0 * s}px Segoe UI, sans-serif`;
+        ctx.fillText(b.sub, bx, baseY + 28 * s);
+      });
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  ensureCanvasSizes();
+  updateAll();
+  seedHistory();
+  requestAnimationFrame(animate);
+</script>
+</body>
+</html>
