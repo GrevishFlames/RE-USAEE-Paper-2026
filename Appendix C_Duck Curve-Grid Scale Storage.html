@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LDES Temporal Basis Compression Simulator</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h2 {
+            margin-top: 0;
+            color: #58a6ff;
+            text-align: center;
+            font-size: 28px;
+            letter-spacing: 0.5px;
+        }
+        .metrics-board {
+            display: flex;
+            justify-content: space-between;
+            background: #0d1117;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #30363d;
+        }
+        .metric {
+            text-align: center;
+            width: 30%;
+        }
+        .metric-title {
+            font-size: 14px;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .spread-value {
+            color: #ff7b72; /* Starts red, will transition to green via JS */
+            transition: color 0.3s;
+        }
+        .slider-container {
+            margin: 30px 0;
+            text-align: center;
+        }
+        input[type=range] {
+            width: 80%;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            border-bottom: 2px solid #30363d;
+            border-left: 2px solid #30363d;
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+        .axis-label {
+            fill: #8b949e;
+            font-size: 12px;
+        }
+        .line-path {
+            fill: none;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: d 0.2s ease-out, stroke 0.5s ease-out;
+        }
+        .baseline-path {
+            fill: none;
+            stroke: #30363d;
+            stroke-width: 2;
+            stroke-dasharray: 6 6;
+        }
+        .x-axis-text { text-anchor: middle; }
+        .y-axis-text { text-anchor: end; alignment-baseline: middle; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Grid-Scale Storage vs. Net Load (Duck Curve Morphing)</h2>
+    
+    <div class="metrics-board">
+        <div class="metric">
+            <div class="metric-title">Active Grid Storage</div>
+            <div class="metric-value" id="storageVal">0 GWh</div>
+        </div>
+        <div class="metric">
+            <div class="metric-title">Temporal Basis / Spread</div>
+            <div class="metric-value spread-value" id="spreadVal">$50.00 / MWh</div>
+        </div>
+        <div class="metric">
+            <div class="metric-title">Market State</div>
+            <div class="metric-value" id="marketState" style="color:#ff7b72; font-size:22px;">Pure Flow (Volatile)</div>
+        </div>
+    </div>
+
+    <div class="slider-container">
+        <label for="storageSlider" style="color: #8b949e; font-size: 14px; text-transform: uppercase;">Deploy Battery Capacity (GWh)</label><br>
+        <input type="range" id="storageSlider" min="0" max="1000" value="0">
+    </div>
+
+    <div class="chart-container">
+        <svg viewBox="0 0 800 400" preserveAspectRatio="none">
+            <!-- Grid Lines -->
+            <line x1="0" y1="100" x2="800" y2="100" stroke="#21262d" stroke-width="1"/>
+            <line x1="0" y1="200" x2="800" y2="200" stroke="#21262d" stroke-width="1"/>
+            <line x1="0" y1="300" x2="800" y2="300" stroke="#21262d" stroke-width="1"/>
+            
+            <!-- Y Axis Labels -->
+            <text x="-15" y="100" class="axis-label y-axis-text">15 GW</text>
+            <text x="-15" y="200" class="axis-label y-axis-text">10 GW</text>
+            <text x="-15" y="300" class="axis-label y-axis-text">5 GW</text>
+            <text x="-15" y="400" class="axis-label y-axis-text">0 GW</text>
+
+            <!-- X Axis Labels -->
+            <text x="0" y="425" class="axis-label x-axis-text">00:00</text>
+            <text x="200" y="425" class="axis-label x-axis-text">06:00</text>
+            <text x="400" y="425" class="axis-label x-axis-text">12:00</text>
+            <text x="600" y="425" class="axis-label x-axis-text">18:00</text>
+            <text x="800" y="425" class="axis-label x-axis-text">24:00</text>
+
+            <!-- Baseline (No Storage) -->
+            <path id="baselineCurve" class="baseline-path" />
+            <!-- Dynamic Curve -->
+            <path id="dynamicCurve" class="line-path" stroke="#58a6ff" />
+        </svg>
+    </div>
+</div>
+
+<script>
+    // Data points: [Midnight, 4am, 8am, 12pm, 4pm, 7pm (Peak), 10pm, Midnight]
+    // Y-axis inverted for SVG: 400 is 0 GW, 0 is 20 GW. 1 GW = 20px
+    const pointsX = [0, 133, 266, 400, 533, 633, 733, 800];
+    
+    // 0 GWh (Classic Duck Curve - massive belly, huge neck)
+    const curve0 = [260, 280, 200, 360, 260, 40, 160, 260]; 
+    
+    // 1000 GWh (Flattened LDES Curve)
+    const curve1000 = [240, 240, 240, 240, 240, 240, 240, 240]; 
+
+    const slider = document.getElementById("storageSlider");
+    const storageVal = document.getElementById("storageVal");
+    const spreadVal = document.getElementById("spreadVal");
+    const marketState = document.getElementById("marketState");
+    const dynamicCurve = document.getElementById("dynamicCurve");
+    const baselineCurve = document.getElementById("baselineCurve");
+
+    // Catmull-Rom to bezier conversion for smooth SVG curves
+    function getPathData(pointsY) {
+        let d = `M ${pointsX[0]},${pointsY[0]} `;
+        for(let i=1; i<pointsX.length - 2; i++) {
+            let xc = (pointsX[i] + pointsX[i+1]) / 2;
+            let yc = (pointsY[i] + pointsY[i+1]) / 2;
+            d += `Q ${pointsX[i]},${pointsY[i]} ${xc},${yc} `;
+        }
+        d += `T ${pointsX[pointsX.length-1]},${pointsY[pointsY.length-1]}`;
+        return d;
+    }
+
+    // Set static baseline
+    baselineCurve.setAttribute("d", getPathData(curve0));
+
+    // Update function based on slider
+    slider.addEventListener("input", function() {
+        let val = parseInt(slider.value);
+        let percent = val / 1000;
+
+        // Interpolate curve points
+        let currentY = curve0.map((y, index) => {
+            return y + (curve1000[index] - y) * percent;
+        });
+        
+        dynamicCurve.setAttribute("d", getPathData(currentY));
+
+        // Update Storage Text
+        storageVal.innerText = val + " GWh";
+
+        // Calculate and format the Bid-Ask Spread
+        let spread = 50.00 - (49.00 * (val/1000));
+        spreadVal.innerText = "$" + spread.toFixed(2) + " / MWh";
+
+        // Color coding and Market State text logic
+        if(val < 50) {
+            spreadVal.style.color = "#ff7b72"; // Red
+            dynamicCurve.style.stroke = "#ff7b72";
+            marketState.innerText = "Pure Flow (Volatile)";
+            marketState.style.color = "#ff7b72";
+        } else if (val < 500) {
+            spreadVal.style.color = "#d29922"; // Orange/Yellow
+            dynamicCurve.style.stroke = "#d29922";
+            marketState.innerText = "Intraday Buffering";
+            marketState.style.color = "#d29922";
+        } else if (val < 900) {
+            spreadVal.style.color = "#3fb950"; // Green
+            dynamicCurve.style.stroke = "#3fb950";
+            marketState.innerText = "Regional Stabilization";
+            marketState.style.color = "#3fb950";
+        } else {
+            spreadVal.style.color = "#58a6ff"; // Blue
+            dynamicCurve.style.stroke = "#58a6ff";
+            marketState.innerText = "Mature Inventory Market";
+            marketState.style.color = "#58a6ff";
+        }
+    });
+
+    // Initialize map on load
+    slider.dispatchEvent(new Event('input'));
+</script>
+</body>
+</html>
